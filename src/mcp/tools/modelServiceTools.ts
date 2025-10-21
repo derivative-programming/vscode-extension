@@ -635,6 +635,101 @@ export class ModelServiceTools {
     }
 
     /**
+     * Create AI processing request
+     * Submits a new AI processing request to Model Services with the current model file
+     * Tool name: create_model_ai_processing_request
+     * 
+     * @param description - Description for the AI processing request (e.g., "Project: MyApp, Version: 1.0.0")
+     */
+    public async create_model_ai_processing_request(description: string): Promise<any> {
+        if (!description || description.trim() === '') {
+            return {
+                success: false,
+                error: 'Description is required for creating an AI processing request'
+            };
+        }
+
+        const isLoggedIn = await this.checkAuthStatus();
+        if (!isLoggedIn) {
+            return {
+                success: false,
+                error: 'Authentication required. Please log in to Model Services first using the open_login_view tool or click Login under Model Services in the tree view.'
+            };
+        }
+
+        return new Promise((resolve) => {
+            const http = require('http');
+            
+            const postData = JSON.stringify({ 
+                description: description.trim()
+            });
+            
+            const options = {
+                hostname: 'localhost',
+                port: 3002,
+                path: '/api/model-services/create-prep-request',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(postData)
+                },
+                timeout: 60000 // 60 second timeout for file upload
+            };
+
+            const req = http.request(options, (res: any) => {
+                let data = '';
+                
+                res.on('data', (chunk: any) => {
+                    data += chunk;
+                });
+                
+                res.on('end', () => {
+                    try {
+                        const response = JSON.parse(data);
+                        if (response.success) {
+                            resolve({
+                                success: true,
+                                message: 'AI processing request created successfully',
+                                requestCode: response.requestCode,
+                                description: description
+                            });
+                        } else {
+                            resolve({
+                                success: false,
+                                error: response.error || 'Failed to create AI processing request'
+                            });
+                        }
+                    } catch (error: any) {
+                        resolve({
+                            success: false,
+                            error: 'Failed to parse response from Model Services'
+                        });
+                    }
+                });
+            });
+
+            req.on('error', (error: any) => {
+                resolve({
+                    success: false,
+                    error: error.message || 'Failed to connect to Model Services',
+                    note: 'Check that you are logged in to Model Services and have an active internet connection'
+                });
+            });
+
+            req.on('timeout', () => {
+                req.destroy();
+                resolve({
+                    success: false,
+                    error: 'API call timed out. The Model Services API may be slow or unavailable, or the model file may be too large.'
+                });
+            });
+
+            req.write(postData);
+            req.end();
+        });
+    }
+
+    /**
      * Get the Model AI Processing Request schema definition
      * Tool name: get_model_ai_processing_request_schema
      * @returns Schema definition for AI processing request objects returned by Model Services API

@@ -1,4 +1,146 @@
 ===============================================================================
+DATE: January 21, 2025
+COMMAND: Add Create Model AI Processing Request Tool
+STATUS: ✅ COMPLETED
+===============================================================================
+
+REQUIREMENT:
+User requested: "we need a tool that can create a model ai processing request"
+This enables programmatic submission of AI processing requests through the MCP server, allowing AI agents and tools to automate the workflow of requesting model enhancements.
+
+IMPLEMENTATION:
+Added new MCP tool to create AI processing requests with HTTP bridge endpoint:
+
+Tool: create_model_ai_processing_request
+- Submit new AI processing request to Model Services with current model file
+- Parameter: description (string, required) - Description for the request
+- Automatically reads current model file from ModelService
+- Zips the model file for efficient upload
+- Base64 encodes the ZIP for JSON transmission
+- Returns request code for tracking the AI processing
+- 60-second timeout (longer than other tools due to file upload)
+- Requires authentication via API key
+- Requires open model file
+
+WORKFLOW:
+1. Validate description is provided (400 if empty)
+2. Check authentication (401 if not logged in)
+3. Get model file path from ModelService singleton
+4. Validate model file is loaded (400 if no file)
+5. Read model JSON file from disk
+6. Create ZIP archive with model.json
+7. Convert ZIP to base64 string
+8. Build payload with description and modelFileData
+9. POST to Model Services API
+10. Return success with request code or error
+
+FILES MODIFIED:
+1. src/mcp/tools/modelServiceTools.ts (+110 lines)
+   - Added create_model_ai_processing_request() method
+   - Takes description parameter
+   - Uses HTTP bridge pattern with localhost:3002
+   - 60-second timeout for file upload
+   - Returns request code on success
+
+2. src/services/mcpBridge.ts (+135 lines)
+   - Added /api/model-services/create-prep-request endpoint
+   - Handles authentication via AuthService
+   - Gets model file path from ModelService
+   - Reads and zips model file using JSZip
+   - Base64 encodes ZIP file
+   - POSTs to Model Services API with description and modelFileData
+   - Returns request code from API response
+   - Comprehensive error handling for all failure cases
+
+3. src/mcp/server.ts (+40 lines)
+   - Registered create_model_ai_processing_request tool
+   - Zod schema for input: description string
+   - Zod schema for output: success, message, requestCode, description, error, note
+   - Detailed description explaining automatic file handling
+
+4. src/extension.ts
+   - Updated total tool count: 87 → 88
+   - Updated Model Services tools: 15 → 16
+   - Added create_model_ai_processing_request to Model Services section
+   - Added to chat mode tools YAML list
+
+5. MCP_README.md
+   - Updated total tool count: 87 → 88
+   - Updated Model Services section: 15 → 16 tools
+   - Added create_model_ai_processing_request to numbered list (item 5)
+
+6. docs/features/create-model-ai-processing-request-tool.md (NEW, 350+ lines)
+   - Complete documentation for create tool
+   - Use cases, parameters, return structures
+   - Behind-the-scenes workflow explanation
+   - Example usage with GitHub Copilot
+   - Typical workflow from creation to results
+   - Related tools, implementation details
+   - Requirements, best practices, testing recommendations
+   - Benefits, limitations, future enhancements
+
+COMPILATION STATUS:
+✅ SUCCESSFUL - npm run compile completed with no errors
+- Webpack bundle: 5.48 MiB extension.js
+- MCP tools compiled to dist/mcp/
+- No TypeScript errors or warnings
+
+API ENDPOINT:
+POST https://modelservicesapi.derivative-programming.com/api/v1_0/prep-requests
+Payload: { description: string, modelFileData: string (base64 ZIP) }
+Response: { modelPrepRequestCode: string, ... }
+
+EXAMPLE USAGE:
+"Create an AI processing request with description 'Project: MyApp, Version: 1.0.0'"
+"Submit a new AI processing request for 'Project: InventorySystem, Version: 1.5'"
+"Request AI processing with description 'Initial model for CustomerPortal'"
+
+TYPICAL WORKFLOW:
+1. Open AppDNA model file in VS Code
+2. Save any unsaved changes
+3. Login to Model Services (if not already logged in)
+4. Use create_model_ai_processing_request with description
+5. Receive request code (e.g., "ABC123")
+6. Use get_model_ai_processing_request_details to monitor status
+7. Wait for processing to complete (typically 2-10 minutes)
+8. Download enhanced model from resultModelUrl
+9. Review report from reportUrl
+10. Backup original and apply enhanced model
+
+BENEFITS:
+- Automated Enhancement: AI analyzes and improves model automatically
+- Time Savings: Reduces hours of manual model development
+- Best Practices: AI applies industry standards to model
+- Pattern Recognition: Identifies common patterns and suggests improvements
+- Error Detection: Finds potential issues and inconsistencies
+- Feature Suggestions: Recommends features based on domain
+- Seamless Integration: Works with current model file automatically
+
+TOOL COUNT SUMMARY:
+- Total Tools: 87 → 88 (+1)
+- Model Services Tools: 15 → 16 (+1)
+- Create/Submit Tools: 0 → 1 (+1)
+
+TECHNICAL NOTES:
+- File Compression: Model zipped before upload for efficiency
+- Base64 Encoding: ZIP converted to base64 for JSON transmission
+- ModelService Integration: Uses singleton to get current model path
+- Automatic Detection: No manual file selection needed
+- Request Tracking: Returns code for monitoring progress
+- Processing Time: AI typically takes 2-10 minutes depending on size
+- Timeout: 60 seconds to accommodate large model uploads
+- Error Handling: Comprehensive validation at each step
+
+ARCHITECTURAL NOTES:
+- HTTP Bridge Pattern: Uses localhost:3002 to avoid CORS issues
+- Authentication Integration: AuthService provides API key
+- Model Service Access: Gets current model file path from singleton
+- JSZip Integration: Uses JSZip library for compression
+- Base64 Encoding: Node.js Buffer for encoding
+- Extended Timeout: 60 seconds vs 30 seconds for other tools
+- File I/O: Reads model JSON synchronously for reliability
+
+===============================================================================
 DATE: January 20, 2025
 COMMAND: Add Model Services Details Tools (Validation & Fabrication)
 STATUS: ✅ COMPLETED

@@ -1267,6 +1267,43 @@ export class MCPServer {
             }
         });
 
+        // Register create_model_ai_processing_request tool
+        this.server.registerTool('create_model_ai_processing_request', {
+            title: 'Create Model AI Processing Request',
+            description: 'Submit a new AI processing request to Model Services with the current AppDNA model file. The AI will analyze your model and enhance it with additional features, improvements, and recommendations. The model file is automatically read, zipped, and uploaded. Returns the request code for tracking. Requires authentication to Model Services and an open model file.',
+            inputSchema: {
+                description: z.string().describe('Description for the AI processing request (e.g., "Project: MyApp, Version: 1.0.0")')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                message: z.string().optional().describe('Success message'),
+                requestCode: z.string().optional().describe('The generated request code for tracking'),
+                description: z.string().optional().describe('The description that was submitted'),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: any) => {
+            try {
+                const result = await this.modelServiceTools.create_model_ai_processing_request(
+                    args.description
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register get_model_validation_request_details tool
         this.server.registerTool('get_model_validation_request_details', {
             title: 'Get Model Validation Request Details',

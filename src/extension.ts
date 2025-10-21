@@ -117,6 +117,7 @@ tools:
   - select_model_feature
   - unselect_model_feature
   - list_model_ai_processing_requests
+  - create_model_ai_processing_request
   - get_model_ai_processing_request_details
   - get_model_ai_processing_request_schema
   - list_model_validation_requests
@@ -260,7 +261,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
   - Auto-expand tree nodes
   - Custom model file name
 
-## Comprehensive MCP Tool Suite (87 Tools)
+## Comprehensive MCP Tool Suite (88 Tools)
 
 ### User Story Management (5 Tools)
 **CRUD Operations:**
@@ -378,11 +379,12 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 ### Utility Tools (1 Tool)
 - \`secret_word_of_the_day\` - Test/verification tool
 
-### Model Services API Tools (15 Tools)
+### Model Services API Tools (16 Tools)
 - \`list_model_features_catalog_items\` - Retrieve Model Feature Catalog items with selection status and pagination
 - \`select_model_feature\` - Add a model feature from the catalog to your AppDNA model (requires exact name AND version match, updates in memory, marks unsaved changes)
 - \`unselect_model_feature\` - Remove a model feature from your AppDNA model (requires exact name AND version match, only allowed if not marked as completed by AI processing)
 - \`list_model_ai_processing_requests\` - List AI processing requests with status, timestamps, and details
+- \`create_model_ai_processing_request\` - Submit a new AI processing request with the current model file (auto-zips and uploads)
 - \`get_model_ai_processing_request_details\` - Get detailed information for a specific AI processing request by request code
 - \`get_model_ai_processing_request_schema\` - Get JSON schema definition for AI processing request objects
 - \`list_model_validation_requests\` - List validation requests with status, results, and change suggestions
