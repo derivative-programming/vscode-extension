@@ -1267,6 +1267,82 @@ export class MCPServer {
             }
         });
 
+        // Register get_model_validation_request_details tool
+        this.server.registerTool('get_model_validation_request_details', {
+            title: 'Get Model Validation Request Details',
+            description: 'Get detailed information for a specific validation request by request code. Returns complete details including status, timestamps, report URL, change suggestions URL, and error information if applicable. Use this to check on the progress or outcome of a specific validation request. Requires authentication to Model Services.',
+            inputSchema: {
+                requestCode: z.string().describe('The validation request code to fetch details for (e.g., "VAL123")')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                item: z.any().optional().describe('Validation request details object'),
+                requestCode: z.string().optional().describe('The request code that was queried'),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: any) => {
+            try {
+                const result = await this.modelServiceTools.get_model_validation_request_details(
+                    args.requestCode
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message,
+                    item: null,
+                    requestCode: args.requestCode
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register get_model_fabrication_request_details tool
+        this.server.registerTool('get_model_fabrication_request_details', {
+            title: 'Get Model Fabrication Request Details',
+            description: 'Get detailed information for a specific fabrication request by request code. Returns complete details including status, timestamps, report URL, result ZIP URL, and error information if applicable. Use this to check on the progress or outcome of a specific fabrication request. Requires authentication to Model Services.',
+            inputSchema: {
+                requestCode: z.string().describe('The fabrication request code to fetch details for (e.g., "FAB123")')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                item: z.any().optional().describe('Fabrication request details object'),
+                requestCode: z.string().optional().describe('The request code that was queried'),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: any) => {
+            try {
+                const result = await this.modelServiceTools.get_model_fabrication_request_details(
+                    args.requestCode
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message,
+                    item: null,
+                    requestCode: args.requestCode
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register get_model_ai_processing_request_schema tool
         this.server.registerTool('get_model_ai_processing_request_schema', {
             title: 'Get Model AI Processing Request Schema',
@@ -1280,6 +1356,68 @@ export class MCPServer {
         }, async () => {
             try {
                 const result = await this.modelServiceTools.get_model_ai_processing_request_schema();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message,
+                    schema: null
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register get_model_validation_request_schema tool
+        this.server.registerTool('get_model_validation_request_schema', {
+            title: 'Get Model Validation Request Schema',
+            description: 'Get the JSON schema definition for validation request objects returned by Model Services API. This schema describes the structure, properties, data types, and status calculation rules for validation requests. Use this to understand the format of objects returned by list_model_validation_requests.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                schema: z.any().describe('JSON schema definition for validation request objects'),
+                note: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.modelServiceTools.get_model_validation_request_schema();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message,
+                    schema: null
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register get_model_fabrication_request_schema tool
+        this.server.registerTool('get_model_fabrication_request_schema', {
+            title: 'Get Model Fabrication Request Schema',
+            description: 'Get the JSON schema definition for fabrication request objects returned by Model Services API. This schema describes the structure, properties, data types, and status calculation rules for fabrication requests. Use this to understand the format of objects returned by list_model_fabrication_requests.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                schema: z.any().describe('JSON schema definition for fabrication request objects'),
+                note: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.modelServiceTools.get_model_fabrication_request_schema();
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result

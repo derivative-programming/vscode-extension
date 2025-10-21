@@ -427,6 +427,214 @@ export class ModelServiceTools {
     }
 
     /**
+     * Get validation request details
+     * Returns details for a specific validation request by request code
+     * Tool name: get_model_validation_request_details
+     * 
+     * @param requestCode - The validation request code to fetch details for
+     */
+    public async get_model_validation_request_details(requestCode: string): Promise<any> {
+        if (!requestCode || requestCode.trim() === '') {
+            return {
+                success: false,
+                error: 'Request code is required',
+                item: null
+            };
+        }
+
+        const isLoggedIn = await this.checkAuthStatus();
+        if (!isLoggedIn) {
+            return {
+                success: false,
+                error: 'Authentication required. Please log in to Model Services first using the open_login_view tool or click Login under Model Services in the tree view.',
+                item: null
+            };
+        }
+
+        return new Promise((resolve) => {
+            const http = require('http');
+            
+            const postData = JSON.stringify({ 
+                requestCode: requestCode
+            });
+            
+            const options = {
+                hostname: 'localhost',
+                port: 3002,
+                path: '/api/model-services/validation-request-details',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(postData)
+                },
+                timeout: 30000 // 30 second timeout for API calls
+            };
+
+            const req = http.request(options, (res: any) => {
+                let data = '';
+                
+                res.on('data', (chunk: any) => {
+                    data += chunk;
+                });
+                
+                res.on('end', () => {
+                    try {
+                        const response = JSON.parse(data);
+                        if (response.success) {
+                            resolve({
+                                success: true,
+                                item: response.item,
+                                requestCode: requestCode
+                            });
+                        } else {
+                            resolve({
+                                success: false,
+                                error: response.error || 'Failed to fetch validation request details',
+                                item: null,
+                                requestCode: requestCode
+                            });
+                        }
+                    } catch (error: any) {
+                        resolve({
+                            success: false,
+                            error: 'Failed to parse response from Model Services',
+                            item: null,
+                            requestCode: requestCode
+                        });
+                    }
+                });
+            });
+
+            req.on('error', (error: any) => {
+                resolve({
+                    success: false,
+                    error: error.message || 'Failed to connect to Model Services',
+                    item: null,
+                    requestCode: requestCode,
+                    note: 'Check that you are logged in to Model Services and have an active internet connection'
+                });
+            });
+
+            req.on('timeout', () => {
+                req.destroy();
+                resolve({
+                    success: false,
+                    error: 'API call timed out. The Model Services API may be slow or unavailable.',
+                    item: null,
+                    requestCode: requestCode
+                });
+            });
+
+            req.write(postData);
+            req.end();
+        });
+    }
+
+    /**
+     * Get fabrication request details
+     * Returns details for a specific fabrication request by request code
+     * Tool name: get_model_fabrication_request_details
+     * 
+     * @param requestCode - The fabrication request code to fetch details for
+     */
+    public async get_model_fabrication_request_details(requestCode: string): Promise<any> {
+        if (!requestCode || requestCode.trim() === '') {
+            return {
+                success: false,
+                error: 'Request code is required',
+                item: null
+            };
+        }
+
+        const isLoggedIn = await this.checkAuthStatus();
+        if (!isLoggedIn) {
+            return {
+                success: false,
+                error: 'Authentication required. Please log in to Model Services first using the open_login_view tool or click Login under Model Services in the tree view.',
+                item: null
+            };
+        }
+
+        return new Promise((resolve) => {
+            const http = require('http');
+            
+            const postData = JSON.stringify({ 
+                requestCode: requestCode
+            });
+            
+            const options = {
+                hostname: 'localhost',
+                port: 3002,
+                path: '/api/model-services/fabrication-request-details',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(postData)
+                },
+                timeout: 30000 // 30 second timeout for API calls
+            };
+
+            const req = http.request(options, (res: any) => {
+                let data = '';
+                
+                res.on('data', (chunk: any) => {
+                    data += chunk;
+                });
+                
+                res.on('end', () => {
+                    try {
+                        const response = JSON.parse(data);
+                        if (response.success) {
+                            resolve({
+                                success: true,
+                                item: response.item,
+                                requestCode: requestCode
+                            });
+                        } else {
+                            resolve({
+                                success: false,
+                                error: response.error || 'Failed to fetch fabrication request details',
+                                item: null,
+                                requestCode: requestCode
+                            });
+                        }
+                    } catch (error: any) {
+                        resolve({
+                            success: false,
+                            error: 'Failed to parse response from Model Services',
+                            item: null,
+                            requestCode: requestCode
+                        });
+                    }
+                });
+            });
+
+            req.on('error', (error: any) => {
+                resolve({
+                    success: false,
+                    error: error.message || 'Failed to connect to Model Services',
+                    item: null,
+                    requestCode: requestCode,
+                    note: 'Check that you are logged in to Model Services and have an active internet connection'
+                });
+            });
+
+            req.on('timeout', () => {
+                req.destroy();
+                resolve({
+                    success: false,
+                    error: 'API call timed out. The Model Services API may be slow or unavailable.',
+                    item: null,
+                    requestCode: requestCode
+                });
+            });
+
+            req.write(postData);
+            req.end();
+        });
+    }
+
+    /**
      * Get the Model AI Processing Request schema definition
      * Tool name: get_model_ai_processing_request_schema
      * @returns Schema definition for AI processing request objects returned by Model Services API
@@ -589,6 +797,208 @@ export class ModelServiceTools {
                 note: 'Check that you are logged in to Model Services and have an active internet connection'
             };
         }
+    }
+
+    /**
+     * Get the Model Validation Request schema definition
+     * Tool name: get_model_validation_request_schema
+     * @returns Schema definition for validation request objects returned by Model Services API
+     */
+    public async get_model_validation_request_schema(): Promise<any> {
+        return {
+            success: true,
+            schema: {
+                type: "object",
+                description: "Model Validation Request object structure returned by Model Services API",
+                properties: {
+                    modelValidationRequestCode: {
+                        type: "string",
+                        description: "Unique identifier code for the validation request",
+                        required: true,
+                        example: "VAL123"
+                    },
+                    modelValidationRequestDescription: {
+                        type: "string",
+                        description: "User-provided description of the validation request",
+                        required: true,
+                        example: "Project: MyApp, Version: 1.0.0"
+                    },
+                    modelValidationRequestRequestedUTCDateTime: {
+                        type: "string",
+                        format: "date-time",
+                        description: "UTC timestamp when the request was submitted",
+                        required: true,
+                        example: "2025-10-20T12:00:00Z"
+                    },
+                    modelValidationRequestIsStarted: {
+                        type: "boolean",
+                        description: "Whether the validation processing has started",
+                        required: true,
+                        default: false
+                    },
+                    modelValidationRequestIsCompleted: {
+                        type: "boolean",
+                        description: "Whether the validation processing has completed",
+                        required: true,
+                        default: false
+                    },
+                    modelValidationRequestIsSuccessful: {
+                        type: "boolean",
+                        description: "Whether the validation completed successfully (only meaningful if isCompleted is true)",
+                        required: true,
+                        default: false
+                    },
+                    modelValidationRequestIsCanceled: {
+                        type: "boolean",
+                        description: "Whether the request was cancelled by the user",
+                        required: true,
+                        default: false
+                    },
+                    modelValidationRequestReportUrl: {
+                        type: "string",
+                        format: "uri",
+                        description: "URL to download the validation report (available when completed)",
+                        required: false,
+                        example: "https://modelservicesapi.derivative-programming.com/validation-reports/VAL123.txt"
+                    },
+                    modelValidationRequestChangeSuggestionsUrl: {
+                        type: "string",
+                        format: "uri",
+                        description: "URL to download the change suggestions file (available when successful)",
+                        required: false,
+                        example: "https://modelservicesapi.derivative-programming.com/change-suggestions/VAL123.json"
+                    },
+                    modelValidationRequestErrorMessage: {
+                        type: "string",
+                        description: "Error message describing why validation failed (only present if isCompleted is true and isSuccessful is false)",
+                        required: false,
+                        example: "Invalid model format"
+                    }
+                },
+                statusCalculation: {
+                    description: "The status can be calculated from the boolean flags",
+                    rules: [
+                        "Queued: isStarted=false AND isCanceled=false",
+                        "Processing: isStarted=true AND isCompleted=false",
+                        "Success: isCompleted=true AND isSuccessful=true",
+                        "Validation Error: isCompleted=true AND isSuccessful=false",
+                        "Cancelled: isCanceled=true"
+                    ]
+                },
+                example: {
+                    modelValidationRequestCode: "VAL123",
+                    modelValidationRequestDescription: "Project: MyApp, Version: 1.0.0",
+                    modelValidationRequestRequestedUTCDateTime: "2025-10-20T12:00:00Z",
+                    modelValidationRequestIsStarted: true,
+                    modelValidationRequestIsCompleted: true,
+                    modelValidationRequestIsSuccessful: true,
+                    modelValidationRequestIsCanceled: false,
+                    modelValidationRequestReportUrl: "https://modelservicesapi.derivative-programming.com/validation-reports/VAL123.txt",
+                    modelValidationRequestChangeSuggestionsUrl: "https://modelservicesapi.derivative-programming.com/change-suggestions/VAL123.json",
+                    modelValidationRequestErrorMessage: null
+                }
+            },
+            note: "This schema represents the validation request objects returned by the Model Services API. Use list_model_validation_requests to get all validation requests. Validation requests analyze your model and provide change suggestions to improve quality."
+        };
+    }
+
+    /**
+     * Get Model Fabrication Request Schema
+     * Returns the schema definition for Model Fabrication Request objects.
+     * This is a static documentation tool that doesn't require authentication.
+     * Tool name: get_model_fabrication_request_schema
+     * 
+     * Returns schema with properties:
+     * - modelFabricationRequestCode: Unique identifier (string)
+     * - modelFabricationRequestDescription: User-friendly description (string)
+     * - modelFabricationRequestRequestedUTCDateTime: When request was submitted (ISO 8601 string)
+     * - modelFabricationRequestIsStarted: Whether processing has begun (boolean)
+     * - modelFabricationRequestIsCompleted: Whether request is finished (boolean)
+     * - modelFabricationRequestIsSuccessful: Whether request succeeded (boolean)
+     * - modelFabricationRequestIsCanceled: Whether request was canceled (boolean)
+     * - modelFabricationRequestReportUrl: URL to execution report (string or null)
+     * - modelFabricationRequestResultUrl: URL to fabricated result (string or null)
+     * - modelFabricationRequestErrorMessage: Error details if failed (string or null)
+     * 
+     * Status Calculation:
+     * - "Completed Successfully" = IsCompleted && IsSuccessful && !IsCanceled
+     * - "Completed with Errors" = IsCompleted && !IsSuccessful && !IsCanceled
+     * - "Processing" = IsStarted && !IsCompleted && !IsCanceled
+     * - "Pending" = !IsStarted && !IsCompleted && !IsCanceled
+     * - "Canceled" = IsCanceled
+     */
+    public async get_model_fabrication_request_schema(): Promise<any> {
+        return {
+            success: true,
+            schema: {
+                type: "object",
+                properties: {
+                    modelFabricationRequestCode: {
+                        type: "string",
+                        description: "Unique identifier for the fabrication request"
+                    },
+                    modelFabricationRequestDescription: {
+                        type: "string",
+                        description: "User-friendly description of the fabrication request (typically includes project name and blueprint)"
+                    },
+                    modelFabricationRequestRequestedUTCDateTime: {
+                        type: "string",
+                        format: "date-time",
+                        description: "ISO 8601 timestamp when the fabrication request was submitted"
+                    },
+                    modelFabricationRequestIsStarted: {
+                        type: "boolean",
+                        description: "Indicates whether processing has begun"
+                    },
+                    modelFabricationRequestIsCompleted: {
+                        type: "boolean",
+                        description: "Indicates whether the request has finished processing"
+                    },
+                    modelFabricationRequestIsSuccessful: {
+                        type: "boolean",
+                        description: "Indicates whether the request completed successfully"
+                    },
+                    modelFabricationRequestIsCanceled: {
+                        type: "boolean",
+                        description: "Indicates whether the request was canceled"
+                    },
+                    modelFabricationRequestReportUrl: {
+                        type: ["string", "null"],
+                        description: "URL to the execution report (available after completion)"
+                    },
+                    modelFabricationRequestResultUrl: {
+                        type: ["string", "null"],
+                        description: "URL to the fabricated result (available after successful completion)"
+                    },
+                    modelFabricationRequestErrorMessage: {
+                        type: ["string", "null"],
+                        description: "Error message if the request failed"
+                    }
+                },
+                required: [
+                    "modelFabricationRequestCode",
+                    "modelFabricationRequestDescription",
+                    "modelFabricationRequestRequestedUTCDateTime",
+                    "modelFabricationRequestIsStarted",
+                    "modelFabricationRequestIsCompleted",
+                    "modelFabricationRequestIsSuccessful",
+                    "modelFabricationRequestIsCanceled"
+                ],
+                example: {
+                    modelFabricationRequestCode: "FAB123",
+                    modelFabricationRequestDescription: "Project: MyApp, Blueprint: Customer Registration Form",
+                    modelFabricationRequestRequestedUTCDateTime: "2025-10-20T12:00:00Z",
+                    modelFabricationRequestIsStarted: true,
+                    modelFabricationRequestIsCompleted: true,
+                    modelFabricationRequestIsSuccessful: true,
+                    modelFabricationRequestIsCanceled: false,
+                    modelFabricationRequestReportUrl: "https://modelservicesapi.derivative-programming.com/fabrication-reports/FAB123.txt",
+                    modelFabricationRequestResultUrl: "https://modelservicesapi.derivative-programming.com/fabrication-results/FAB123.zip",
+                    modelFabricationRequestErrorMessage: null
+                }
+            },
+            note: "This schema represents the fabrication request objects returned by the Model Services API. Use list_model_fabrication_requests to get all fabrication requests. Fabrication requests generate code and artifacts from blueprints."
+        };
     }
 
     /**

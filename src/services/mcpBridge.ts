@@ -2202,6 +2202,174 @@ export class McpBridge {
                     }
                 });
             }
+            else if (req.url?.startsWith('/api/model-services/validation-request-details')) {
+                // Proxy to Model Services API - Get Single Validation Request Details
+                let body = '';
+                
+                req.on('data', (chunk: any) => {
+                    body += chunk.toString();
+                });
+                
+                req.on('end', async () => {
+                    try {
+                        const { requestCode } = body ? JSON.parse(body) : {};
+                        
+                        if (!requestCode) {
+                            res.writeHead(400);
+                            res.end(JSON.stringify({ 
+                                success: false,
+                                error: 'Request code is required'
+                            }));
+                            return;
+                        }
+                        
+                        const { AuthService } = require('./authService');
+                        const authService = AuthService.getInstance();
+                        const apiKey = await authService.getApiKey();
+
+                        if (!apiKey) {
+                            res.writeHead(401);
+                            res.end(JSON.stringify({ 
+                                success: false,
+                                error: 'Authentication required. Please log in to Model Services.'
+                            }));
+                            return;
+                        }
+                        
+                        // Build URL with query parameter for specific request
+                        const url = `https://modelservicesapi.derivative-programming.com/api/v1_0/validation-requests?modelValidationRequestCode=${encodeURIComponent(requestCode)}`;
+                        
+                        // Make the API call
+                        const response = await fetch(url, {
+                            headers: { 'Api-Key': apiKey }
+                        });
+                        
+                        // Check for unauthorized errors
+                        if (response.status === 401) {
+                            await authService.logout();
+                            res.writeHead(401);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'Your session has expired. Please log in again.'
+                            }));
+                            return;
+                        }
+                        
+                        if (!response.ok) {
+                            throw new Error(`API returned status ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        
+                        // Extract the first item from the items array if it exists
+                        if (data.items && Array.isArray(data.items) && data.items.length > 0) {
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                item: data.items[0]
+                            }));
+                        } else {
+                            res.writeHead(404);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: `No validation request found with code: ${requestCode}`
+                            }));
+                        }
+                        
+                    } catch (error: any) {
+                        this.outputChannel.appendLine(`[Command Bridge] Error fetching validation request details: ${error.message}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            success: false,
+                            error: error.message || 'Failed to fetch validation request details'
+                        }));
+                    }
+                });
+            }
+            else if (req.url?.startsWith('/api/model-services/fabrication-request-details')) {
+                // Proxy to Model Services API - Get Single Fabrication Request Details
+                let body = '';
+                
+                req.on('data', (chunk: any) => {
+                    body += chunk.toString();
+                });
+                
+                req.on('end', async () => {
+                    try {
+                        const { requestCode } = body ? JSON.parse(body) : {};
+                        
+                        if (!requestCode) {
+                            res.writeHead(400);
+                            res.end(JSON.stringify({ 
+                                success: false,
+                                error: 'Request code is required'
+                            }));
+                            return;
+                        }
+                        
+                        const { AuthService } = require('./authService');
+                        const authService = AuthService.getInstance();
+                        const apiKey = await authService.getApiKey();
+
+                        if (!apiKey) {
+                            res.writeHead(401);
+                            res.end(JSON.stringify({ 
+                                success: false,
+                                error: 'Authentication required. Please log in to Model Services.'
+                            }));
+                            return;
+                        }
+                        
+                        // Build URL with query parameter for specific request
+                        const url = `https://modelservicesapi.derivative-programming.com/api/v1_0/fabrication-requests?modelFabricationRequestCode=${encodeURIComponent(requestCode)}`;
+                        
+                        // Make the API call
+                        const response = await fetch(url, {
+                            headers: { 'Api-Key': apiKey }
+                        });
+                        
+                        // Check for unauthorized errors
+                        if (response.status === 401) {
+                            await authService.logout();
+                            res.writeHead(401);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'Your session has expired. Please log in again.'
+                            }));
+                            return;
+                        }
+                        
+                        if (!response.ok) {
+                            throw new Error(`API returned status ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        
+                        // Extract the first item from the items array if it exists
+                        if (data.items && Array.isArray(data.items) && data.items.length > 0) {
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                item: data.items[0]
+                            }));
+                        } else {
+                            res.writeHead(404);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: `No fabrication request found with code: ${requestCode}`
+                            }));
+                        }
+                        
+                    } catch (error: any) {
+                        this.outputChannel.appendLine(`[Command Bridge] Error fetching fabrication request details: ${error.message}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            success: false,
+                            error: error.message || 'Failed to fetch fabrication request details'
+                        }));
+                    }
+                });
+            }
             else if (req.url?.startsWith('/api/model-services/validation-requests')) {
                 // Proxy to Model Services API - Validation Requests
                 let body = '';

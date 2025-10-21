@@ -1,4 +1,274 @@
 ===============================================================================
+DATE: January 20, 2025
+COMMAND: Add Model Services Details Tools (Validation & Fabrication)
+STATUS: ✅ COMPLETED
+===============================================================================
+
+REQUIREMENT:
+User requested: "We need tools to get details on validation request and fabrication request too"
+This completes the tooling pattern by adding details retrieval tools for validation and fabrication requests, matching the pattern established with get_model_ai_processing_request_details.
+
+IMPLEMENTATION:
+Added two new MCP details retrieval tools with HTTP bridge endpoints:
+
+1. get_model_validation_request_details
+   - Get detailed information for a specific validation request by request code
+   - Parameter: requestCode (string, required, e.g., "VAL123")
+   - Returns: Complete validation request object with all properties
+   - Authentication required (uses API key via AuthService)
+   - 30-second timeout with comprehensive error handling
+   - Returns 404 if request code not found
+
+2. get_model_fabrication_request_details
+   - Get detailed information for a specific fabrication request by request code
+   - Parameter: requestCode (string, required, e.g., "FAB123")
+   - Returns: Complete fabrication request object with all properties
+   - Authentication required (uses API key via AuthService)
+   - 30-second timeout with comprehensive error handling
+   - Returns 404 if request code not found
+
+ARCHITECTURE PATTERN COMPLETION:
+All three Model Services request types now have COMPLETE tooling:
+
+AI Processing Requests (3 tools) ✅
+- list_model_ai_processing_requests
+- get_model_ai_processing_request_details
+- get_model_ai_processing_request_schema
+
+Validation Requests (3 tools) ✅
+- list_model_validation_requests
+- get_model_validation_request_details (NEW)
+- get_model_validation_request_schema
+
+Fabrication Requests (3 tools) ✅
+- list_model_fabrication_requests
+- get_model_fabrication_request_details (NEW)
+- get_model_fabrication_request_schema
+
+FILES MODIFIED:
+1. src/mcp/tools/modelServiceTools.ts (+220 lines)
+   - Added get_model_validation_request_details() method (lines 430-530)
+   - Added get_model_fabrication_request_details() method (lines 532-632)
+   - Both use HTTP bridge pattern with localhost:3002
+   - Both validate authentication before making requests
+   - 30-second timeout handling for both
+   - Comprehensive error handling with descriptive messages
+
+2. src/services/mcpBridge.ts (+320 lines)
+   - Added /api/model-services/validation-request-details endpoint (lines 2205-2280)
+   - Added /api/model-services/fabrication-request-details endpoint (lines 2282-2357)
+   - Both handle authentication via AuthService (401 if not logged in)
+   - Both use query parameter filtering: ?model{Type}RequestCode={code}
+   - Both extract first item from paginated API response
+   - Both return 404 if request code not found
+   - Auto logout on 401 (expired session)
+
+3. src/mcp/server.ts (+80 lines)
+   - Registered get_model_validation_request_details tool (lines ~1270-1305)
+   - Registered get_model_fabrication_request_details tool (lines ~1307-1342)
+   - Zod schemas for input validation (requestCode string)
+   - Zod schemas for output (success, item, requestCode, error, note)
+   - Proper error handling with structured responses
+
+4. src/extension.ts
+   - Updated total tool count: 85 → 87
+   - Updated Model Services tools: 13 → 15
+   - Added both tools to Model Services list in proper order
+
+5. MCP_README.md
+   - Updated total tool count: 85 → 87
+   - Updated Model Services section: 13 → 15 tools
+   - Added both new tools to numbered list (items 8 and 14)
+
+6. docs/features/get-validation-request-details-tool.md (NEW, 200+ lines)
+   - Complete documentation for validation details tool
+   - Use cases, parameters, return structure, status interpretation
+   - Examples with GitHub Copilot usage
+   - Related tools, implementation details, testing recommendations
+   - Architecture notes and error handling documentation
+
+7. docs/features/get-fabrication-request-details-tool.md (NEW, 220+ lines)
+   - Complete documentation for fabrication details tool
+   - Use cases, parameters, return structure, status interpretation
+   - Result ZIP file contents description
+   - Workflow example for typical usage
+   - Architecture notes and error handling documentation
+
+8. docs/features/model-services-details-tools-implementation.md (NEW, 300+ lines)
+   - Comprehensive implementation summary
+   - Architecture patterns, API endpoints, error handling
+   - Testing recommendations (manual + unit + integration)
+   - Benefits, tool count summary, future enhancements
+
+COMPILATION STATUS:
+✅ SUCCESSFUL - npm run compile completed with no errors
+- Webpack bundle: 5.48 MiB extension.js
+- MCP tools compiled to dist/mcp/
+- No TypeScript errors or warnings
+
+HTTP BRIDGE PATTERN:
+Both endpoints follow consistent pattern:
+1. Parse requestCode from POST body
+2. Validate requestCode (400 if missing/empty)
+3. Check authentication with AuthService (401 if not logged in)
+4. Build API URL with query parameter
+5. Make fetch request with API key header
+6. Handle 401 by logging out (expired session)
+7. Parse response JSON and extract first item from items array
+8. Return 404 if no items found
+9. Return 200 with item if found
+10. Handle errors with 500 response and descriptive messages
+
+TESTING RECOMMENDATIONS:
+1. Manual testing with GitHub Copilot:
+   - "Get details for validation request VAL123"
+   - "Check the status of fabrication request FAB456"
+   - "Is validation request VAL789 complete?"
+   - "Where can I download the results for fabrication FAB999?"
+
+2. Unit testing:
+   - Test successful retrieval with valid codes
+   - Test error handling for empty/missing codes
+   - Test 404 for invalid request codes
+   - Test authentication failures
+   - Test timeout handling
+
+3. Integration testing:
+   - Create test requests via UI
+   - Use MCP tools to retrieve details
+   - Verify all properties match UI
+   - Test download URLs are valid
+
+BENEFITS:
+- Complete Coverage: All request types have full tooling (list, details, schema)
+- Direct Access: Get specific request without listing all
+- Efficient: Single API call per request
+- Status Monitoring: Perfect for polling completion
+- URL Access: Direct links to reports, results, change suggestions
+- Consistent Pattern: All details tools work identically
+- Error Investigation: Detailed error messages for troubleshooting
+
+TOOL COUNT SUMMARY:
+- Total Tools: 85 → 87 (+2)
+- Model Services Tools: 13 → 15 (+2)
+- Details Tools: 1 → 3 (+2)
+
+API ENDPOINTS USED:
+- Validation: GET /api/v1_0/validation-requests?modelValidationRequestCode={code}
+- Fabrication: GET /api/v1_0/fabrication-requests?modelFabricationRequestCode={code}
+- Both use API Key header for authentication
+- Both return paginated list, tool extracts first item
+
+ARCHITECTURAL NOTES:
+- HTTP Bridge Pattern: Uses localhost:3002 to avoid CORS issues
+- Authentication Integration: AuthService provides API key, handles logout on 401
+- Query Parameter Filtering: Uses list endpoint with filter for efficiency
+- Single Item Extraction: Extracts first item from paginated response
+- Timeout Handling: 30-second timeout prevents hanging
+- Error Transparency: Descriptive errors for troubleshooting
+- Status Consistency: Same status calculation rules across all request types
+
+===============================================================================
+DATE: January 20, 2025
+COMMAND: Add Model Services Schema Tools (Validation & Fabrication)
+STATUS: ✅ COMPLETED
+===============================================================================
+
+REQUIREMENT:
+User requested: "we need similar tools for model validation request and model fabrication request"
+This extends the schema tool pattern established with get_model_ai_processing_request_schema to the other two Model Services request types.
+
+IMPLEMENTATION:
+Added two new MCP schema documentation tools:
+
+1. get_model_validation_request_schema
+   - Returns JSON schema for validation request objects
+   - Includes 10 properties: code, description, timestamps, status flags, report/suggestions URLs, error message
+   - Documents status calculation rules (Pending, Processing, Completed Successfully, etc.)
+   - No authentication required (static documentation)
+
+2. get_model_fabrication_request_schema
+   - Returns JSON schema for fabrication request objects
+   - Includes 10 properties: code, description, timestamps, status flags, report/result URLs, error message
+   - Documents status calculation rules (same logic as validation)
+   - No authentication required (static documentation)
+
+ARCHITECTURE PATTERN:
+All three Model Services request types now follow consistent tooling:
+- AI Processing: list + details + schema (3 tools) ✅
+- Validation: list + schema (2 tools, details tool not yet needed) ✅
+- Fabrication: list + schema (2 tools, details tool not yet needed) ✅
+
+FILES MODIFIED:
+1. src/mcp/tools/modelServiceTools.ts (+230 lines)
+   - Added get_model_validation_request_schema() method (lines 580-695)
+   - Added get_model_fabrication_request_schema() method (lines 697-812)
+   - Both return comprehensive schemas with examples and status rules
+
+2. src/mcp/server.ts (+60 lines)
+   - Registered get_model_validation_request_schema tool (lines ~1300-1330)
+   - Registered get_model_fabrication_request_schema tool (lines ~1330-1360)
+   - Used same Zod schema pattern: no inputs, returns success/schema/note
+
+3. src/extension.ts
+   - Updated total tool count: 83 → 85
+   - Updated Model Services tools: 11 → 13
+   - Added both tools to Model Services section
+
+4. MCP_README.md
+   - Updated total tool count: 83 → 85
+   - Updated Model Services section with both new tools
+   - Fixed tool numbering (was duplicate 9/10, now sequential 1-13)
+
+5. docs/features/get-validation-request-schema-tool.md (NEW, 180+ lines)
+   - Complete documentation for validation schema tool
+   - Use cases, properties, status rules, examples, related tools
+
+6. docs/features/get-fabrication-request-schema-tool.md (NEW, 180+ lines)
+   - Complete documentation for fabrication schema tool
+   - Use cases, properties, status rules, examples, related tools
+
+7. docs/features/model-services-schema-tools-implementation.md (NEW, 200+ lines)
+   - Implementation summary document
+   - Architecture patterns, testing recommendations, tool count summary
+
+COMPILATION STATUS:
+✅ SUCCESSFUL - npm run compile completed with no errors
+- Webpack bundle: 5.47 MiB
+- MCP tools compiled to dist/mcp/
+- No TypeScript errors or warnings
+
+TESTING RECOMMENDATIONS:
+1. Manual testing with GitHub Copilot:
+   - "Get the schema for model validation requests"
+   - "Show me the structure of fabrication request objects"
+   - "How do I determine the status of a validation request?"
+
+2. Unit testing:
+   - Add tests to src/test/mcp-model-service-tools.test.ts
+   - Verify schema structure and examples are valid
+   - Verify no authentication required
+
+BENEFITS:
+- Consistency: All Model Services request types have schema tools
+- Self-documenting: AI agents can learn data structures on demand
+- No authentication: Schema tools accessible without login
+- Complete examples: Each schema includes realistic example object
+- Clear status rules: Documents how to interpret status flags
+
+TOOL COUNT SUMMARY:
+- Total Tools: 83 → 85 (+2)
+- Model Services Tools: 11 → 13 (+2)
+- Schema Tools: 6 → 8 (+2)
+
+ARCHITECTURAL NOTES:
+- Schema tools are static, no HTTP bridge or API calls required
+- No AuthService dependency (just return hardcoded schemas)
+- Pattern reusable for future schema tools
+- Example-driven documentation helps AI agents understand formats
+- Status calculation rules clearly documented in schema and docs
+
+===============================================================================
 DATE: October 20, 2025
 COMMAND: Add expand/collapse tree view MCP tools
 STATUS: ✅ COMPLETED

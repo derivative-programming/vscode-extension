@@ -18,14 +18,16 @@ tools...
 model ai processing...
 - done:list_model_ai_processing_requests
 - add request
-- test:get_model_ai_processing_request_details
+- done:get_model_ai_processing_request_details
+- done:get schema
 - download report
 - merge results
 
 model validation...
 - done:list_model_validation_requests
 - add request
-- get details
+- done:get details
+- done:get schema
 - download report
 - view change suggestions
 
@@ -33,7 +35,8 @@ model validation...
 model fabrication requests...
 - done:list_model_fabrication_requests
 - add request
-- get details
+- done:get details
+- done:get schema
 - download results
  
 
