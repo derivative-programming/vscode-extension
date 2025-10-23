@@ -2586,6 +2586,215 @@ export class McpBridge {
                     }
                 });
             }
+            else if (req.url?.startsWith('/api/model-services/merge-ai-processing-results')) {
+                // Proxy to Model Services API - Merge AI Processing Results
+                let body = '';
+                
+                req.on('data', (chunk: any) => {
+                    body += chunk.toString();
+                });
+                
+                req.on('end', async () => {
+                    try {
+                        const { requestCode } = body ? JSON.parse(body) : {};
+                        
+                        if (!requestCode) {
+                            res.writeHead(400);
+                            res.end(JSON.stringify({ 
+                                success: false,
+                                error: 'Request code is required'
+                            }));
+                            return;
+                        }
+                        
+                        const { AuthService } = require('./authService');
+                        const authService = AuthService.getInstance();
+                        const apiKey = await authService.getApiKey();
+
+                        if (!apiKey) {
+                            res.writeHead(401);
+                            res.end(JSON.stringify({ 
+                                success: false,
+                                error: 'Authentication required. Please log in to Model Services.'
+                            }));
+                            return;
+                        }
+                        
+                        // Get model file path from ModelService
+                        const { ModelService } = require('./modelService');
+                        const modelService = ModelService.getInstance();
+                        const modelFilePath = modelService.getCurrentFilePath();
+                        
+                        if (!modelFilePath) {
+                            res.writeHead(400);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'No model file is loaded. Please open a model file first.'
+                            }));
+                            return;
+                        }
+                        
+                        // First, get the AI processing request details to get the result model URL
+                        const detailsUrl = `https://modelservicesapi.derivative-programming.com/api/v1_0/prep-requests?modelPrepRequestCode=${encodeURIComponent(requestCode)}`;
+                        const detailsResponse = await fetch(detailsUrl, {
+                            method: 'GET',
+                            headers: { 'Api-Key': apiKey }
+                        });
+                        
+                        if (!detailsResponse.ok) {
+                            if (detailsResponse.status === 401) {
+                                await authService.logout();
+                                res.writeHead(401);
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: 'Your session has expired. Please log in again.'
+                                }));
+                                return;
+                            }
+                            throw new Error(`Failed to get request details: ${detailsResponse.status}: ${detailsResponse.statusText}`);
+                        }
+                        
+                        const detailsData = await detailsResponse.json();
+                        
+                        // Extract the first item from the items array
+                        if (!detailsData.items || !Array.isArray(detailsData.items) || detailsData.items.length === 0) {
+                            res.writeHead(404);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: `No AI processing request found with code: ${requestCode}`
+                            }));
+                            return;
+                        }
+                        
+                        const requestDetails = detailsData.items[0];
+                        
+                        // Check if the request is complete and successful
+                        if (!requestDetails.modelPrepRequestIsCompleted) {
+                            res.writeHead(400);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'The AI processing request is not yet complete. Please wait for it to finish.'
+                            }));
+                            return;
+                        }
+                        
+                        if (!requestDetails.modelPrepRequestIsSuccessful) {
+                            res.writeHead(400);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'The AI processing request failed. Cannot merge results.'
+                            }));
+                            return;
+                        }
+                        
+                        if (!requestDetails.modelPrepRequestResultModelUrl) {
+                            res.writeHead(400);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'No result model URL available for this request.'
+                            }));
+                            return;
+                        }
+                        
+                        // Read and zip the current model file
+                        const fs = require('fs');
+                        const JSZip = require('jszip');
+                        
+                        let modelFileData: string;
+                        try {
+                            const fileContent = fs.readFileSync(modelFilePath, 'utf8');
+                            const zip = new JSZip();
+                            zip.file('model.json', fileContent);
+                            const archive = await zip.generateAsync({ type: 'nodebuffer' });
+                            modelFileData = archive.toString('base64');
+                        } catch (error: any) {
+                            this.outputChannel.appendLine(`[Command Bridge] Failed to read or zip model file: ${error.message}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'Failed to read or zip model file: ' + error.message
+                            }));
+                            return;
+                        }
+                        
+                        // Build the payload for merge API
+                        const payload = {
+                            modelFileData: modelFileData,
+                            additionsModelUrl: requestDetails.modelPrepRequestResultModelUrl
+                        };
+                        
+                        const mergeUrl = 'https://modelservicesapi.derivative-programming.com/api/v1_0/model-merge';
+                        
+                        // Call the merge API
+                        const mergeResponse = await fetch(mergeUrl, {
+                            method: 'POST',
+                            headers: { 
+                                'Api-Key': apiKey,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+                        
+                        if (mergeResponse.status === 401) {
+                            await authService.logout();
+                            res.writeHead(401);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'Your session has expired. Please log in again.'
+                            }));
+                            return;
+                        }
+                        
+                        if (!mergeResponse.ok) {
+                            const errorText = await mergeResponse.text();
+                            throw new Error(`Merge API returned status ${mergeResponse.status}: ${errorText}`);
+                        }
+                        
+                        const mergeResult = await mergeResponse.json();
+                        
+                        // Check if the merge operation was successful
+                        if (mergeResult.success === false) {
+                            let errorMessage = 'Merge operation failed';
+                            if (mergeResult.message) {
+                                errorMessage += ': ' + mergeResult.message;
+                            }
+                            throw new Error(errorMessage);
+                        }
+                        
+                        if (!mergeResult.resultModelUrl) {
+                            throw new Error('No result model URL returned from merge operation');
+                        }
+                        
+                        // Download the merged model
+                        const modelResponse = await fetch(mergeResult.resultModelUrl, {
+                            headers: { 'Api-Key': apiKey }
+                        });
+                        
+                        if (!modelResponse.ok) {
+                            throw new Error(`Failed to download merged model: ${modelResponse.status}: ${modelResponse.statusText}`);
+                        }
+                        
+                        const mergedModelData = await modelResponse.json();
+                        
+                        // Update the model in memory
+                        await modelService.updateModelFromJson(mergedModelData);
+                        
+                        res.writeHead(200);
+                        res.end(JSON.stringify({
+                            success: true,
+                            message: 'AI processing results merged successfully into model'
+                        }));
+                        
+                    } catch (error: any) {
+                        this.outputChannel.appendLine(`[Command Bridge] Error merging AI processing results: ${error.message}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            success: false,
+                            error: error.message || 'Failed to merge AI processing results'
+                        }));
+                    }
+                });
+            }
             else if (req.url?.startsWith('/api/model-services/validation-request-details')) {
                 // Proxy to Model Services API - Get Single Validation Request Details
                 let body = '';

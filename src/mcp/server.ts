@@ -1304,6 +1304,42 @@ export class MCPServer {
             }
         });
 
+        // Register merge_model_ai_processing_results tool
+        this.server.registerTool('merge_model_ai_processing_results', {
+            title: 'Merge Model AI Processing Results',
+            description: 'Merge the AI-enhanced model results from a completed AI processing request into the current AppDNA model. This downloads the result model from Model Services, merges it with your current model, and updates the model in memory. The request must be completed and successful. After merging, use save_model to persist changes. Requires authentication to Model Services and an open model file.',
+            inputSchema: {
+                requestCode: z.string().describe('The AI processing request code for which to merge results (e.g., "ABC123")')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                message: z.string().optional().describe('Success message'),
+                requestCode: z.string().optional().describe('The request code that was merged'),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: any) => {
+            try {
+                const result = await this.modelServiceTools.merge_model_ai_processing_results(
+                    args.requestCode
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register create_model_validation_request tool
         this.server.registerTool('create_model_validation_request', {
             title: 'Create Model Validation Request',

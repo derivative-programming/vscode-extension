@@ -21,11 +21,11 @@ model ai processing...
 - done:get_model_ai_processing_request_details
 - done:get schema
 - download report
-- merge results
+- done:merge results
 
 model validation...
 - done:list_model_validation_requests
-- add request
+- done:add request
 - done:get details
 - done:get schema
 - download report
@@ -34,7 +34,7 @@ model validation...
 
 model fabrication requests...
 - done:list_model_fabrication_requests
-- add request
+- test:add request
 - done:get details
 - done:get schema
 - download results

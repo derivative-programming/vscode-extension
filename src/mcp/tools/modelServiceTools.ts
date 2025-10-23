@@ -920,6 +920,101 @@ export class ModelServiceTools {
     }
 
     /**
+     * Merge AI processing results into current model
+     * Downloads the AI-enhanced model and merges it with the current model
+     * Tool name: merge_model_ai_processing_results
+     * 
+     * @param requestCode - The AI processing request code
+     */
+    public async merge_model_ai_processing_results(requestCode: string): Promise<any> {
+        if (!requestCode || requestCode.trim() === '') {
+            return {
+                success: false,
+                error: 'Request code is required for merging AI processing results'
+            };
+        }
+
+        const isLoggedIn = await this.checkAuthStatus();
+        if (!isLoggedIn) {
+            return {
+                success: false,
+                error: 'Authentication required. Please log in to Model Services first using the open_login_view tool or click Login under Model Services in the tree view.'
+            };
+        }
+
+        return new Promise((resolve) => {
+            const http = require('http');
+            
+            const postData = JSON.stringify({ 
+                requestCode: requestCode.trim()
+            });
+            
+            const options = {
+                hostname: 'localhost',
+                port: 3002,
+                path: '/api/model-services/merge-ai-processing-results',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(postData)
+                },
+                timeout: 120000 // 120 second timeout for merge operation (download + merge)
+            };
+
+            const req = http.request(options, (res: any) => {
+                let data = '';
+                
+                res.on('data', (chunk: any) => {
+                    data += chunk;
+                });
+                
+                res.on('end', () => {
+                    try {
+                        const response = JSON.parse(data);
+                        if (response.success) {
+                            resolve({
+                                success: true,
+                                message: 'AI processing results merged successfully into model',
+                                requestCode: requestCode,
+                                note: 'The model has been updated in memory. Use save_model tool to persist changes to disk.'
+                            });
+                        } else {
+                            resolve({
+                                success: false,
+                                error: response.error || 'Failed to merge AI processing results'
+                            });
+                        }
+                    } catch (error: any) {
+                        resolve({
+                            success: false,
+                            error: 'Failed to parse response from Model Services'
+                        });
+                    }
+                });
+            });
+
+            req.on('error', (error: any) => {
+                resolve({
+                    success: false,
+                    error: error.message || 'Failed to connect to Model Services',
+                    note: 'Check that you are logged in to Model Services and have an active internet connection'
+                });
+            });
+
+            req.on('timeout', () => {
+                req.destroy();
+                resolve({
+                    success: false,
+                    error: 'Merge operation timed out. The Model Services API may be slow or unavailable, or the result model may be very large.'
+                });
+            });
+
+            req.write(postData);
+            req.end();
+        });
+    }
+
+    /**
      * Get the Model AI Processing Request schema definition
      * Tool name: get_model_ai_processing_request_schema
      * @returns Schema definition for AI processing request objects returned by Model Services API

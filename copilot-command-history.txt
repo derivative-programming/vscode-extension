@@ -1,5 +1,133 @@
 ===============================================================================
 DATE: October 21, 2025
+COMMAND: Add Merge Model AI Processing Results Tool
+STATUS: ✅ COMPLETED
+===============================================================================
+
+REQUIREMENT:
+User requested: "we need a tool to merge the results of the model ai request too"
+This enables programmatic merging of AI-enhanced model results back into the current model through the MCP server, completing the AI processing workflow (create → monitor → merge).
+
+IMPLEMENTATION:
+Added new MCP tool with HTTP bridge endpoint:
+
+Tool: merge_model_ai_processing_results
+- Merge AI-enhanced model results from completed AI processing request into current model
+- Parameter: requestCode (string, required) - The AI processing request code
+- Validates request is completed and successful before merging
+- Automatically fetches request details to get result model URL
+- Reads and zips current model file
+- Calls Model Services /api/v1_0/model-merge endpoint with current model + result URL
+- Downloads the merged model from returned URL
+- Updates model in memory using ModelService.updateModelFromJson()
+- Returns success confirmation with note to save model
+- Endpoint: POST /api/model-services/merge-ai-processing-results
+- 120 second timeout to accommodate download and merge operations
+
+FILES MODIFIED:
+1. src/mcp/tools/modelServiceTools.ts (+100 lines)
+   - Added merge_model_ai_processing_results() method
+   - Follows pattern of other Model Services tools
+   - 120 second timeout for download + merge operations
+   - Comprehensive error handling for incomplete/failed requests
+
+2. src/services/mcpBridge.ts (+200 lines)
+   - Added /api/model-services/merge-ai-processing-results endpoint
+   - Fetches AI processing request details first to validate status
+   - Checks request is completed and successful
+   - Reads current model file and zips it
+   - Calls Model Services merge API with modelFileData + additionsModelUrl
+   - Downloads merged model from resultModelUrl
+   - Updates model in memory using ModelService.updateModelFromJson()
+   - Comprehensive validation and error handling
+
+3. src/mcp/server.ts (+40 lines)
+   - Registered merge_model_ai_processing_results tool with Zod schemas
+   - Clear description explaining merge workflow
+   - Notes about saving model after merge
+
+4. src/extension.ts (updated)
+   - Tool count: 90 → 91
+   - Model Services tools: 18 → 19
+   - Added tool to chat mode instructions and documentation
+
+5. MCP_README.md (updated)
+   - Tool count: 90 → 91
+   - Model Services tools: 18 → 19
+   - Added tool #6 in Model Services section
+
+ARCHITECTURE NOTES:
+- Merge Workflow:
+  1. Get AI processing request details by code
+  2. Validate request is completed and successful
+  3. Extract modelPrepRequestResultModelUrl
+  4. Read and zip current model file
+  5. POST to /api/v1_0/model-merge with modelFileData + additionsModelUrl
+  6. Download merged model from resultModelUrl in response
+  7. Update model in memory with ModelService.updateModelFromJson()
+
+- HTTP Bridge Pattern: MCP tools → localhost:3002 → Model Services API
+- Model Services API Endpoints Used:
+  - GET /api/v1_0/prep-requests/{requestCode} - Get request details
+  - POST /api/v1_0/model-merge - Merge current model with AI results
+  - GET {resultModelUrl} - Download merged model
+
+- Authentication: Session managed by AuthService, automatic logout on 401
+- File Access: Uses ModelService.getCurrentFilePath() and updateModelFromJson()
+- Timeout: 120 seconds for merge (longer than create due to download)
+- In-Memory Update: Model updated in memory, not saved to disk automatically
+
+VALIDATION CHECKS:
+- Request code must not be empty
+- User must be authenticated
+- Model file must be loaded
+- Request must exist (valid request code)
+- Request must be completed (modelPrepRequestIsCompleted = true)
+- Request must be successful (modelPrepRequestIsSuccessful = true)
+- Result model URL must be available (modelPrepRequestResultModelUrl exists)
+
+PATTERN COMPLETION:
+AI Processing workflow now complete with 5 tools:
+- list_model_ai_processing_requests (list all requests)
+- create_model_ai_processing_request (submit new request)
+- get_model_ai_processing_request_details (check status)
+- get_model_ai_processing_request_schema (view structure)
+- merge_model_ai_processing_results (merge completed results) ✅ NEW
+
+This provides a complete, end-to-end workflow for AI processing.
+
+COMPILATION:
+✅ npm run compile successful
+- Webpack bundle: 5.5 MiB extension.js
+- MCP tools compiled to dist/mcp/
+- No TypeScript errors or warnings
+
+TOOL COUNT PROGRESSION:
+- Session Start: 90 tools
+- After Implementation: 91 tools (+1)
+- Model Services Category: 18 → 19 tools
+
+USAGE EXAMPLES:
+User: "Merge the results from AI processing request ABC123"
+→ Copilot calls merge_model_ai_processing_results with requestCode "ABC123"
+→ Returns success with note to save model
+
+User: "Apply the AI enhancements from request code XYZ789"
+→ Copilot calls merge_model_ai_processing_results with requestCode "XYZ789"
+→ Downloads and merges AI-enhanced model, updates in memory
+
+User: "Integrate AI processing results for request ABC123 then save"
+→ Copilot calls merge_model_ai_processing_results, then save_model
+→ Complete workflow: merge + persist to disk
+
+NEXT STEPS:
+- AI Processing workflow is now complete (create → monitor → merge)
+- Users can fully automate AI enhancement workflow through natural language
+- Model is updated in memory; user should call save_model to persist
+- Ready for production use with GitHub Copilot
+
+===============================================================================
+DATE: October 21, 2025
 COMMAND: Add Create Model Validation and Fabrication Request Tools
 STATUS: ✅ COMPLETED
 ===============================================================================
