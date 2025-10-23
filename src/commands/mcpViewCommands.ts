@@ -263,6 +263,48 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
         })
     );
 
+    // Open validation request details modal
+    // Description: Opens the Model Validation Requests view and displays the details modal for a specific request
+    // Parameters: requestCode (required) - The validation request code to show details for
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openValidationRequestDetails', async (requestCode: string) => {
+            if (!requestCode) {
+                throw new Error('Request code is required');
+            }
+            // Open the validation view first, then trigger the details modal
+            await vscode.commands.executeCommand('appdna.modelValidation', requestCode);
+            return { success: true, requestCode };
+        })
+    );
+
+    // Open AI processing request details modal
+    // Description: Opens the Model AI Processing Requests view and displays the details modal for a specific request
+    // Parameters: requestCode (required) - The AI processing request code to show details for
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openAIProcessingRequestDetails', async (requestCode: string) => {
+            if (!requestCode) {
+                throw new Error('Request code is required');
+            }
+            // Open the AI processing view first, then trigger the details modal
+            await vscode.commands.executeCommand('appdna.modelAIProcessing', requestCode);
+            return { success: true, requestCode };
+        })
+    );
+
+    // Open fabrication request details modal
+    // Description: Opens the Model Fabrication Requests view and displays the details modal for a specific request
+    // Parameters: requestCode (required) - The fabrication request code to show details for
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openFabricationRequestDetails', async (requestCode: string) => {
+            if (!requestCode) {
+                throw new Error('Request code is required');
+            }
+            // Open the fabrication view first, then trigger the details modal
+            await vscode.commands.executeCommand('appdna.modelFabrication', requestCode);
+            return { success: true, requestCode };
+        })
+    );
+
     // Generic view opener - routes to specific commands based on view name
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.mcp.openView', async (viewName: string, params?: any) => {

@@ -121,10 +121,12 @@ tools:
   - merge_model_ai_processing_results
   - get_model_ai_processing_request_details
   - get_model_ai_processing_request_schema
+  - open_model_ai_processing_request_details
   - list_model_validation_requests
   - create_model_validation_request
   - get_model_validation_request_details
   - get_model_validation_request_schema
+  - open_validation_request_details
   - list_fabrication_blueprint_catalog_items
   - select_fabrication_blueprint
   - unselect_fabrication_blueprint
@@ -132,6 +134,7 @@ tools:
   - create_model_fabrication_request
   - get_model_fabrication_request_details
   - get_model_fabrication_request_schema
+  - open_model_fabrication_request_details
 ---
 
 # AppDNA Chat Mode
@@ -264,7 +267,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
   - Auto-expand tree nodes
   - Custom model file name
 
-## Comprehensive MCP Tool Suite (91 Tools)
+## Comprehensive MCP Tool Suite (94 Tools)
 
 ### User Story Management (5 Tools)
 **CRUD Operations:**
@@ -382,7 +385,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 ### Utility Tools (1 Tool)
 - \`secret_word_of_the_day\` - Test/verification tool
 
-### Model Services API Tools (19 Tools)
+### Model Services API Tools (22 Tools)
 - \`list_model_features_catalog_items\` - Retrieve Model Feature Catalog items with selection status and pagination
 - \`select_model_feature\` - Add a model feature from the catalog to your AppDNA model (requires exact name AND version match, updates in memory, marks unsaved changes)
 - \`unselect_model_feature\` - Remove a model feature from your AppDNA model (requires exact name AND version match, only allowed if not marked as completed by AI processing)
@@ -391,14 +394,17 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`merge_model_ai_processing_results\` - Merge AI-enhanced model results from a completed request into current model (downloads, merges, updates in memory)
 - \`get_model_ai_processing_request_details\` - Get detailed information for a specific AI processing request by request code
 - \`get_model_ai_processing_request_schema\` - Get JSON schema definition for AI processing request objects
+- \`open_model_ai_processing_request_details\` - Open AI processing request details modal for a specific request code
 - \`list_model_validation_requests\` - List validation requests with status, results, and change suggestions
 - \`create_model_validation_request\` - Submit a new validation request with the current model file (auto-zips and uploads)
 - \`get_model_validation_request_details\` - Get detailed information for a specific validation request by request code
 - \`get_model_validation_request_schema\` - Get JSON schema definition for validation request objects
+- \`open_validation_request_details\` - Open validation request details modal for a specific request code
 - \`list_model_fabrication_requests\` - List fabrication requests with status, download URLs, and generated file information
 - \`create_model_fabrication_request\` - Submit a new fabrication request with the current model file (auto-zips and uploads)
 - \`get_model_fabrication_request_details\` - Get detailed information for a specific fabrication request by request code
 - \`get_model_fabrication_request_schema\` - Get JSON schema definition for fabrication request objects
+- \`open_model_fabrication_request_details\` - Open fabrication request details modal for a specific request code
 - \`list_fabrication_blueprint_catalog_items\` - List fabrication blueprints (template sets) with selection status showing which are currently selected in your model
 - \`select_fabrication_blueprint\` - Add a fabrication blueprint from the catalog to your AppDNA model (requires exact name AND version match, re-enables if previously disabled, updates in memory, marks unsaved changes)
 - \`unselect_fabrication_blueprint\` - Remove a fabrication blueprint from your AppDNA model (requires exact name AND version match, updates in memory, marks unsaved changes)

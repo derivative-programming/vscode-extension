@@ -173,6 +173,10 @@
             } else {
                 warningElement.style.display = "none";
             }
+        } else if (message.command === "modelValidationOpenDetailsModal") {
+            console.log("[Webview] Opening details modal for requestCode:", message.requestCode);
+            // Open the details modal with the provided request code
+            showDetailsModal(message.requestCode);
         }
     });
 

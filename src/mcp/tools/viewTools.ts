@@ -338,6 +338,63 @@ export class ViewTools {
         return this.executeCommand('appdna.mcp.openPagePreview', pageName ? [pageName] : []);
     }
 
+    /**
+     * Open Validation Request Details Modal
+     * Opens the Model Validation Requests view and displays the details modal for a specific request
+     * @param requestCode The validation request code to show details for
+     */
+    public async openValidationRequestDetails(requestCode: string): Promise<any> {
+        // Check authentication before opening Model Services views
+        const isLoggedIn = await this.checkAuthStatus();
+        if (!isLoggedIn) {
+            throw new Error('You must be logged in to Model Services to view validation requests. Use the login tool first.');
+        }
+        
+        if (!requestCode) {
+            throw new Error('Request code is required to open validation request details');
+        }
+        
+        return this.executeCommand('appdna.mcp.openValidationRequestDetails', [requestCode]);
+    }
+
+    /**
+     * Open AI Processing Request Details Modal
+     * Opens the Model AI Processing Requests view and displays the details modal for a specific request
+     * @param requestCode The AI processing request code to show details for
+     */
+    public async openAIProcessingRequestDetails(requestCode: string): Promise<any> {
+        // Check authentication before opening Model Services views
+        const isLoggedIn = await this.checkAuthStatus();
+        if (!isLoggedIn) {
+            throw new Error('You must be logged in to Model Services to view AI processing requests. Use the login tool first.');
+        }
+        
+        if (!requestCode) {
+            throw new Error('Request code is required to open AI processing request details');
+        }
+        
+        return this.executeCommand('appdna.mcp.openAIProcessingRequestDetails', [requestCode]);
+    }
+
+    /**
+     * Open Fabrication Request Details Modal
+     * Opens the Model Fabrication Requests view and displays the details modal for a specific request
+     * @param requestCode The fabrication request code to show details for
+     */
+    public async openFabricationRequestDetails(requestCode: string): Promise<any> {
+        // Check authentication before opening Model Services views
+        const isLoggedIn = await this.checkAuthStatus();
+        if (!isLoggedIn) {
+            throw new Error('You must be logged in to Model Services to view fabrication requests. Use the login tool first.');
+        }
+        
+        if (!requestCode) {
+            throw new Error('Request code is required to open fabrication request details');
+        }
+        
+        return this.executeCommand('appdna.mcp.openFabricationRequestDetails', [requestCode]);
+    }
+
     // ===== WORKFLOW AND FLOW VIEWS =====
 
     /**

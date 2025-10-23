@@ -2434,6 +2434,93 @@ export class MCPServer {
             }
         });
 
+        this.server.registerTool('open_validation_request_details', {
+            title: 'Open Validation Request Details',
+            description: 'Opens the Model Validation Requests view and displays the details modal for a specific validation request. Shows validation status, results, and allows downloading the validation report. Requires authentication to Model Services.',
+            inputSchema: {
+                requestCode: z.string().describe('The validation request code to show details for (e.g., "VAL-2025-001")')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                requestCode: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ requestCode }) => {
+            try {
+                const result = await this.viewTools.openValidationRequestDetails(requestCode);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        this.server.registerTool('open_model_ai_processing_request_details', {
+            title: 'Open AI Processing Request Details',
+            description: 'Opens the Model AI Processing Requests view and displays the details modal for a specific AI processing request. Shows request status, AI analysis results, and allows downloading the report or merging results. Requires authentication to Model Services.',
+            inputSchema: {
+                requestCode: z.string().describe('The AI processing request code to show details for (e.g., "PREP-2025-001")')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                requestCode: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ requestCode }) => {
+            try {
+                const result = await this.viewTools.openAIProcessingRequestDetails(requestCode);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        this.server.registerTool('open_model_fabrication_request_details', {
+            title: 'Open Fabrication Request Details',
+            description: 'Opens the Model Fabrication Requests view and displays the details modal for a specific fabrication request. Shows request status, generated file information, and allows downloading fabrication results. Requires authentication to Model Services.',
+            inputSchema: {
+                requestCode: z.string().describe('The fabrication request code to show details for (e.g., "FAB-2025-001")')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                requestCode: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ requestCode }) => {
+            try {
+                const result = await this.viewTools.openFabricationRequestDetails(requestCode);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // ===== WORKFLOW AND FLOW VIEWS =====
 
         this.server.registerTool('open_page_init_flows_list_view', {

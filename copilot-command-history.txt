@@ -1,4 +1,234 @@
 ===============================================================================
+DATE: October 23, 2025
+COMMAND: Add Open Fabrication Request Details Tool
+STATUS: ✅ COMPLETED
+===============================================================================
+
+REQUIREMENT:
+User requested: "next... open_model_fabrication_request_details"
+This completes the set of navigation tools for all three Model Services request types (AI Processing, Validation, and Fabrication), enabling direct navigation to specific request details modals.
+
+IMPLEMENTATION:
+Added new MCP navigation tool with command registration and WebView message handling:
+
+Tool: open_model_fabrication_request_details
+- Opens Model Fabrication Requests view and displays details modal for specific request
+- Parameter: requestCode (string, required) - The fabrication request code (e.g., "FAB-2025-001")
+- Requires authentication to Model Services (checks via HTTP bridge)
+- Opens fabrication view if not already open, or reveals existing panel
+- Sends message to WebView to trigger details modal automatically
+- Shows generated file information, allows downloading fabrication results
+- Returns success confirmation with requestCode
+
+FILES MODIFIED:
+1. src/commands/mcpViewCommands.ts (+13 lines)
+   - Added appdna.mcp.openFabricationRequestDetails command registration
+   - Validates requestCode parameter is provided
+   - Delegates to appdna.modelFabrication command with requestCode parameter
+
+2. src/commands/modelFabricationCommands.ts (+25 lines)
+   - Modified appdna.modelFabrication command to accept optional requestCode parameter
+   - For existing panels: sends modelFabricationOpenDetailsModal message immediately
+   - For new panels: sends message after initial data load (100ms delay)
+   - Logs requestCode in debug output
+
+3. src/webviews/modelFabricationView.js (+12 lines)
+   - Added message handler for modelFabricationOpenDetailsModal command
+   - Finds request in current data and requests details from extension
+   - Sends ModelFabricationRequestDetails message to extension
+   - Warns if request not found in current data
+
+4. src/mcp/tools/viewTools.ts (+18 lines)
+   - Added openFabricationRequestDetails() method to ViewTools class
+   - Checks authentication status before opening (required for Model Services)
+   - Validates requestCode parameter is provided
+   - Executes appdna.mcp.openFabricationRequestDetails command via HTTP bridge
+
+5. src/mcp/server.ts (+30 lines)
+   - Registered open_model_fabrication_request_details tool with Zod schema
+   - Clear description explaining authentication requirement and features
+   - Example requestCode format in schema description (FAB-2025-001)
+   - Error handling for authentication and validation failures
+
+6. src/extension.ts (updated)
+   - Tool count: 93 → 94 (updated in chat mode YAML)
+   - Model Services tools: 21 → 22
+   - Added open_model_fabrication_request_details to tool list
+
+7. MCP_README.md (updated)
+   - Tool count: 93 → 94
+   - Model Services API Tools: 21 → 22
+   - Added entry #19 for open_model_fabrication_request_details
+
+ARCHITECTURE NOTES:
+- Completes the navigation tool trio for Model Services requests
+- Follows consistent pattern with validation and AI processing tools
+- Reuses WebView message passing infrastructure
+- Panel tracking via activePanels Map prevents duplicate panels
+- Timeout ensures data loads before modal trigger
+- Authentication check prevents errors for logged-out users
+- Provides access to download functionality and result viewing
+
+TOOL COUNT UPDATE: 93 → 94 total tools (22 Model Services tools)
+
+COMPILATION: ✅ Successful (npm run compile)
+Extension bundle: 5.51 MiB
+
+COMPLETE SET OF MODEL SERVICES NAVIGATION TOOLS:
+- open_validation_request_details (tool #92)
+- open_model_ai_processing_request_details (tool #93)
+- open_model_fabrication_request_details (tool #94)
+
+All three Model Services request types now have complete navigation capabilities.
+
+===============================================================================
+DATE: October 23, 2025
+COMMAND: Add Open AI Processing Request Details Tool
+STATUS: ✅ COMPLETED
+===============================================================================
+
+REQUIREMENT:
+User requested: "create open_model_ai_processing_request_details too"
+This creates a companion navigation tool to the validation request details tool, enabling direct navigation to a specific AI processing request's details modal.
+
+IMPLEMENTATION:
+Added new MCP navigation tool with command registration and WebView message handling:
+
+Tool: open_model_ai_processing_request_details
+- Opens Model AI Processing Requests view and displays details modal for specific request
+- Parameter: requestCode (string, required) - The AI processing request code (e.g., "PREP-2025-001")
+- Requires authentication to Model Services (checks via HTTP bridge)
+- Opens AI processing view if not already open, or reveals existing panel
+- Sends message to WebView to trigger details modal automatically
+- Shows AI analysis results, allows downloading report or merging results
+- Returns success confirmation with requestCode
+
+FILES MODIFIED:
+1. src/commands/mcpViewCommands.ts (+13 lines)
+   - Added appdna.mcp.openAIProcessingRequestDetails command registration
+   - Validates requestCode parameter is provided
+   - Delegates to appdna.modelAIProcessing command with requestCode parameter
+
+2. src/commands/modelAIProcessingCommands.ts (+25 lines)
+   - Modified appdna.modelAIProcessing command to accept optional requestCode parameter
+   - For existing panels: sends modelAIProcessingOpenDetailsModal message immediately
+   - For new panels: sends message after initial data load (100ms delay)
+   - Logs requestCode in debug output
+
+3. src/webviews/modelAIProcessingView.js (+5 lines)
+   - Added message handler for modelAIProcessingOpenDetailsModal command
+   - Calls existing showDetailsModal() function with provided requestCode
+   - Reuses existing modal infrastructure (no new UI code needed)
+
+4. src/mcp/tools/viewTools.ts (+18 lines)
+   - Added openAIProcessingRequestDetails() method to ViewTools class
+   - Checks authentication status before opening (required for Model Services)
+   - Validates requestCode parameter is provided
+   - Executes appdna.mcp.openAIProcessingRequestDetails command via HTTP bridge
+
+5. src/mcp/server.ts (+30 lines)
+   - Registered open_model_ai_processing_request_details tool with Zod schema
+   - Clear description explaining authentication requirement and features
+   - Example requestCode format in schema description
+   - Error handling for authentication and validation failures
+
+6. src/extension.ts (updated)
+   - Tool count: 92 → 93 (updated in chat mode YAML)
+   - Model Services tools: 20 → 21
+   - Added open_model_ai_processing_request_details to tool list
+
+7. MCP_README.md (updated)
+   - Tool count: 92 → 93
+   - Model Services API Tools: 20 → 21
+   - Added entry #9 for open_model_ai_processing_request_details
+
+ARCHITECTURE NOTES:
+- Mirrors the validation request details tool implementation
+- Follows existing pattern from validation request navigation
+- Reuses WebView message passing infrastructure
+- Panel tracking via activePanels Map prevents duplicate panels
+- Timeout ensures data loads before modal trigger
+- Authentication check prevents errors for logged-out users
+- Provides access to merge functionality and report downloads
+
+TOOL COUNT UPDATE: 92 → 93 total tools (21 Model Services tools)
+
+COMPILATION: ✅ Successful (npm run compile)
+Extension bundle: 5.51 MiB
+
+===============================================================================
+DATE: October 23, 2025
+COMMAND: Add Open Validation Request Details Tool
+STATUS: ✅ COMPLETED
+===============================================================================
+
+REQUIREMENT:
+User requested: "id like to add a tool to open validatio request details for a given requestCode. it should open the model services validaiton request list and open the request details modal"
+This enables direct navigation to a specific validation request's details modal, improving workflow when users know the requestCode they want to inspect.
+
+IMPLEMENTATION:
+Added new MCP navigation tool with command registration and WebView message handling:
+
+Tool: open_validation_request_details
+- Opens Model Validation Requests view and displays details modal for specific request
+- Parameter: requestCode (string, required) - The validation request code (e.g., "VAL-2025-001")
+- Requires authentication to Model Services (checks via HTTP bridge)
+- Opens validation view if not already open, or reveals existing panel
+- Sends message to WebView to trigger details modal automatically
+- Returns success confirmation with requestCode
+
+FILES MODIFIED:
+1. src/commands/mcpViewCommands.ts (+13 lines)
+   - Added appdna.mcp.openValidationRequestDetails command registration
+   - Validates requestCode parameter is provided
+   - Delegates to appdna.modelValidation command with requestCode parameter
+
+2. src/commands/modelValidationCommands.ts (+25 lines)
+   - Modified appdna.modelValidation command to accept optional requestCode parameter
+   - For existing panels: sends modelValidationOpenDetailsModal message immediately
+   - For new panels: sends message after initial data load (100ms delay)
+   - Logs requestCode in debug output
+
+3. src/webviews/modelValidationView.js (+5 lines)
+   - Added message handler for modelValidationOpenDetailsModal command
+   - Calls existing showDetailsModal() function with provided requestCode
+   - Reuses existing modal infrastructure (no new UI code needed)
+
+4. src/mcp/tools/viewTools.ts (+24 lines)
+   - Added openValidationRequestDetails() method to ViewTools class
+   - Checks authentication status before opening (required for Model Services)
+   - Validates requestCode parameter is provided
+   - Executes appdna.mcp.openValidationRequestDetails command via HTTP bridge
+
+5. src/mcp/server.ts (+30 lines)
+   - Registered open_validation_request_details tool with Zod schema
+   - Clear description explaining authentication requirement
+   - Example requestCode format in schema description
+   - Error handling for authentication and validation failures
+
+6. src/extension.ts (updated)
+   - Tool count: 91 → 92 (updated in chat mode YAML)
+   - Model Services tools: 19 → 20
+   - Added open_validation_request_details to tool list
+
+7. MCP_README.md (updated)
+   - Tool count: 91 → 92
+   - Model Services API Tools: 19 → 20
+   - Added entry #13 for open_validation_request_details
+
+ARCHITECTURE NOTES:
+- Follows existing pattern from AI processing request details
+- Reuses WebView message passing infrastructure
+- Panel tracking via activePanels Map prevents duplicate panels
+- Timeout ensures data loads before modal trigger
+- Authentication check prevents errors for logged-out users
+
+TOOL COUNT UPDATE: 91 → 92 total tools (20 Model Services tools)
+
+COMPILATION: ✅ Successful (npm run compile)
+Extension bundle: 5.51 MiB
+
+===============================================================================
 DATE: October 21, 2025
 COMMAND: Add Merge Model AI Processing Results Tool
 STATUS: ✅ COMPLETED

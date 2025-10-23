@@ -38,16 +38,26 @@ export function registerModelValidationCommands(
 ): void {
         // Register model validation command
     context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.modelValidation', async () => {
+        vscode.commands.registerCommand('appdna.modelValidation', async (requestCode?: string) => {
             // Create a consistent panel ID
             const panelId = 'modelValidation';
-            console.log(`modelValidation command called (panelId: ${panelId})`);
+            console.log(`modelValidation command called (panelId: ${panelId}, requestCode: ${requestCode})`);
             
             // Check if panel already exists
             if (activePanels.has(panelId)) {
                 console.log(`Panel already exists for model validation, revealing existing panel`);
                 // Panel exists, reveal it instead of creating a new one
-                activePanels.get(panelId)?.reveal(vscode.ViewColumn.One);
+                const existingPanel = activePanels.get(panelId);
+                existingPanel?.reveal(vscode.ViewColumn.One);
+                
+                // If requestCode is provided, trigger the details modal
+                if (requestCode && existingPanel) {
+                    console.log(`Triggering details modal for requestCode: ${requestCode}`);
+                    existingPanel.webview.postMessage({
+                        command: 'modelValidationOpenDetailsModal',
+                        requestCode: requestCode
+                    });
+                }
                 return;
             }
             
@@ -172,6 +182,18 @@ export function registerModelValidationCommands(
                 } else if (msg.command === 'modelValidationWebviewReady') {
                     console.log("[Extension] Handling modelValidationWebviewReady");
                     await fetchAndSend(1, 10, 'modelValidationRequestRequestedUTCDateTime', true);
+                    
+                    // If requestCode was provided when opening the view, trigger the details modal
+                    if (requestCode) {
+                        console.log(`[Extension] Triggering details modal for requestCode: ${requestCode}`);
+                        // Give the webview a moment to process the data before opening modal
+                        setTimeout(() => {
+                            panel.webview.postMessage({
+                                command: 'modelValidationOpenDetailsModal',
+                                requestCode: requestCode
+                            });
+                        }, 100);
+                    }
                 } else if (msg.command === 'modelValidationRequestPage') {
                     console.log("[Extension] Handling modelValidationRequestPage:", msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
                     await fetchAndSend(msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);

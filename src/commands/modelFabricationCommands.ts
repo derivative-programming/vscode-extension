@@ -22,16 +22,26 @@ export function registerModelFabricationCommands(
 ): void {
     // Register model fabrication command
     context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.modelFabrication', async () => {
+        vscode.commands.registerCommand('appdna.modelFabrication', async (requestCode?: string) => {
             // Create a consistent panel ID
             const panelId = 'modelFabrication';
-            console.log(`modelFabrication command called (panelId: ${panelId})`);
+            console.log(`modelFabrication command called (panelId: ${panelId}, requestCode: ${requestCode})`);
             
             // Check if panel already exists
             if (activePanels.has(panelId)) {
                 console.log(`Panel already exists for model fabrication, revealing existing panel`);
                 // Panel exists, reveal it instead of creating a new one
-                activePanels.get(panelId)?.reveal(vscode.ViewColumn.One);
+                const existingPanel = activePanels.get(panelId);
+                existingPanel?.reveal(vscode.ViewColumn.One);
+                
+                // If requestCode is provided, trigger the details modal
+                if (requestCode && existingPanel) {
+                    console.log(`Triggering details modal for requestCode: ${requestCode}`);
+                    existingPanel.webview.postMessage({
+                        command: 'modelFabricationOpenDetailsModal',
+                        requestCode: requestCode
+                    });
+                }
                 return;
             }
             
@@ -143,6 +153,18 @@ export function registerModelFabricationCommands(
                 if (msg.command === 'ModelFabricationWebviewReady') {
                     console.log("[Extension] Handling ModelFabricationWebviewReady");
                     await fetchAndSend(1, 10, 'modelFabricationRequestRequestedUTCDateTime', true);
+                    
+                    // If requestCode was provided when opening the view, trigger the details modal
+                    if (requestCode) {
+                        console.log(`[Extension] Triggering details modal for requestCode: ${requestCode}`);
+                        // Give the webview a moment to process the data before opening modal
+                        setTimeout(() => {
+                            panel.webview.postMessage({
+                                command: 'modelFabricationOpenDetailsModal',
+                                requestCode: requestCode
+                            });
+                        }, 100);
+                    }
                 } else if (msg.command === 'ModelFabricationRequestPage') {
                     console.log("[Extension] Handling ModelFabricationRequestPage:", msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
                     await fetchAndSend(msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);                } else if (msg.command === 'modelFabricationGetRootNodeProjectInfo') {
