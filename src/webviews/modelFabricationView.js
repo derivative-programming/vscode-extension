@@ -453,17 +453,11 @@
             }
         } else if (message.command === "modelFabricationOpenDetailsModal") {
             console.log("[Webview] Opening details modal for requestCode:", message.requestCode);
-            // Find the request in the current data and show details modal
-            const request = fabricationData.find(r => r.modelFabricationRequestCode === message.requestCode);
-            if (request) {
-                // Request details to show in modal
-                vscode.postMessage({
-                    command: 'ModelFabricationRequestDetails',
-                    requestCode: message.requestCode
-                });
-            } else {
-                console.warn("[Webview] Request not found in current data:", message.requestCode);
-            }
+            // Request the details data from the extension
+            vscode.postMessage({
+                command: 'ModelFabricationFetchRequestDetails',
+                requestCode: message.requestCode
+            });
         }
     });
 
