@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import { ModelService } from '../services/modelService';
 import { UserStoryTools } from './tools/userStoryTools';
 import { DataObjectTools } from './tools/dataObjectTools';
+import { FormTools } from './tools/formTools';
 
 /**
  * Input schema for create_user_story tool
@@ -143,12 +144,14 @@ export class AppDNAMcpProvider {
     private modelService: ModelService;
     private userStoryTools: UserStoryTools;
     private dataObjectTools: DataObjectTools;
+    private formTools: FormTools;
     private disposables: vscode.Disposable[] = [];
 
     constructor() {
         this.modelService = ModelService.getInstance();
         this.userStoryTools = new UserStoryTools(this.modelService);
         this.dataObjectTools = new DataObjectTools(this.modelService);
+        this.formTools = new FormTools(this.modelService);
         this.registerTools();
     }
 
@@ -771,6 +774,34 @@ export class AppDNAMcpProvider {
         });
         console.log('[MCP Provider] ✓ search_user_stories registered');
 
+        // Register get_form_schema tool
+        console.log('[MCP Provider] Registering get_form_schema...');
+        const getFormSchemaTool = vscode.lm.registerTool('get_form_schema', {
+            prepareInvocation: async (options, token) => {
+                return {
+                    invocationMessage: 'Getting schema definition for complete form structure (objectWorkflow)',
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const result = await this.formTools.get_form_schema();
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ get_form_schema registered');
+
         // Register open_add_data_object_wizard tool
         const openAddDataObjectWizardTool = vscode.lm.registerTool('open_add_data_object_wizard', {
             description: 'Opens the Add Data Object Wizard for creating a new data object. The wizard guides you through creating a data object with options for lookup objects, child objects, and parent-child relationships.',
@@ -817,14 +848,16 @@ export class AppDNAMcpProvider {
             listDataObjectSummaryTool,
             listDataObjectsTool,
             getDataObjectTool,
+            createDataObjectTool,
             getDataObjectSchemaTool,
             getDataObjectUsageTool,
             searchByRoleTool, 
             searchStoriesTool,
+            getFormSchemaTool,
             openAddDataObjectWizardTool,
             openAddReportWizardTool
         );
-        console.log('[MCP Provider] All 21 tools registered and added to disposables');
+        console.log('[MCP Provider] All 22 tools registered and added to disposables');
     }
 
     /**

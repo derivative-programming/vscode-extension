@@ -7,40 +7,10 @@ common types of graphs...
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
  
 
-
-
 ---------------------
 
-
-
 tools...
-
-model ai processing...
-- done:list_model_ai_processing_requests
-- done:add request
-- done:get_model_ai_processing_request_details
-- done:get schema
-- download report
-- done:merge results
-
-model validation...
-- done:list_model_validation_requests
-- done:add request
-- done:get details
-- done:get schema
-- download report
-- view change suggestions
-
-
-model fabrication requests...
-- done:list_model_fabrication_requests
-- test:add request
-- done:get details
-- done:get schema
-- download results
- 
-
-
+  
 Describe data object model restrictions
 
 Describe data object prop data types
@@ -61,15 +31,9 @@ Give specific Md file names
 
 Test: update the md with info learned from user stories
 
-
-
 Test: create a data model for a Crm 
 
-
-
 Test : create roles for all Crm users
-
-
 
 Test: create user stories for a Crm 
 

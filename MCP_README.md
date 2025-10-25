@@ -8,11 +8,11 @@
 
 # AppDNA VS Code Extension - MCP Server
 
-This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **94 tools** for interacting with the AppDNA model.
+This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **95 tools** for interacting with the AppDNA model.
 
 ## Features
 
-### **94 Comprehensive Tools** ✅ Verified with GitHub Copilot
+### **95 Comprehensive Tools** ✅ Verified with GitHub Copilot
 
 #### **User Story Management** (5 tools)
 1. **create_user_story** - Create a new user story with format validation
@@ -85,6 +85,15 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
 11. **list_pages** - List all pages (forms and reports) with optional filtering
     - Filter by page name (partial match), page type (Form/Report), owner object, target child object, or role required
     - Returns page details including type, owner, role, total element count
+
+#### **Form Management** (1 tool)
+1. **get_form_schema** - Get JSON schema for complete form structure (objectWorkflow)
+    - Returns all form properties including name, isPage, titleText, ownerObject, targetChildObject, roleRequired
+    - Includes input parameter structure (objectWorkflowParam array)
+    - Includes button structure (objectWorkflowButton array)
+    - Includes output variable structure (objectWorkflowOutputVar array)
+    - Provides validation rules, SQL data types, and complete usage examples
+    - **Note:** Additional form tools (list_forms, get_form, create_form, update_form) coming soon
 
 #### **Wizard Tools** (3 tools)
 - **open_add_data_object_wizard** - Open the Add Data Object Wizard for creating new data objects
@@ -277,6 +286,12 @@ Once the MCP server is running, you can ask GitHub Copilot to:
 - "Open the user story journey view"
 - "Display the page usage analysis"
 - "Show me role requirements for user stories"
+
+#### **Form Schema & Structure**
+- "Show me the schema for forms"
+- "What properties does a form have?"
+- "Get the structure definition for forms with all parameters"
+- "Show me the form schema including buttons and output variables"
 
 #### **Testing & Verification**
 - "What's the secret word of the day?" (Test tool connectivity)

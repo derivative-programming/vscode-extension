@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { UserStoryTools } from './tools/userStoryTools';
 import { ViewTools } from './tools/viewTools';
 import { DataObjectTools } from './tools/dataObjectTools';
+import { FormTools } from './tools/formTools';
 import { ModelTools } from './tools/modelTools';
 import { ModelServiceTools } from './tools/modelServiceTools';
 
@@ -22,6 +23,7 @@ export class MCPServer {
     private userStoryTools: UserStoryTools;
     private viewTools: ViewTools;
     private dataObjectTools: DataObjectTools;
+    private formTools: FormTools;
     private modelTools: ModelTools;
     private modelServiceTools: ModelServiceTools;
     private transport: StdioServerTransport;
@@ -31,6 +33,7 @@ export class MCPServer {
         this.userStoryTools = new UserStoryTools(null);
         this.viewTools = new ViewTools();
         this.dataObjectTools = new DataObjectTools(null);
+        this.formTools = new FormTools(null);
         this.modelTools = new ModelTools();
         this.modelServiceTools = new ModelServiceTools();
 
@@ -697,6 +700,33 @@ export class MCPServer {
         }, async () => {
             try {
                 const result = await this.dataObjectTools.get_data_object_schema();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register get_form_schema tool
+        this.server.registerTool('get_form_schema', {
+            title: 'Get Form Schema',
+            description: 'Get the schema definition for complete form structure (objectWorkflow). Includes all form properties (name, isPage, titleText, ownerObject, etc.), input parameter structure (objectWorkflowParam), button structure (objectWorkflowButton), output variable structure (objectWorkflowOutputVar), validation rules, SQL data types, and examples of complete forms with all components.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                schema: z.any(),
+                note: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.formTools.get_form_schema();
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result
