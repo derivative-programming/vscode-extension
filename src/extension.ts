@@ -55,6 +55,9 @@ tools:
   - get_form
   - suggest_form_name_and_title
   - create_form
+  - update_form
+  - add_form_param
+  - update_form_param
   - list_data_object_summary
   - list_data_objects
   - get_data_object
@@ -271,7 +274,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
   - Auto-expand tree nodes
   - Custom model file name
 
-## Comprehensive MCP Tool Suite (99 Tools)
+## Comprehensive MCP Tool Suite (101 Tools)
 
 ### User Story Management (5 Tools)
 **CRUD Operations:**
@@ -388,12 +391,14 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`get_form_schema\` - View complete form structure (objectWorkflow) with all properties, input parameters, buttons, and output variables
 - \`get_form\` - Retrieve complete form details including all parameters, buttons, and output variables with element counts
 
-### Form Management Tools (5 Tools)
+### Form Management Tools (7 Tools)
 - \`get_form_schema\` - View complete form structure (objectWorkflow) with all properties, input parameters, buttons, and output variables
 - \`get_form\` - Retrieve complete form details including all parameters, buttons, and output variables with element counts
 - \`suggest_form_name_and_title\` - Generate suggested form name (PascalCase) and title based on owner object, role, action, and target child object
 - \`create_form\` - Create new form with automatic page init flow creation, default buttons, and role-based authorization
 - \`update_form\` - Update properties of an existing form (16 updatable properties, requires exact case-sensitive form name match)
+- \`add_form_param\` - Add a new input parameter (form field/control) to an existing form with 34 configurable properties
+- \`update_form_param\` - Update properties of an existing form parameter (34 updatable properties, case-sensitive name matching)
 
 ### Utility Tools (1 Tool)
 - \`secret_word_of_the_day\` - Test/verification tool

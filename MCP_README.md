@@ -8,11 +8,11 @@
 
 # AppDNA VS Code Extension - MCP Server
 
-This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **98 tools** for interacting with the AppDNA model.
+This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **101 tools** for interacting with the AppDNA model.
 
 ## Features
 
-### **96 Comprehensive Tools** ✅ Verified with GitHub Copilot
+### **101 Comprehensive Tools** ✅ Verified with GitHub Copilot
 
 #### **User Story Management** (5 tools)
 1. **create_user_story** - Create a new user story with format validation
@@ -86,10 +86,10 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
     - Filter by page name (partial match), page type (Form/Report), owner object, target child object, or role required
     - Returns page details including type, owner, role, total element count
 
-#### **Form Management** (4 tools)
+#### **Form Management** (7 tools)
 1. **get_form_schema** - Get JSON schema for complete form structure (objectWorkflow)
     - Returns all form properties including name, isPage, titleText, ownerObject, targetChildObject, roleRequired
-    - Includes input parameter structure (objectWorkflowParam array)
+    - Includes input parameter structure (objectWorkflowParam array with 35 properties)
     - Includes button structure (objectWorkflowButton array)
     - Includes output variable structure (objectWorkflowOutputVar array)
     - Provides validation rules, SQL data types, and complete usage examples
@@ -101,6 +101,8 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
     - Provides PascalCase form name and human-readable title based on context
     - Considers owner object, role, action verb, and target child object
     - Follows naming conventions automatically
+    - Validates role_required and target_child_object existence
+    - Prevents duplicate form names with numeric suffix generation
     - Useful before creating a form to get naming recommendations
 4. **create_form** - Create new form with automatic setup
     - Creates form in specified owner data object
@@ -109,8 +111,24 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
     - Validates PascalCase naming and uniqueness (case-insensitive check)
     - Supports role-based authorization (auto-sets isAuthorizationRequired and layoutName)
     - Optional target child object for "Add Child" scenarios
-    - Optional action verb for action-based forms
-    - **Note:** Additional form tools (update_form, add_form_param, add_form_button) coming soon
+    - Validates role_required and target_child_object existence before creation
+5. **update_form** - Update properties of an existing form
+    - Updates 16 form properties (titleText, layout, authorization, etc.)
+    - Form name must match exactly (case-sensitive)
+    - Searches all data objects to find the form
+    - At least one property to update required
+    - Marks model with unsaved changes
+6. **add_form_param** - Add new input parameter (form field/control) to a form
+    - Add new parameter with unique PascalCase name
+    - Configure 34 optional properties including data type, validation, foreign keys, display settings
+    - Supports all input types: text, dropdown, FK lookup, radio buttons, file upload, address autocomplete
+    - Prevents duplicate parameter names
+    - Marks model with unsaved changes
+7. **update_form_param** - Update properties of an existing form parameter
+    - Update any of 34 parameter properties
+    - Form and parameter names must match exactly (case-sensitive)
+    - At least one property to update required
+    - Marks model with unsaved changes
 
 #### **Wizard Tools** (3 tools)
 - **open_add_data_object_wizard** - Open the Add Data Object Wizard for creating new data objects

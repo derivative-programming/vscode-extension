@@ -929,6 +929,195 @@ export class McpBridge {
                         }
                     });
                 }
+                else if (req.url === '/api/add-form-param' && req.method === 'POST') {
+                    // Add a new parameter to an existing form
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { form_name, param } = JSON.parse(body);
+                            
+                            if (!form_name) {
+                                throw new Error('form_name is required');
+                            }
+                            
+                            if (!param || !param.name) {
+                                throw new Error('param with name property is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the form across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundForm: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                            const form = obj.objectWorkflow.find((wf: any) => wf.name === form_name);
+                                            if (form) {
+                                                foundForm = form;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundForm) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundForm) {
+                                throw new Error(`Form "${form_name}" not found in any data object`);
+                            }
+                            
+                            // Ensure objectWorkflowParam array exists
+                            if (!foundForm.objectWorkflowParam) {
+                                foundForm.objectWorkflowParam = [];
+                            }
+                            
+                            // Check for duplicate parameter name
+                            const existingParam = foundForm.objectWorkflowParam.find((p: any) => p.name === param.name);
+                            if (existingParam) {
+                                throw new Error(`Parameter "${param.name}" already exists in form "${form_name}"`);
+                            }
+                            
+                            // Add the parameter
+                            foundForm.objectWorkflowParam.push(param);
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Added parameter "${param.name}" to form "${form_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                param: param,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error adding form parameter: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to add form parameter'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/update-form-param' && req.method === 'POST') {
+                    // Update an existing parameter in a form
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { form_name, param_name, updates } = JSON.parse(body);
+                            
+                            if (!form_name) {
+                                throw new Error('form_name is required');
+                            }
+                            
+                            if (!param_name) {
+                                throw new Error('param_name is required');
+                            }
+                            
+                            if (!updates || Object.keys(updates).length === 0) {
+                                throw new Error('At least one property to update is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the form across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundForm: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                            const form = obj.objectWorkflow.find((wf: any) => wf.name === form_name);
+                                            if (form) {
+                                                foundForm = form;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundForm) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundForm) {
+                                throw new Error(`Form "${form_name}" not found in any data object`);
+                            }
+                            
+                            // Find the parameter
+                            if (!foundForm.objectWorkflowParam || !Array.isArray(foundForm.objectWorkflowParam)) {
+                                throw new Error(`Form "${form_name}" has no parameters`);
+                            }
+                            
+                            const foundParam = foundForm.objectWorkflowParam.find((p: any) => p.name === param_name);
+                            if (!foundParam) {
+                                throw new Error(`Parameter "${param_name}" not found in form "${form_name}"`);
+                            }
+                            
+                            // Update the parameter properties
+                            for (const [key, value] of Object.entries(updates)) {
+                                foundParam[key] = value;
+                            }
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated parameter "${param_name}" in form "${form_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                param: foundParam,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating form parameter: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to update form parameter'
+                            }));
+                        }
+                    });
+                }
                 else if (req.url?.startsWith('/api/lookup-values?')) {
                     // Get all lookup values from a specific lookup data object
                     // Extract lookupObjectName from query string

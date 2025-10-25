@@ -928,6 +928,144 @@ export class MCPServer {
             }
         });
 
+        // Register add_form_param tool
+        this.server.registerTool('add_form_param', {
+            title: 'Add Form Parameter',
+            description: 'Add a new input parameter (form field/control) to an existing form. Parameter name must be unique within the form and in PascalCase format. Form name must match exactly (case-sensitive). Searches all data objects to find the form.',
+            inputSchema: {
+                form_name: z.string().describe('The name of the form to add the parameter to (required, case-sensitive exact match)'),
+                name: z.string().describe('Parameter name in PascalCase format (required, must be unique within the form)'),
+                sqlServerDBDataType: z.enum(['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date', 'varchar', 'text']).optional().describe('SQL Server data type for this parameter'),
+                sqlServerDBDataTypeSize: z.string().optional().describe('Size of data type (for nvarchar, varchar, decimal). Default is 100 for nvarchar.'),
+                labelText: z.string().optional().describe('Human-readable label text displayed for this field'),
+                infoToolTipText: z.string().optional().describe('Tooltip text displayed when hovering over the info icon'),
+                codeDescription: z.string().optional().describe('Code description for documentation'),
+                defaultValue: z.string().optional().describe('Default value for this parameter'),
+                isVisible: z.enum(['true', 'false']).optional().describe('Is this parameter visible on the form?'),
+                isRequired: z.enum(['true', 'false']).optional().describe('Is this parameter required?'),
+                requiredErrorText: z.string().optional().describe('Error message displayed when required field is not filled'),
+                isSecured: z.enum(['true', 'false']).optional().describe('Should this parameter be secured (password field)?'),
+                isFK: z.enum(['true', 'false']).optional().describe('Is this parameter a foreign key?'),
+                fKObjectName: z.string().optional().describe('Name of the foreign key object target (data object name, case-sensitive)'),
+                fKObjectQueryName: z.string().optional().describe('Name of the foreign key object query'),
+                isFKLookup: z.enum(['true', 'false']).optional().describe('Is this parameter a foreign key to a lookup object?'),
+                isFKList: z.enum(['true', 'false']).optional().describe('Should a dropdown list be shown for this FK?'),
+                isFKListInactiveIncluded: z.enum(['true', 'false']).optional().describe('Should inactive items be included in the FK dropdown list?'),
+                isFKListUnknownOptionRemoved: z.enum(['true', 'false']).optional().describe('Should the "Unknown" option be removed from FK dropdown?'),
+                fKListOrderBy: z.enum(['NameDesc', 'NameAsc', 'DisplayOrderDesc', 'DisplayOrderAsc']).optional().describe('Sort order for FK dropdown list'),
+                isFKListOptionRecommended: z.enum(['true', 'false']).optional().describe('Should a recommended option be highlighted in FK dropdown?'),
+                isFKListSearchable: z.enum(['true', 'false']).optional().describe('Should the FK dropdown list be searchable?'),
+                FKListRecommendedOption: z.string().optional().describe('The recommended option value for FK dropdown'),
+                isRadioButtonList: z.enum(['true', 'false']).optional().describe('Should this parameter be displayed as radio buttons?'),
+                isFileUpload: z.enum(['true', 'false']).optional().describe('Is this parameter a file upload field?'),
+                isCreditCardEntry: z.enum(['true', 'false']).optional().describe('Is this parameter a credit card entry field?'),
+                isTimeZoneDetermined: z.enum(['true', 'false']).optional().describe('Should timezone be determined for this parameter?'),
+                isAutoCompleteAddressSource: z.enum(['true', 'false']).optional().describe('Implements typical Google address autocomplete'),
+                autoCompleteAddressSourceName: z.string().optional().describe('Name of the source parameter for address autocomplete'),
+                autoCompleteAddressTargetType: z.enum(['AddressLine1', 'AddressLine2', 'City', 'StateAbbrev', 'Zip', 'Country', 'Latitude', 'Longitude']).optional().describe('Type of address field this parameter represents'),
+                detailsText: z.string().optional().describe('Additional details text for this parameter'),
+                validationRuleRegExMatchRequired: z.string().optional().describe('Regular expression pattern that this parameter must match'),
+                validationRuleRegExMatchRequiredErrorText: z.string().optional().describe('Error message displayed when regex validation fails'),
+                isIgnored: z.enum(['true', 'false']).optional().describe('Should this parameter be ignored by the code generator?'),
+                sourceObjectName: z.string().optional().describe('Name of the source data object for this parameter'),
+                sourcePropertyName: z.string().optional().describe('Name of the source property from the source object')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                param: z.any().optional(),
+                form_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async (args) => {
+            try {
+                const { form_name, name, ...otherParams } = args;
+                const param = { name, ...otherParams };
+                const result = await this.formTools.add_form_param(form_name, param as any);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register update_form_param tool
+        this.server.registerTool('update_form_param', {
+            title: 'Update Form Parameter',
+            description: 'Update properties of an existing parameter (form field/control) in a form. Form name and parameter name must match exactly (case-sensitive). At least one property to update is required. Updates only the specified properties, leaving others unchanged.',
+            inputSchema: {
+                form_name: z.string().describe('The name of the form containing the parameter (required, case-sensitive exact match)'),
+                param_name: z.string().describe('The name of the parameter to update (required, case-sensitive exact match)'),
+                sqlServerDBDataType: z.enum(['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date', 'varchar', 'text']).optional().describe('SQL Server data type for this parameter'),
+                sqlServerDBDataTypeSize: z.string().optional().describe('Size of data type (for nvarchar, varchar, decimal)'),
+                labelText: z.string().optional().describe('Human-readable label text displayed for this field'),
+                infoToolTipText: z.string().optional().describe('Tooltip text displayed when hovering over the info icon'),
+                codeDescription: z.string().optional().describe('Code description for documentation'),
+                defaultValue: z.string().optional().describe('Default value for this parameter'),
+                isVisible: z.enum(['true', 'false']).optional().describe('Is this parameter visible on the form?'),
+                isRequired: z.enum(['true', 'false']).optional().describe('Is this parameter required?'),
+                requiredErrorText: z.string().optional().describe('Error message displayed when required field is not filled'),
+                isSecured: z.enum(['true', 'false']).optional().describe('Should this parameter be secured (password field)?'),
+                isFK: z.enum(['true', 'false']).optional().describe('Is this parameter a foreign key?'),
+                fKObjectName: z.string().optional().describe('Name of the foreign key object target (data object name, case-sensitive)'),
+                fKObjectQueryName: z.string().optional().describe('Name of the foreign key object query'),
+                isFKLookup: z.enum(['true', 'false']).optional().describe('Is this parameter a foreign key to a lookup object?'),
+                isFKList: z.enum(['true', 'false']).optional().describe('Should a dropdown list be shown for this FK?'),
+                isFKListInactiveIncluded: z.enum(['true', 'false']).optional().describe('Should inactive items be included in the FK dropdown list?'),
+                isFKListUnknownOptionRemoved: z.enum(['true', 'false']).optional().describe('Should the "Unknown" option be removed from FK dropdown?'),
+                fKListOrderBy: z.enum(['NameDesc', 'NameAsc', 'DisplayOrderDesc', 'DisplayOrderAsc']).optional().describe('Sort order for FK dropdown list'),
+                isFKListOptionRecommended: z.enum(['true', 'false']).optional().describe('Should a recommended option be highlighted in FK dropdown?'),
+                isFKListSearchable: z.enum(['true', 'false']).optional().describe('Should the FK dropdown list be searchable?'),
+                FKListRecommendedOption: z.string().optional().describe('The recommended option value for FK dropdown'),
+                isRadioButtonList: z.enum(['true', 'false']).optional().describe('Should this parameter be displayed as radio buttons?'),
+                isFileUpload: z.enum(['true', 'false']).optional().describe('Is this parameter a file upload field?'),
+                isCreditCardEntry: z.enum(['true', 'false']).optional().describe('Is this parameter a credit card entry field?'),
+                isTimeZoneDetermined: z.enum(['true', 'false']).optional().describe('Should timezone be determined for this parameter?'),
+                isAutoCompleteAddressSource: z.enum(['true', 'false']).optional().describe('Implements typical Google address autocomplete'),
+                autoCompleteAddressSourceName: z.string().optional().describe('Name of the source parameter for address autocomplete'),
+                autoCompleteAddressTargetType: z.enum(['AddressLine1', 'AddressLine2', 'City', 'StateAbbrev', 'Zip', 'Country', 'Latitude', 'Longitude']).optional().describe('Type of address field this parameter represents'),
+                detailsText: z.string().optional().describe('Additional details text for this parameter'),
+                validationRuleRegExMatchRequired: z.string().optional().describe('Regular expression pattern that this parameter must match'),
+                validationRuleRegExMatchRequiredErrorText: z.string().optional().describe('Error message displayed when regex validation fails'),
+                isIgnored: z.enum(['true', 'false']).optional().describe('Should this parameter be ignored by the code generator?'),
+                sourceObjectName: z.string().optional().describe('Name of the source data object for this parameter'),
+                sourcePropertyName: z.string().optional().describe('Name of the source property from the source object')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                param: z.any().optional(),
+                form_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ form_name, param_name, ...updates }) => {
+            try {
+                const result = await this.formTools.update_form_param(form_name, param_name, updates);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register create_data_object tool
         this.server.registerTool('create_data_object', {
             title: 'Create Data Object',

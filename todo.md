@@ -10,7 +10,6 @@ common types of graphs...
 ---------------------
 
 tools...
-test:update_form
 add_form_param 
 add_form_button 
 add_form_output_var 

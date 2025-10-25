@@ -947,6 +947,67 @@ export class AppDNAMcpProvider {
         });
         console.log('[MCP Provider] ✓ update_form registered');
 
+        // Register add_form_param tool
+        console.log('[MCP Provider] Registering add_form_param...');
+        const addFormParamTool = vscode.lm.registerTool('add_form_param', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { form_name: string; name: string };
+                return {
+                    invocationMessage: `Adding parameter "${input.name}" to form "${input.form_name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const { form_name, name, ...otherParams } = options.input as any;
+                    const param = { name, ...otherParams };
+                    const result = await this.formTools.add_form_param(form_name, param);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ add_form_param registered');
+
+        // Register update_form_param tool
+        console.log('[MCP Provider] Registering update_form_param...');
+        const updateFormParamTool = vscode.lm.registerTool('update_form_param', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { form_name: string; param_name: string };
+                return {
+                    invocationMessage: `Updating parameter "${input.param_name}" in form "${input.form_name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const { form_name, param_name, ...updates } = options.input as any;
+                    const result = await this.formTools.update_form_param(form_name, param_name, updates);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ update_form_param registered');
+
         // Register open_add_data_object_wizard tool
         const openAddDataObjectWizardTool = vscode.lm.registerTool('open_add_data_object_wizard', {
             description: 'Opens the Add Data Object Wizard for creating a new data object. The wizard guides you through creating a data object with options for lookup objects, child objects, and parent-child relationships.',
@@ -1003,10 +1064,12 @@ export class AppDNAMcpProvider {
             suggestFormNameAndTitleTool,
             createFormTool,
             updateFormTool,
+            addFormParamTool,
+            updateFormParamTool,
             openAddDataObjectWizardTool,
             openAddReportWizardTool
         );
-        console.log('[MCP Provider] All 26 tools registered and added to disposables');
+        console.log('[MCP Provider] All 28 tools registered and added to disposables');
     }
 
     /**

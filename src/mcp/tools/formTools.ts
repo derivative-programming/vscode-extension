@@ -1511,23 +1511,11 @@ export class FormTools {
                 };
             }
 
-            // Convert string boolean values to actual booleans for the update
-            const processedUpdates: any = {};
-            for (const [key, value] of Object.entries(updates)) {
-                if (value === 'true') {
-                    processedUpdates[key] = true;
-                } else if (value === 'false') {
-                    processedUpdates[key] = false;
-                } else {
-                    processedUpdates[key] = value;
-                }
-            }
-
             // Call bridge API to update form
             const http = await import('http');
             const postData = {
                 form_name,
-                updates: processedUpdates
+                updates: updates
             };
 
             const postDataString = JSON.stringify(postData);
@@ -1590,6 +1578,257 @@ export class FormTools {
                 success: false,
                 error: `Could not update form: ${error instanceof Error ? error.message : 'Unknown error'}`,
                 note: 'Bridge connection required to update forms. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
+     * Add a new parameter (input control) to an existing form
+     * @param form_name - Name of the form to add the parameter to (case-sensitive, exact match required)
+     * @param param - The parameter object to add
+     * @returns Result object with success status
+     */
+    async add_form_param(
+        form_name: string,
+        param: {
+            name: string;
+            sqlServerDBDataType?: string;
+            sqlServerDBDataTypeSize?: string;
+            labelText?: string;
+            infoToolTipText?: string;
+            codeDescription?: string;
+            defaultValue?: string;
+            isVisible?: 'true' | 'false';
+            isRequired?: 'true' | 'false';
+            requiredErrorText?: string;
+            isSecured?: 'true' | 'false';
+            isFK?: 'true' | 'false';
+            fKObjectName?: string;
+            fKObjectQueryName?: string;
+            isFKLookup?: 'true' | 'false';
+            isFKList?: 'true' | 'false';
+            isFKListInactiveIncluded?: 'true' | 'false';
+            isFKListUnknownOptionRemoved?: 'true' | 'false';
+            fKListOrderBy?: string;
+            isFKListOptionRecommended?: 'true' | 'false';
+            isFKListSearchable?: 'true' | 'false';
+            FKListRecommendedOption?: string;
+            isRadioButtonList?: 'true' | 'false';
+            isFileUpload?: 'true' | 'false';
+            isCreditCardEntry?: 'true' | 'false';
+            isTimeZoneDetermined?: 'true' | 'false';
+            isAutoCompleteAddressSource?: 'true' | 'false';
+            autoCompleteAddressSourceName?: string;
+            autoCompleteAddressTargetType?: string;
+            detailsText?: string;
+            validationRuleRegExMatchRequired?: string;
+            validationRuleRegExMatchRequiredErrorText?: string;
+            isIgnored?: 'true' | 'false';
+            sourceObjectName?: string;
+            sourcePropertyName?: string;
+        }
+    ): Promise<{ success: boolean; param?: any; form_name?: string; owner_object_name?: string; message?: string; error?: string; note?: string }> {
+        try {
+            // Validate required parameter name
+            if (!param.name) {
+                return {
+                    success: false,
+                    error: 'Parameter name is required'
+                };
+            }
+
+            // Call bridge API to add form param
+            const http = await import('http');
+            const postData = {
+                form_name,
+                param: param
+            };
+
+            const postDataString = JSON.stringify(postData);
+
+            const result: any = await new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/add-form-param',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => {
+                            data += chunk;
+                        });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+
+                req.on('error', (error) => {
+                    reject(error);
+                });
+
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error || 'Failed to add form parameter'
+                };
+            }
+
+            return {
+                success: true,
+                param: result.param,
+                form_name: form_name,
+                owner_object_name: result.owner_object_name,
+                message: `Parameter "${param.name}" added to form "${form_name}" successfully`,
+                note: 'Form parameter has been added. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not add form parameter: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to add form parameters. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
+     * Update an existing parameter (input control) in a form
+     * @param form_name - Name of the form containing the parameter (case-sensitive, exact match required)
+     * @param param_name - Name of the parameter to update (case-sensitive, exact match required)
+     * @param updates - Object containing properties to update (at least one required)
+     * @returns Result object with success status
+     */
+    async update_form_param(
+        form_name: string,
+        param_name: string,
+        updates: {
+            sqlServerDBDataType?: string;
+            sqlServerDBDataTypeSize?: string;
+            labelText?: string;
+            infoToolTipText?: string;
+            codeDescription?: string;
+            defaultValue?: string;
+            isVisible?: 'true' | 'false';
+            isRequired?: 'true' | 'false';
+            requiredErrorText?: string;
+            isSecured?: 'true' | 'false';
+            isFK?: 'true' | 'false';
+            fKObjectName?: string;
+            fKObjectQueryName?: string;
+            isFKLookup?: 'true' | 'false';
+            isFKList?: 'true' | 'false';
+            isFKListInactiveIncluded?: 'true' | 'false';
+            isFKListUnknownOptionRemoved?: 'true' | 'false';
+            fKListOrderBy?: string;
+            isFKListOptionRecommended?: 'true' | 'false';
+            isFKListSearchable?: 'true' | 'false';
+            FKListRecommendedOption?: string;
+            isRadioButtonList?: 'true' | 'false';
+            isFileUpload?: 'true' | 'false';
+            isCreditCardEntry?: 'true' | 'false';
+            isTimeZoneDetermined?: 'true' | 'false';
+            isAutoCompleteAddressSource?: 'true' | 'false';
+            autoCompleteAddressSourceName?: string;
+            autoCompleteAddressTargetType?: string;
+            detailsText?: string;
+            validationRuleRegExMatchRequired?: string;
+            validationRuleRegExMatchRequiredErrorText?: string;
+            isIgnored?: 'true' | 'false';
+            sourceObjectName?: string;
+            sourcePropertyName?: string;
+        }
+    ): Promise<{ success: boolean; param?: any; form_name?: string; owner_object_name?: string; message?: string; error?: string; note?: string }> {
+        try {
+            // Validate at least one property to update
+            const updateKeys = Object.keys(updates);
+            if (updateKeys.length === 0) {
+                return {
+                    success: false,
+                    error: 'At least one property to update must be provided'
+                };
+            }
+
+            // Call bridge API to update form param
+            const http = await import('http');
+            const postData = {
+                form_name,
+                param_name,
+                updates: updates
+            };
+
+            const postDataString = JSON.stringify(postData);
+
+            const result: any = await new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/update-form-param',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => {
+                            data += chunk;
+                        });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+
+                req.on('error', (error) => {
+                    reject(error);
+                });
+
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error || 'Failed to update form parameter'
+                };
+            }
+
+            return {
+                success: true,
+                param: result.param,
+                form_name: form_name,
+                owner_object_name: result.owner_object_name,
+                message: `Parameter "${param_name}" in form "${form_name}" updated successfully`,
+                note: 'Form parameter has been updated. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not update form parameter: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to update form parameters. Make sure the AppDNA extension is running and a model file is loaded.'
             };
         }
     }
