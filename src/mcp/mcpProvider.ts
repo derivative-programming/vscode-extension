@@ -1008,6 +1008,66 @@ export class AppDNAMcpProvider {
         });
         console.log('[MCP Provider] ✓ update_form_param registered');
 
+        // Register add_form_button tool
+        console.log('[MCP Provider] Registering add_form_button...');
+        const addFormButtonTool = vscode.lm.registerTool('add_form_button', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { form_name: string; buttonText: string };
+                return {
+                    invocationMessage: `Adding button "${input.buttonText}" to form "${input.form_name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const { form_name, ...buttonProps } = options.input as any;
+                    const result = await this.formTools.add_form_button(form_name, buttonProps);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ add_form_button registered');
+
+        // Register update_form_button tool
+        console.log('[MCP Provider] Registering update_form_button...');
+        const updateFormButtonTool = vscode.lm.registerTool('update_form_button', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { form_name: string; button_text: string };
+                return {
+                    invocationMessage: `Updating button "${input.button_text}" in form "${input.form_name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const { form_name, button_text, ...updates } = options.input as any;
+                    const result = await this.formTools.update_form_button(form_name, button_text, updates);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ update_form_button registered');
+
         // Register open_add_data_object_wizard tool
         const openAddDataObjectWizardTool = vscode.lm.registerTool('open_add_data_object_wizard', {
             description: 'Opens the Add Data Object Wizard for creating a new data object. The wizard guides you through creating a data object with options for lookup objects, child objects, and parent-child relationships.',
@@ -1066,10 +1126,12 @@ export class AppDNAMcpProvider {
             updateFormTool,
             addFormParamTool,
             updateFormParamTool,
+            addFormButtonTool,
+            updateFormButtonTool,
             openAddDataObjectWizardTool,
             openAddReportWizardTool
         );
-        console.log('[MCP Provider] All 28 tools registered and added to disposables');
+        console.log('[MCP Provider] All 30 tools registered and added to disposables');
     }
 
     /**

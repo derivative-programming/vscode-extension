@@ -9,11 +9,9 @@ common types of graphs...
 
 ---------------------
 
-tools...
-add_form_param 
+tools... 
 add_form_button 
-add_form_output_var 
-update_form_param 
+add_form_output_var  
 update_form_button 
 update_form_output_var 
   

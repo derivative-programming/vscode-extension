@@ -8,11 +8,11 @@
 
 # AppDNA VS Code Extension - MCP Server
 
-This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **101 tools** for interacting with the AppDNA model.
+This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **103 tools** for interacting with the AppDNA model.
 
 ## Features
 
-### **101 Comprehensive Tools** ✅ Verified with GitHub Copilot
+### **103 Comprehensive Tools** ✅ Verified with GitHub Copilot
 
 #### **User Story Management** (5 tools)
 1. **create_user_story** - Create a new user story with format validation
@@ -86,11 +86,11 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
     - Filter by page name (partial match), page type (Form/Report), owner object, target child object, or role required
     - Returns page details including type, owner, role, total element count
 
-#### **Form Management** (7 tools)
+#### **Form Management** (9 tools)
 1. **get_form_schema** - Get JSON schema for complete form structure (objectWorkflow)
     - Returns all form properties including name, isPage, titleText, ownerObject, targetChildObject, roleRequired
     - Includes input parameter structure (objectWorkflowParam array with 35 properties)
-    - Includes button structure (objectWorkflowButton array)
+    - Includes button structure (objectWorkflowButton array with 10 properties)
     - Includes output variable structure (objectWorkflowOutputVar array)
     - Provides validation rules, SQL data types, and complete usage examples
 2. **get_form** - Retrieve complete form details including all parameters, buttons, and output variables
@@ -127,6 +127,16 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
 7. **update_form_param** - Update properties of an existing form parameter
     - Update any of 34 parameter properties
     - Form and parameter names must match exactly (case-sensitive)
+    - At least one property to update required
+    - Marks model with unsaved changes
+8. **add_form_button** - Add new button to a form
+    - Add new button with required buttonText and 9 optional properties
+    - Configure button type (submit, cancel, back, other), visibility, navigation targets
+    - Set call-to-action highlighting and keyboard shortcuts (access keys)
+    - Marks model with unsaved changes
+9. **update_form_button** - Update properties of an existing form button
+    - Update any of 10 button properties (including buttonText itself)
+    - Form name and button_text must match exactly (case-sensitive)
     - At least one property to update required
     - Marks model with unsaved changes
 

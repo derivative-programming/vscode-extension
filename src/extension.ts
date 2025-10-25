@@ -58,6 +58,8 @@ tools:
   - update_form
   - add_form_param
   - update_form_param
+  - add_form_button
+  - update_form_button
   - list_data_object_summary
   - list_data_objects
   - get_data_object
@@ -274,7 +276,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
   - Auto-expand tree nodes
   - Custom model file name
 
-## Comprehensive MCP Tool Suite (101 Tools)
+## Comprehensive MCP Tool Suite (103 Tools)
 
 ### User Story Management (5 Tools)
 **CRUD Operations:**
@@ -391,7 +393,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`get_form_schema\` - View complete form structure (objectWorkflow) with all properties, input parameters, buttons, and output variables
 - \`get_form\` - Retrieve complete form details including all parameters, buttons, and output variables with element counts
 
-### Form Management Tools (7 Tools)
+### Form Management Tools (9 Tools)
 - \`get_form_schema\` - View complete form structure (objectWorkflow) with all properties, input parameters, buttons, and output variables
 - \`get_form\` - Retrieve complete form details including all parameters, buttons, and output variables with element counts
 - \`suggest_form_name_and_title\` - Generate suggested form name (PascalCase) and title based on owner object, role, action, and target child object
@@ -399,6 +401,8 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`update_form\` - Update properties of an existing form (16 updatable properties, requires exact case-sensitive form name match)
 - \`add_form_param\` - Add a new input parameter (form field/control) to an existing form with 34 configurable properties
 - \`update_form_param\` - Update properties of an existing form parameter (34 updatable properties, case-sensitive name matching)
+- \`add_form_button\` - Add a new button to an existing form with 9 configurable properties (buttonText, buttonType, isVisible, etc.)
+- \`update_form_button\` - Update properties of an existing form button (10 updatable properties, case-sensitive buttonText matching)
 
 ### Utility Tools (1 Tool)
 - \`secret_word_of_the_day\` - Test/verification tool

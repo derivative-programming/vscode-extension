@@ -1834,6 +1834,208 @@ export class FormTools {
     }
 
     /**
+     * Add a new button to an existing form
+     * @param form_name - Name of the form to add the button to (case-sensitive, exact match required)
+     * @param button - The button object to add
+     * @returns Result object with success status
+     */
+    async add_form_button(
+        form_name: string,
+        button: {
+            buttonText: string;
+            buttonType?: string;
+            isVisible?: 'true' | 'false';
+            conditionalVisiblePropertyName?: string;
+            destinationContextObjectName?: string;
+            destinationTargetName?: string;
+            introText?: string;
+            isButtonCallToAction?: 'true' | 'false';
+            accessKey?: string;
+            isAccessKeyAvailable?: 'true' | 'false';
+        }
+    ): Promise<{ success: boolean; button?: any; form_name?: string; owner_object_name?: string; message?: string; error?: string; note?: string }> {
+        try {
+            // Validate required button text
+            if (!button.buttonText) {
+                return {
+                    success: false,
+                    error: 'Button text is required'
+                };
+            }
+
+            // Call bridge API to add form button
+            const http = await import('http');
+            const postData = {
+                form_name,
+                button: button
+            };
+
+            const postDataString = JSON.stringify(postData);
+
+            const result: any = await new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/add-form-button',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => {
+                            data += chunk;
+                        });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+
+                req.on('error', (error) => {
+                    reject(error);
+                });
+
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error || 'Failed to add form button'
+                };
+            }
+
+            return {
+                success: true,
+                button: result.button,
+                form_name: form_name,
+                owner_object_name: result.owner_object_name,
+                message: `Button "${button.buttonText}" added to form "${form_name}" successfully`,
+                note: 'Form button has been added. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not add form button: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to add form buttons. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
+     * Update an existing button in a form
+     * @param form_name - Name of the form containing the button (case-sensitive, exact match required)
+     * @param button_text - Text of the button to update (case-sensitive, exact match required)
+     * @param updates - Object containing properties to update (at least one required)
+     * @returns Result object with success status
+     */
+    async update_form_button(
+        form_name: string,
+        button_text: string,
+        updates: {
+            buttonType?: string;
+            buttonText?: string;
+            isVisible?: 'true' | 'false';
+            conditionalVisiblePropertyName?: string;
+            destinationContextObjectName?: string;
+            destinationTargetName?: string;
+            introText?: string;
+            isButtonCallToAction?: 'true' | 'false';
+            accessKey?: string;
+            isAccessKeyAvailable?: 'true' | 'false';
+        }
+    ): Promise<{ success: boolean; button?: any; form_name?: string; owner_object_name?: string; message?: string; error?: string; note?: string }> {
+        try {
+            // Validate at least one property to update
+            const updateKeys = Object.keys(updates);
+            if (updateKeys.length === 0) {
+                return {
+                    success: false,
+                    error: 'At least one property to update must be provided'
+                };
+            }
+
+            // Call bridge API to update form button
+            const http = await import('http');
+            const postData = {
+                form_name,
+                button_text,
+                updates: updates
+            };
+
+            const postDataString = JSON.stringify(postData);
+
+            const result: any = await new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/update-form-button',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => {
+                            data += chunk;
+                        });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+
+                req.on('error', (error) => {
+                    reject(error);
+                });
+
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error || 'Failed to update form button'
+                };
+            }
+
+            return {
+                success: true,
+                button: result.button,
+                form_name: form_name,
+                owner_object_name: result.owner_object_name,
+                message: `Button "${button_text}" in form "${form_name}" updated successfully`,
+                note: 'Form button has been updated. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not update form button: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to update form buttons. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
      * Converts PascalCase to human-readable format with spaces
      * @param text - PascalCase text
      * @returns Human-readable text with spaces

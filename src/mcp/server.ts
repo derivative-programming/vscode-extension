@@ -1066,6 +1066,112 @@ export class MCPServer {
             }
         });
 
+        // Register add_form_button tool
+        this.server.registerTool('add_form_button', {
+            title: 'Add Form Button',
+            description: 'Add a new button to an existing form in the AppDNA model. The form must already exist. Form name is case-sensitive exact match. buttonText is required.',
+            inputSchema: {
+                form_name: z.string().describe('Name of the form to add button to (required, case-sensitive exact match)'),
+                buttonText: z.string().describe('Text displayed on the button (required, e.g., "Submit", "Cancel", "Back")'),
+                buttonType: z.enum(['submit', 'cancel', 'other']).optional().describe('Type of button (optional): "submit", "cancel", or "other". Default is "submit"'),
+                isVisible: z.enum(['true', 'false']).optional().describe('Whether button is visible (optional): "true" or "false". Default is "true"'),
+                conditionalVisiblePropertyName: z.string().optional().describe('Property name that controls button visibility (optional)'),
+                destinationContextObjectName: z.string().optional().describe('Owner object of the destination (optional, typically the data object that owns the target form)'),
+                destinationTargetName: z.string().optional().describe('Target form, report, or workflow name for button navigation (optional)'),
+                introText: z.string().optional().describe('Introduction text shown before button (optional)'),
+                isButtonCallToAction: z.enum(['true', 'false']).optional().describe('Whether button is call-to-action for highlighting (optional): "true" or "false". Default is "false"'),
+                accessKey: z.string().optional().describe('Keyboard shortcut key for button (optional, single character)'),
+                isAccessKeyAvailable: z.enum(['true', 'false']).optional().describe('Whether access key is available (optional): "true" or "false". Default is "false"')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                button: z.any().optional(),
+                form_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async (args: Record<string, unknown>) => {
+            try {
+                const { form_name, buttonText, ...optionalProps } = args;
+                
+                // Build button object with only provided properties
+                const button: any = { buttonText };
+                
+                // Add optional properties if provided
+                if (optionalProps.buttonType !== undefined) { button.buttonType = optionalProps.buttonType; }
+                if (optionalProps.isVisible !== undefined) { button.isVisible = optionalProps.isVisible; }
+                if (optionalProps.conditionalVisiblePropertyName !== undefined) { button.conditionalVisiblePropertyName = optionalProps.conditionalVisiblePropertyName; }
+                if (optionalProps.destinationContextObjectName !== undefined) { button.destinationContextObjectName = optionalProps.destinationContextObjectName; }
+                if (optionalProps.destinationTargetName !== undefined) { button.destinationTargetName = optionalProps.destinationTargetName; }
+                if (optionalProps.introText !== undefined) { button.introText = optionalProps.introText; }
+                if (optionalProps.isButtonCallToAction !== undefined) { button.isButtonCallToAction = optionalProps.isButtonCallToAction; }
+                if (optionalProps.accessKey !== undefined) { button.accessKey = optionalProps.accessKey; }
+                if (optionalProps.isAccessKeyAvailable !== undefined) { button.isAccessKeyAvailable = optionalProps.isAccessKeyAvailable; }
+                
+                const result = await this.formTools.add_form_button(form_name as string, button);
+                
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register update_form_button tool
+        this.server.registerTool('update_form_button', {
+            title: 'Update Form Button',
+            description: 'Update properties of an existing button in a form. Form name and button text are case-sensitive exact matches. At least one property to update is required.',
+            inputSchema: {
+                form_name: z.string().describe('Name of the form containing the button (required, case-sensitive exact match)'),
+                button_text: z.string().describe('Text of the button to update (required, case-sensitive exact match, used to identify the button)'),
+                buttonText: z.string().optional().describe('New button text (optional)'),
+                buttonType: z.enum(['submit', 'cancel', 'other']).optional().describe('New button type (optional): "submit", "cancel", or "other"'),
+                isVisible: z.enum(['true', 'false']).optional().describe('New visibility setting (optional): "true" or "false"'),
+                conditionalVisiblePropertyName: z.string().optional().describe('New property controlling visibility (optional)'),
+                destinationContextObjectName: z.string().optional().describe('New owner object of destination (optional)'),
+                destinationTargetName: z.string().optional().describe('New target form/report/workflow (optional)'),
+                introText: z.string().optional().describe('New introduction text (optional)'),
+                isButtonCallToAction: z.enum(['true', 'false']).optional().describe('New call-to-action setting (optional): "true" or "false"'),
+                accessKey: z.string().optional().describe('New keyboard shortcut key (optional)'),
+                isAccessKeyAvailable: z.enum(['true', 'false']).optional().describe('New access key availability (optional): "true" or "false"')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                button: z.any().optional(),
+                form_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async (args: Record<string, unknown>) => {
+            try {
+                const { form_name, button_text, ...updates } = args;
+                
+                const result = await this.formTools.update_form_button(form_name as string, button_text as string, updates);
+                
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register create_data_object tool
         this.server.registerTool('create_data_object', {
             title: 'Create Data Object',
