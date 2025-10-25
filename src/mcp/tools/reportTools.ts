@@ -15,28 +15,28 @@ export class ReportTools {
      * Gets the schema definition for reports
      * Tool name: get_report_schema (following MCP snake_case convention)
      * @returns Schema definition with properties, validation rules, and examples for reports
+     * Note: This schema excludes properties that are hidden in the report details view settings tab
      */
     public async get_report_schema(): Promise<any> {
         return {
             success: true,
             schema: {
                 type: 'object',
-                description: 'Report structure in AppDNA model - represents data visualization and reporting interfaces',
+                description: 'Report structure in AppDNA model - represents data visualization and reporting interfaces. This schema shows properties visible in the report details view settings tab.',
                 objectType: 'report',
                 properties: {
-                    name: {
-                        type: 'string',
-                        required: true,
-                        format: 'PascalCase',
-                        pattern: '^[A-Z][A-Za-z0-9]*$',
-                        description: 'Report ID, unique for each report. Must be in PascalCase format (starts with uppercase letter, no spaces, can contain letters and numbers).',
-                        examples: ['CustomerList', 'SalesReport', 'OrderHistory', 'ProductCatalog', 'UserActivityReport']
-                    },
+                    // Core Properties (always visible in settings tab)
                     titleText: {
                         type: 'string',
                         required: false,
                         description: 'Title displayed on the report page. Human-readable title for the report UI.',
                         examples: ['Customer List', 'Sales Report', 'Order History', 'Product Catalog']
+                    },
+                    introText: {
+                        type: 'string',
+                        required: false,
+                        description: 'Page subtitle or introduction text displayed on the report.',
+                        examples: ['View all customers', 'Monthly sales summary']
                     },
                     visualizationType: {
                         type: 'string',
@@ -44,16 +44,667 @@ export class ReportTools {
                         enum: ['Grid', 'PieChart', 'LineChart', 'FlowChart', 'CardView', 'FolderView'],
                         description: 'Type of visualization for the report data.',
                         examples: ['Grid', 'PieChart', 'LineChart', 'CardView']
+                    },
+                    
+                    // Data Source Properties
+                    isCustomSqlUsed: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether custom SQL stored procedure is used for the report. Must be string "true" or "false".',
+                        examples: ['true', 'false']
+                    },
+                    targetChildObject: {
+                        type: 'string',
+                        required: false,
+                        description: 'Child object of the owner object that is displayed on the report. Case-sensitive data object name.',
+                        examples: ['OrderLineItem', 'CustomerAddress', 'ProductReview']
+                    },
+                    
+                    // Display Control Properties
+                    isButtonDropDownAllowed: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether dropdown display of buttons is allowed instead of individual buttons (for grid visualization).',
+                        examples: ['true', 'false']
+                    },
+                    isPagingAvailable: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Determines whether to show paging controls.',
+                        examples: ['true', 'false']
+                    },
+                    defaultPageSize: {
+                        type: 'string',
+                        required: false,
+                        description: 'Default number of rows per page when paging is enabled.',
+                        examples: ['10', '25', '50', '100']
+                    },
+                    isFilterSectionHidden: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Determines whether to show the filter section.',
+                        examples: ['true', 'false']
+                    },
+                    isFilterSectionCollapsable: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Determines if expand/collapse button is shown at top right corner of filter section.',
+                        examples: ['true', 'false']
+                    },
+                    isFilterPersistant: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether filter settings persist across sessions.',
+                        examples: ['true', 'false']
+                    },
+                    isBreadcrumbSectionHidden: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether to hide the breadcrumb navigation section.',
+                        examples: ['true', 'false']
+                    },
+                    isRefreshButtonHidden: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether to hide the refresh button.',
+                        examples: ['true', 'false']
+                    },
+                    isExportButtonsHidden: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether to hide export buttons (Excel, CSV, etc.).',
+                        examples: ['true', 'false']
+                    },
+                    isHeaderVisible: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether to show the report header section.',
+                        examples: ['true', 'false']
+                    },
+                    
+                    // Rating and Styling Properties
+                    ratingLevelColumnName: {
+                        type: 'string',
+                        required: false,
+                        description: 'Rating level column name override. Defaults to "RatingLevel".',
+                        examples: ['RatingLevel', 'Status', 'Priority']
+                    },
+                    isRatingLevelChangingRowBackgroundColor: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether rating level column values (Unknown, Excellent, Good, Fair, Poor) automatically change row background color.',
+                        examples: ['true', 'false']
+                    },
+                    
+                    // Sorting Properties
+                    defaultOrderByColumnName: {
+                        type: 'string',
+                        required: false,
+                        description: 'Default column name to sort by when report loads.',
+                        examples: ['Name', 'Date', 'Priority']
+                    },
+                    defaultOrderByDescending: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether default sort order is descending.',
+                        examples: ['true', 'false']
+                    },
+                    
+                    // Auto-Refresh Properties
+                    isAutoRefresh: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether report automatically refreshes at intervals.',
+                        examples: ['true', 'false']
+                    },
+                    isAutoRefreshVisible: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether auto-refresh controls are visible to users.',
+                        examples: ['true', 'false']
+                    },
+                    isAutoRefreshFrequencyVisible: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether auto-refresh frequency selector is visible.',
+                        examples: ['true', 'false']
+                    },
+                    isAutoRefreshDegraded: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether auto-refresh uses degraded/reduced frequency mode.',
+                        examples: ['true', 'false']
+                    },
+                    autoRefreshFrequencyInMinutes: {
+                        type: 'string',
+                        required: false,
+                        description: 'Auto-refresh frequency in minutes.',
+                        examples: ['1', '5', '15', '30', '60']
+                    },
+                    
+                    // Feature Flags
+                    isSchedulingAllowed: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether report scheduling feature is enabled.',
+                        examples: ['true', 'false']
+                    },
+                    isFavoriteCreationAllowed: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether users can save report as favorite.',
+                        examples: ['true', 'false']
+                    },
+                    isPageUserSettingsDistinctForApp: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether user settings for this page are distinct per application.',
+                        examples: ['true', 'false']
+                    },
+                    
+                    // Authorization Properties
+                    isAuthorizationRequired: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether authorization/role check is required to access this report.',
+                        examples: ['true', 'false']
+                    },
+                    roleRequired: {
+                        type: 'string',
+                        required: false,
+                        description: 'Role name required to access this report (when isAuthorizationRequired is "true").',
+                        examples: ['Admin', 'Manager', 'User', 'SuperUser']
+                    },
+                    
+                    // Layout and UI Properties
+                    layoutName: {
+                        type: 'string',
+                        required: false,
+                        description: 'Layout template name to use for this report.',
+                        examples: ['AdminLayout', 'UserLayout', 'PublicLayout']
+                    },
+                    noRowsReturnedText: {
+                        type: 'string',
+                        required: false,
+                        description: 'Message displayed when no results are found.',
+                        examples: ['No Results Found', 'No data available', 'No records match your criteria']
+                    },
+                    
+                    // Azure Storage Properties
+                    isAzureTableUsed: {
+                        type: 'string',
+                        required: false,
+                        enum: ['', 'true', 'false'],
+                        description: 'Whether Azure Table Storage is used as the data source.',
+                        examples: ['', 'true', 'false']
+                    },
+                    azureTablePrimaryKeyColumn: {
+                        type: 'string',
+                        required: false,
+                        description: 'Column name used for Azure Table Storage RowKey value.',
+                        examples: ['ID', 'CustomerID', 'OrderID']
+                    },
+                    
+                    // Documentation and Metadata
+                    codeDescription: {
+                        type: 'string',
+                        required: false,
+                        description: 'Developer notes or description for documentation purposes.',
+                        examples: ['Customer list report with filtering', 'Sales summary by region']
+                    },
+                    filteringSqlLogic: {
+                        type: 'string',
+                        required: false,
+                        description: 'Custom SQL logic for filtering data.',
+                        examples: ['WHERE Status = \'Active\'', 'AND CreatedDate > DATEADD(day, -30, GETDATE())']
+                    },
+                    isBasicHeaderAutomaticallyAdded: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        description: 'Whether basic header is automatically added to the report.',
+                        examples: ['true', 'false']
+                    },
+                    
+                    // Array Properties (have dedicated tabs in UI)
+                    reportColumn: {
+                        type: 'array',
+                        required: false,
+                        description: 'Array of column definitions for the report. Managed in the Columns tab of the report details view.',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                name: {
+                                    type: 'string',
+                                    required: true,
+                                    description: 'Column identifier name',
+                                    examples: ['CustomerName', 'OrderDate', 'TotalAmount']
+                                },
+                                headerText: {
+                                    type: 'string',
+                                    description: 'Header text displayed for the column',
+                                    examples: ['Customer Name', 'Order Date', 'Total Amount']
+                                },
+                                sourceObjectName: {
+                                    type: 'string',
+                                    description: 'Source data object name for the column data',
+                                    examples: ['Customer', 'Order']
+                                },
+                                sourcePropertyName: {
+                                    type: 'string',
+                                    description: 'Source property name from the data object',
+                                    examples: ['Name', 'OrderDate', 'TotalAmount']
+                                },
+                                isVisible: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'Whether column is visible in the report'
+                                },
+                                isButton: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'Whether this column is a button (destination button or general flow button)'
+                                },
+                                buttonText: {
+                                    type: 'string',
+                                    description: 'Button text (when isButton is "true")'
+                                },
+                                destinationContextObjectName: {
+                                    type: 'string',
+                                    description: 'Context object for navigation (for destination buttons)'
+                                },
+                                destinationTargetName: {
+                                    type: 'string',
+                                    description: 'Target page/report name (for destination buttons)'
+                                },
+                                minWidth: {
+                                    type: 'string',
+                                    description: 'Minimum column width in pixels',
+                                    examples: ['100', '150', '200']
+                                },
+                                maxWidth: {
+                                    type: 'string',
+                                    description: 'Maximum column width in pixels',
+                                    examples: ['300', '400', '500']
+                                }
+                            },
+                            note: 'See ReportColumnSchema interface for complete list of 60+ column properties including formatting, filtering, navigation, and display control options'
+                        },
+                        examples: [
+                            {
+                                name: 'CustomerName',
+                                headerText: 'Customer Name',
+                                sourceObjectName: 'Customer',
+                                sourcePropertyName: 'Name',
+                                isVisible: 'true',
+                                minWidth: '150'
+                            }
+                        ]
+                    },
+                    reportButton: {
+                        type: 'array',
+                        required: false,
+                        description: 'Array of button definitions for the report. Managed in the Buttons tab of the report details view.',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                buttonName: {
+                                    type: 'string',
+                                    required: true,
+                                    description: 'Button identifier name (PascalCase, no numbers)',
+                                    examples: ['Back', 'Edit', 'Delete', 'ViewDetails']
+                                },
+                                buttonText: {
+                                    type: 'string',
+                                    required: true,
+                                    description: 'Text displayed on the button',
+                                    examples: ['Back', 'Edit', 'Delete', 'View Details']
+                                },
+                                buttonType: {
+                                    type: 'string',
+                                    description: 'Type of button action',
+                                    enum: ['back', 'destination', 'generalFlow', 'multiSelect'],
+                                    examples: ['back', 'destination', 'generalFlow']
+                                },
+                                isVisible: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'Whether button is visible'
+                                },
+                                destinationContextObjectName: {
+                                    type: 'string',
+                                    description: 'Context object for navigation (for destination buttons)'
+                                },
+                                destinationTargetName: {
+                                    type: 'string',
+                                    description: 'Target page/report name (for destination buttons)'
+                                },
+                                isButtonCallToAction: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'Whether button is styled as call-to-action (highlighted)'
+                                },
+                                accessKey: {
+                                    type: 'string',
+                                    description: 'Keyboard shortcut key for the button',
+                                    examples: ['B', 'E', 'D']
+                                }
+                            }
+                        },
+                        examples: [
+                            {
+                                buttonName: 'Back',
+                                buttonText: 'Back',
+                                buttonType: 'back',
+                                isVisible: 'true'
+                            }
+                        ]
+                    },
+                    reportParam: {
+                        type: 'array',
+                        required: false,
+                        description: 'Array of filter parameter definitions for the report. Managed in the Filters tab of the report details view.',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                name: {
+                                    type: 'string',
+                                    required: true,
+                                    description: 'Parameter identifier name',
+                                    examples: ['CustomerID', 'StartDate', 'Status']
+                                },
+                                labelText: {
+                                    type: 'string',
+                                    description: 'Label text displayed for the filter',
+                                    examples: ['Customer', 'Start Date', 'Status']
+                                },
+                                sqlServerDBDataType: {
+                                    type: 'string',
+                                    enum: ['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date'],
+                                    description: 'SQL Server data type for the parameter'
+                                },
+                                isFK: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'Whether parameter is a foreign key'
+                                },
+                                fKObjectName: {
+                                    type: 'string',
+                                    description: 'Foreign key object name (when isFK is "true")',
+                                    examples: ['Customer', 'Status', 'Priority']
+                                },
+                                isFKLookup: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'Whether FK is to a lookup object'
+                                },
+                                defaultValue: {
+                                    type: 'string',
+                                    description: 'Default value for the parameter'
+                                },
+                                isVisible: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'Whether parameter is visible in filter section'
+                                },
+                                targetColumnName: {
+                                    type: 'string',
+                                    description: 'Target database column name for filtering'
+                                }
+                            }
+                        },
+                        examples: [
+                            {
+                                name: 'CustomerID',
+                                labelText: 'Customer',
+                                sqlServerDBDataType: 'int',
+                                isFK: 'true',
+                                fKObjectName: 'Customer',
+                                isVisible: 'true'
+                            }
+                        ]
+                    }
+                },
+                hiddenProperties: [
+                    'name (managed by system, not editable in settings tab)',
+                    'initObjectWorkflowName (managed via page init flow link)',
+                    'isCachingAllowed (hidden from UI)',
+                    'cacheExpirationInMinutes (hidden from UI)',
+                    'badgeCountPropertyName (hidden from UI)',
+                    'isHeaderLabelsVisible (hidden from UI)',
+                    'isReportDetailLabelColumnVisible (hidden from UI)',
+                    'formIntroText (hidden from UI)',
+                    'isIgnoredInDocumentation (hidden from UI)',
+                    'isAzureBlobStorageUsed (hidden from UI)',
+                    'azureTableNameOverride (hidden from UI)',
+                    'isAzureTablePrimaryKeyColumnDateTime (hidden from UI)',
+                    'isPage (managed by system)',
+                    'All visualization-specific column properties (Grid, PieChart, LineChart, FlowChart, CardView, FolderView column mappings are hidden from settings tab)'
+                ],
+                validationRules: {
+                    name: [
+                        'Required field (but not exposed in settings tab - managed at creation)',
+                        'Must be unique within the object\'s report array (case-insensitive check)',
+                        'Must be in PascalCase format',
+                        'Must start with uppercase letter',
+                        'Can only contain letters (A-Z, a-z) and numbers (0-9)',
+                        'No spaces, hyphens, or special characters allowed',
+                        'Common patterns: Entity + Type (CustomerList, SalesReport, OrderHistory)'
+                    ],
+                    titleText: [
+                        'Optional field',
+                        'Human-readable title for the report',
+                        'Displayed at the top of the report page',
+                        'Can contain spaces and special characters'
+                    ],
+                    visualizationType: [
+                        'Optional field',
+                        'Must be one of: Grid, PieChart, LineChart, FlowChart, CardView, FolderView',
+                        'Determines how data is visualized',
+                        'Grid is most common for tabular data',
+                        'Each type has specific column mapping properties (hidden from settings tab)'
+                    ],
+                    targetChildObject: [
+                        'Optional field',
+                        'Must match an existing data object name exactly (case-sensitive)',
+                        'Defines which child object data is displayed on the report',
+                        'If not specified, report shows owner object data'
+                    ],
+                    roleRequired: [
+                        'Optional field',
+                        'Must match a role name from the Role lookup object (case-sensitive)',
+                        'Controls who can access this report',
+                        'Leave empty for public access',
+                        'Common values: Admin, Manager, User, Viewer'
+                    ],
+                    reportColumn: [
+                        'Optional array - only included if report has columns',
+                        'Each column must have unique name within the report',
+                        'Column names must be in PascalCase format',
+                        'All boolean-like fields use string "true"/"false" not boolean',
+                        'sourceObjectName and sourcePropertyName link to data object properties',
+                        'isButton="true" creates destination button or general flow button columns',
+                        'destinationContextObjectName and destinationTargetName define navigation for button columns'
+                    ],
+                    reportButton: [
+                        'Optional array - only included if report has buttons',
+                        'Each button must have unique buttonName within the report',
+                        'Button names must be in PascalCase format with no numbers',
+                        'Common button types: back, destination, generalFlow, multiSelect',
+                        'buttonText provides the displayed text on the button',
+                        'destinationContextObjectName and destinationTargetName define navigation',
+                        'isButtonCallToAction highlights the button as primary action',
+                        'All boolean-like fields use string "true"/"false" not boolean'
+                    ],
+                    reportParam: [
+                        'Optional array - only included if report has filter parameters',
+                        'Each parameter must have unique name within the report',
+                        'Parameter names must be in PascalCase format',
+                        'All boolean-like fields use string "true"/"false" not boolean',
+                        'sqlServerDBDataType must be one of: nvarchar, bit, datetime, int, uniqueidentifier, money, bigint, float, decimal, date',
+                        'isFK must be "true" or "false" - if "true" then fKObjectName is required',
+                        'isFKLookup must be "true" or "false" - indicates FK to a lookup object',
+                        'fKObjectName must match existing data object name exactly (case-sensitive)',
+                        'targetColumnName specifies which database column to filter on'
+                    ]
+                },
+                usage: {
+                    location: 'Stored in namespace → object → report array in AppDNA model',
+                    access: 'Via namespace[0].object[n].report array',
+                    modelStructure: 'namespace → object[] → report[]',
+                    purpose: 'Define reports for data visualization, listing, and analysis',
+                    relatedTools: [
+                        'list_pages - List all reports from the model (use page_type="Report")',
+                        'get_report - Get a specific report by name',
+                        'create_report - Create new report',
+                        'update_report - Update report properties',
+                        'open_report_details_view - Open report details editor in VS Code',
+                        'open_add_report_wizard - Open wizard for creating new reports'
+                    ]
+                },
+                commonPatterns: {
+                    gridReport: {
+                        name: 'CustomerList',
+                        titleText: 'Customer List',
+                        visualizationType: 'Grid',
+                        isCustomSqlUsed: 'false',
+                        isPage: 'true',
+                        isPagingAvailable: 'true',
+                        defaultPageSize: '25',
+                        isAuthorizationRequired: 'true',
+                        roleRequired: 'User',
+                        reportColumn: [
+                            {
+                                name: 'Name',
+                                headerText: 'Customer Name',
+                                sourceObjectName: 'Customer',
+                                sourcePropertyName: 'Name',
+                                isVisible: 'true',
+                                minWidth: '150'
+                            },
+                            {
+                                name: 'Email',
+                                headerText: 'Email Address',
+                                sourceObjectName: 'Customer',
+                                sourcePropertyName: 'EmailAddress',
+                                isVisible: 'true',
+                                minWidth: '200'
+                            }
+                        ],
+                        reportButton: [
+                            {
+                                buttonName: 'Back',
+                                buttonText: 'Back',
+                                buttonType: 'back',
+                                isVisible: 'true'
+                            }
+                        ],
+                        reportParam: [
+                            {
+                                name: 'StatusID',
+                                labelText: 'Status',
+                                sqlServerDBDataType: 'int',
+                                isFK: 'true',
+                                isFKLookup: 'true',
+                                fKObjectName: 'Status',
+                                isVisible: 'true'
+                            }
+                        ]
+                    },
+                    cardViewReport: {
+                        name: 'ProductCatalog',
+                        titleText: 'Product Catalog',
+                        visualizationType: 'CardView',
+                        isPage: 'true',
+                        reportColumn: [
+                            {
+                                name: 'ProductName',
+                                headerText: 'Product Name',
+                                sourceObjectName: 'Product',
+                                sourcePropertyName: 'Name',
+                                isVisible: 'true'
+                            }
+                        ],
+                        reportButton: [
+                            {
+                                buttonName: 'Back',
+                                buttonText: 'Back',
+                                buttonType: 'back',
+                                isVisible: 'true'
+                            }
+                        ]
+                    },
+                    reportWithDestinationButtonColumn: {
+                        name: 'OrderList',
+                        titleText: 'Order List',
+                        visualizationType: 'Grid',
+                        isPage: 'true',
+                        isPagingAvailable: 'true',
+                        reportColumn: [
+                            {
+                                name: 'OrderNumber',
+                                headerText: 'Order #',
+                                sourceObjectName: 'Order',
+                                sourcePropertyName: 'OrderNumber',
+                                isVisible: 'true'
+                            },
+                            {
+                                name: 'ViewButton',
+                                headerText: 'Actions',
+                                isButton: 'true',
+                                buttonText: 'View',
+                                destinationContextObjectName: 'Order',
+                                destinationTargetName: 'OrderDetails',
+                                isVisible: 'true'
+                            }
+                        ],
+                        reportButton: [
+                            {
+                                buttonName: 'Back',
+                                buttonText: 'Back',
+                                buttonType: 'back',
+                                isVisible: 'true'
+                            }
+                        ]
                     }
                 },
                 notes: [
                     'Reports represent data visualization and display interfaces',
                     'Each report belongs to a data object (owner)',
                     'Report names typically follow the pattern: Entity + Type (CustomerList, SalesReport)',
-                    'All boolean flags must be string "true" or "false", not boolean values'
+                    'All boolean flags must be string "true" or "false", not boolean values',
+                    'This schema reflects properties visible in the report details view',
+                    'Settings tab shows scalar properties; Columns, Buttons, and Filters tabs manage array properties',
+                    'Hidden properties are managed through other UI mechanisms or are system-controlled',
+                    'Array properties (reportColumn, reportButton, reportParam) contain full item schemas with 60+, 15+, and 16+ properties respectively',
+                    'Use get_report tool to retrieve a complete report object with all properties and arrays',
+                    'Visualization types each have specific column mapping properties that are hidden from settings tab',
+                    'reportColumn array can contain both data display columns and button columns (isButton="true")',
+                    'reportButton array is for top-level report buttons (breadcrumbs, navigation)',
+                    'reportParam array defines filter controls shown in the filter section'
                 ]
             },
-            note: 'This schema defines the complete structure of reports in the AppDNA model'
+            note: 'This schema defines the editable structure of reports in the AppDNA model, matching what users see in the report details view'
         };
     }
 
@@ -128,9 +779,12 @@ export class ReportTools {
             const buttonCount = report.reportButton ? report.reportButton.length : 0;
             const totalElements = paramCount + columnCount + buttonCount;
 
+            // Filter out hidden properties from the report object
+            const filteredReport = this.filterHiddenReportProperties(report);
+
             return {
                 success: true,
-                report: report,
+                report: filteredReport,
                 owner_object_name: ownerObjectName,
                 element_counts: {
                     paramCount: paramCount,
@@ -149,6 +803,88 @@ export class ReportTools {
                 note: 'Bridge connection required to retrieve reports. Make sure the AppDNA extension is running and a model file is loaded.'
             };
         }
+    }
+
+    /**
+     * Filters out hidden properties from a report object
+     * These properties are hidden in the UI settings tab and should not be prominently returned by the API
+     * Based on getReportPropertiesToIgnore() from settingsTabTemplate.js
+     * @param report The report object to filter
+     * @returns Filtered report object without hidden properties
+     */
+    private filterHiddenReportProperties(report: any): any {
+        const hiddenProperties = [
+            // System-managed properties
+            'initObjectWorkflowName',
+            'isCachingAllowed',
+            'cacheExpirationInMinutes',
+            'badgeCountPropertyName',
+            'isHeaderLabelsVisible',
+            'isReportDetailLabelColumnVisible',
+            'formIntroText',
+            'isIgnoredInDocumentation',
+            'isAzureBlobStorageUsed',
+            'azureTableNameOverride',
+            'isAzureTablePrimaryKeyColumnDateTime',
+            
+            // Visualization-specific properties (Grid)
+            'visualizationGridGroupByColumnName',
+            'visualizationGridGroupByInfoTextColumnName',
+            
+            // Visualization-specific properties (PieChart)
+            'visualizationPieChartSliceValueColumnName',
+            'visualizationPieChartSliceDescriptionColumnName',
+            
+            // Visualization-specific properties (LineChart)
+            'visualizationLineChartUTCDateTimeColumnName',
+            'visualizationLineChartValueColumnName',
+            'visualizationLineChartDescriptionColumnName',
+            'isVisualizationLineChartGridHorizLineHidden',
+            'isVisualizationLineChartGridVerticalLineHidden',
+            'isVisualizationLineChartLegendHidden',
+            'isVisualizationLineChartStairLines',
+            'visualizationLineChartGridVerticalMaxValue',
+            'visualizationLineChartGridVerticalMinValue',
+            'visualizationLineChartGridVerticalStepValue',
+            'isVisualizationLineChartVerticalLabelsHidden',
+            'visualizationLineChartGridVerticalTitle',
+            'visualizationLineChartGridHorizTitle',
+            'visualizationLineChartGridVerticalMaxValLabel',
+            'visualizationLineChartGridVerticalMinValLabel',
+            'isVisualizationLineChartGridVerticalMaxDynamic',
+            
+            // Visualization-specific properties (FlowChart)
+            'visualizationFlowChartSourceNodeCodeColumnName',
+            'visualizationFlowChartSourceNodeDescriptionColumnName',
+            'visualizationFlowChartSourceNodeColorColumnName',
+            'visualizationFlowChartFlowDescriptionColumnName',
+            'visualizationFlowChartDestinationNodeCodeColumnName',
+            
+            // Visualization-specific properties (CardView)
+            'visualizationCardViewTitleColumn',
+            'visualizationCardViewDescriptionColumn',
+            'visualizationCardViewIsImageAvailable',
+            'visualizationCardViewImageColumn',
+            'visualizationCardViewGroupByColumnName',
+            'visualizationCardViewGroupByInfoTextColumnName',
+            
+            // Visualization-specific properties (FolderView)
+            'visualizationFolderIDColumnName',
+            'visualizationFolderNameColumnName',
+            'visualizationFolderParentIDColumnName',
+            'visualizationFolderIsFolderColumnName',
+            'visualizationFolderIsDragDropAllowed',
+            'visualizationFolderDragDropEventContextObjectName',
+            'visualizationFolderDragDropEventTargetName'
+        ];
+
+        // Create a shallow copy and remove hidden properties
+        const filtered = { ...report };
+        hiddenProperties.forEach(prop => {
+            delete filtered[prop];
+        });
+
+        return filtered;
     }
 
     /**
@@ -515,13 +1251,66 @@ export class ReportTools {
                 }
             }
 
-            // Create the new report object
+            // Create the new report object with sensible defaults
             const newReport: any = {
+                // Core Properties
                 name: report_name,
                 titleText: title_text,
                 visualizationType: vizType,
+                introText: "",
+                
+                // Data Source Properties
                 isCustomSqlUsed: "false",
                 isPage: "true",
+                
+                // Display Control Properties
+                isButtonDropDownAllowed: "false",
+                isPagingAvailable: vizType === "Grid" ? "true" : "false",
+                defaultPageSize: vizType === "Grid" ? "25" : "",
+                isFilterSectionHidden: "false",
+                isFilterSectionCollapsable: "true",
+                isFilterPersistant: "false",
+                isBreadcrumbSectionHidden: "false",
+                isRefreshButtonHidden: "false",
+                isExportButtonsHidden: "false",
+                isHeaderVisible: "true",
+                
+                // Rating and Styling Properties
+                ratingLevelColumnName: "RatingLevel",
+                isRatingLevelChangingRowBackgroundColor: "false",
+                
+                // Sorting Properties
+                defaultOrderByColumnName: "",
+                defaultOrderByDescending: "false",
+                
+                // Auto-Refresh Properties
+                isAutoRefresh: "false",
+                isAutoRefreshVisible: "false",
+                isAutoRefreshFrequencyVisible: "false",
+                isAutoRefreshDegraded: "false",
+                autoRefreshFrequencyInMinutes: "",
+                
+                // Feature Flags
+                isSchedulingAllowed: "false",
+                isFavoriteCreationAllowed: "true",
+                isPageUserSettingsDistinctForApp: "false",
+                
+                // Authorization Properties
+                isAuthorizationRequired: "false",
+                
+                // Layout and UI Properties
+                noRowsReturnedText: "No results found",
+                isBasicHeaderAutomaticallyAdded: "true",
+                
+                // Azure Storage Properties
+                isAzureTableUsed: "",
+                azureTablePrimaryKeyColumn: "",
+                
+                // Documentation and Metadata
+                codeDescription: "",
+                filteringSqlLogic: "",
+                
+                // Array Properties (initialized to defaults)
                 reportColumn: [],
                 reportButton: [
                     {
@@ -540,7 +1329,7 @@ export class ReportTools {
                 newReport.roleRequired = role_required;
                 newReport.layoutName = role_required + "Layout";
             } else {
-                newReport.isAuthorizationRequired = "false";
+                newReport.layoutName = "";
             }
 
             if (target_child_object) {
@@ -606,27 +1395,68 @@ export class ReportTools {
     async update_report(
         report_name: string,
         updates: {
+            // Core Properties
             titleText?: string;
-            visualizationType?: 'Grid' | 'PieChart' | 'LineChart' | 'FlowChart' | 'CardView' | 'FolderView';
             introText?: string;
-            layoutName?: string;
-            codeDescription?: string;
-            isCachingAllowed?: 'true' | 'false';
-            cacheExpirationInMinutes?: string;
+            visualizationType?: 'Grid' | 'PieChart' | 'LineChart' | 'FlowChart' | 'CardView' | 'FolderView';
+            
+            // Data Source Properties
+            isCustomSqlUsed?: 'true' | 'false';
+            targetChildObject?: string;
+            
+            // Display Control Properties
+            isButtonDropDownAllowed?: 'true' | 'false';
             isPagingAvailable?: 'true' | 'false';
             defaultPageSize?: string;
             isFilterSectionHidden?: 'true' | 'false';
             isFilterSectionCollapsable?: 'true' | 'false';
+            isFilterPersistant?: 'true' | 'false';
+            isBreadcrumbSectionHidden?: 'true' | 'false';
             isRefreshButtonHidden?: 'true' | 'false';
             isExportButtonsHidden?: 'true' | 'false';
-            isAutoRefresh?: 'true' | 'false';
-            autoRefreshFrequencyInMinutes?: string;
+            isHeaderVisible?: 'true' | 'false';
+            
+            // Rating and Styling Properties
+            ratingLevelColumnName?: string;
+            isRatingLevelChangingRowBackgroundColor?: 'true' | 'false';
+            
+            // Sorting Properties
             defaultOrderByColumnName?: string;
             defaultOrderByDescending?: 'true' | 'false';
-            isHeaderVisible?: 'true' | 'false';
-            isHeaderLabelsVisible?: 'true' | 'false';
-            noRowsReturnedText?: string;
+            
+            // Auto-Refresh Properties
+            isAutoRefresh?: 'true' | 'false';
+            isAutoRefreshVisible?: 'true' | 'false';
+            isAutoRefreshFrequencyVisible?: 'true' | 'false';
+            isAutoRefreshDegraded?: 'true' | 'false';
+            autoRefreshFrequencyInMinutes?: string;
+            
+            // Feature Flags
+            isSchedulingAllowed?: 'true' | 'false';
+            isFavoriteCreationAllowed?: 'true' | 'false';
+            isPageUserSettingsDistinctForApp?: 'true' | 'false';
+            
+            // Authorization Properties
             isAuthorizationRequired?: 'true' | 'false';
+            roleRequired?: string;
+            
+            // Layout and UI Properties
+            layoutName?: string;
+            noRowsReturnedText?: string;
+            isBasicHeaderAutomaticallyAdded?: 'true' | 'false';
+            
+            // Azure Storage Properties
+            isAzureTableUsed?: '' | 'true' | 'false';
+            azureTablePrimaryKeyColumn?: string;
+            
+            // Documentation and Metadata
+            codeDescription?: string;
+            filteringSqlLogic?: string;
+            
+            // Legacy/Deprecated (kept for backward compatibility)
+            isCachingAllowed?: 'true' | 'false';
+            cacheExpirationInMinutes?: string;
+            isHeaderLabelsVisible?: 'true' | 'false';
         }
     ): Promise<{ success: boolean; report?: any; owner_object_name?: string; message?: string; error?: string; note?: string }> {
         try {

@@ -9,9 +9,17 @@ common types of graphs...
 
 ---------------------
 
-tools... 
-add_form_output_var 
-update_form_output_var 
+tools...  
+report tools
+test:get_report_schema
+test:get_report
+test:suggest_report_name_and_title
+test:create_report
+test:update_report
+add_report_param
+add_report_column
+add_report_button
+
   
 Describe data object model restrictions
 

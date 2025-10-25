@@ -403,7 +403,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`open_register_view\` - Model services registration
 - \`open_login_view\` - Model services login
 
-### Schema Tools (7 Tools)
+### Schema Tools (9 Tools)
 - \`get_user_story_schema\` - View user story structure
 - \`get_data_object_schema\` - View detailed data object schema
 - \`get_data_object_summary_schema\` - View data object summary structure
@@ -411,6 +411,8 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`get_lookup_value_schema\` - View lookup value structure
 - \`get_form_schema\` - View complete form structure (objectWorkflow) with all properties, input parameters, buttons, and output variables
 - \`get_form\` - Retrieve complete form details including all parameters, buttons, and output variables with element counts
+- \`get_report_schema\` - View complete report structure with all properties, columns, buttons, and parameters
+- \`get_report\` - Retrieve complete report details including all columns, buttons, and parameters with element counts
 
 ### Form Management Tools (11 Tools)
 - \`get_form_schema\` - View complete form structure (objectWorkflow) with all properties, input parameters, buttons, and output variables
@@ -424,6 +426,12 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`update_form_button\` - Update properties of an existing form button (10 updatable properties, case-sensitive buttonText matching)
 - \`add_form_output_var\` - Add a new output variable to a form with 20 configurable properties (displays results/data after submission)
 - \`update_form_output_var\` - Update properties of an existing form output variable (21 updatable properties including name itself)
+
+### Report Management Tools (4 Tools)
+- \`get_report_schema\` - View complete report structure with all properties, columns, buttons, and parameters
+- \`get_report\` - Retrieve complete report details including all columns, buttons, and parameters with element counts
+- \`suggest_report_name_and_title\` - Generate suggested report name (PascalCase) and title based on owner object, role, visualization type, and target child object
+- \`create_report\` - Create new report with automatic page init flow creation, default buttons, and role-based authorization
 
 ### Utility Tools (1 Tool)
 - \`secret_word_of_the_day\` - Test/verification tool

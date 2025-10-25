@@ -65,9 +65,38 @@ suite('Report MCP Tools Tests', () => {
         assert.ok(result.schema, 'Result should contain schema');
         assert.strictEqual(result.schema.objectType, 'report', 'Schema should be for report objects');
         assert.ok(result.schema.properties, 'Schema should contain properties');
-        assert.ok(result.schema.properties.name, 'Schema should have name property');
+        
+        // Check that key visible properties are present
         assert.ok(result.schema.properties.titleText, 'Schema should have titleText property');
         assert.ok(result.schema.properties.visualizationType, 'Schema should have visualizationType property');
+        assert.ok(result.schema.properties.introText, 'Schema should have introText property');
+        assert.ok(result.schema.properties.isCustomSqlUsed, 'Schema should have isCustomSqlUsed property');
+        assert.ok(result.schema.properties.targetChildObject, 'Schema should have targetChildObject property');
+        
+        // Check that array properties are present
+        assert.ok(result.schema.properties.reportColumn, 'Schema should have reportColumn array property');
+        assert.strictEqual(result.schema.properties.reportColumn.type, 'array', 'reportColumn should be type array');
+        assert.ok(result.schema.properties.reportColumn.items, 'reportColumn should have items schema');
+        assert.ok(result.schema.properties.reportColumn.items.properties, 'reportColumn items should have properties');
+        
+        assert.ok(result.schema.properties.reportButton, 'Schema should have reportButton array property');
+        assert.strictEqual(result.schema.properties.reportButton.type, 'array', 'reportButton should be type array');
+        assert.ok(result.schema.properties.reportButton.items, 'reportButton should have items schema');
+        
+        assert.ok(result.schema.properties.reportParam, 'Schema should have reportParam array property');
+        assert.strictEqual(result.schema.properties.reportParam.type, 'array', 'reportParam should be type array');
+        assert.ok(result.schema.properties.reportParam.items, 'reportParam should have items schema');
+        
+        // Check that hidden properties are documented
+        assert.ok(result.schema.hiddenProperties, 'Schema should document hidden properties');
+        assert.ok(Array.isArray(result.schema.hiddenProperties), 'hiddenProperties should be an array');
+        
+        // Verify name is NOT in properties (it's hidden/system-managed)
+        assert.strictEqual(result.schema.properties.name, undefined, 'name should not be in visible properties (it is system-managed)');
+        
+        // Verify notes are present
+        assert.ok(result.schema.notes, 'Schema should contain notes');
+        assert.ok(Array.isArray(result.schema.notes), 'notes should be an array');
     });
 
     test('get_report validates required parameters', async () => {

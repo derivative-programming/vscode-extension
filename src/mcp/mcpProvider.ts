@@ -8,6 +8,7 @@ import { ModelService } from '../services/modelService';
 import { UserStoryTools } from './tools/userStoryTools';
 import { DataObjectTools } from './tools/dataObjectTools';
 import { FormTools } from './tools/formTools';
+import { ReportTools } from './tools/reportTools';
 
 /**
  * Input schema for create_user_story tool
@@ -145,6 +146,7 @@ export class AppDNAMcpProvider {
     private userStoryTools: UserStoryTools;
     private dataObjectTools: DataObjectTools;
     private formTools: FormTools;
+    private reportTools: ReportTools;
     private disposables: vscode.Disposable[] = [];
 
     constructor() {
@@ -152,6 +154,7 @@ export class AppDNAMcpProvider {
         this.userStoryTools = new UserStoryTools(this.modelService);
         this.dataObjectTools = new DataObjectTools(this.modelService);
         this.formTools = new FormTools(this.modelService);
+        this.reportTools = new ReportTools(this.modelService);
         this.registerTools();
     }
 
@@ -835,6 +838,124 @@ export class AppDNAMcpProvider {
         });
         console.log('[MCP Provider] ✓ get_form registered');
 
+        // Register get_report_schema tool
+        console.log('[MCP Provider] Registering get_report_schema...');
+        const getReportSchemaTool = vscode.lm.registerTool('get_report_schema', {
+            prepareInvocation: async (options, token) => {
+                return {
+                    invocationMessage: 'Getting schema definition for complete report structure',
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const result = await this.reportTools.get_report_schema();
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ get_report_schema registered');
+
+        // Register get_report tool
+        console.log('[MCP Provider] Registering get_report...');
+        const getReportTool = vscode.lm.registerTool('get_report', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { report_name: string };
+                return {
+                    invocationMessage: `Getting report "${input.report_name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as { report_name: string };
+                    const result = await this.reportTools.get_report(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ get_report registered');
+
+        // Register suggest_report_name_and_title tool
+        console.log('[MCP Provider] Registering suggest_report_name_and_title...');
+        const suggestReportNameAndTitleTool = vscode.lm.registerTool('suggest_report_name_and_title', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { owner_object_name: string; role_required?: string; visualization_type?: string; target_child_object?: string };
+                return {
+                    invocationMessage: `Suggesting report name and title for owner object "${input.owner_object_name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as { owner_object_name: string; role_required?: string; visualization_type?: string; target_child_object?: string };
+                    const result = await this.reportTools.suggest_report_name_and_title(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ suggest_report_name_and_title registered');
+
+        // Register create_report tool
+        console.log('[MCP Provider] Registering create_report...');
+        const createReportTool = vscode.lm.registerTool('create_report', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { owner_object_name: string; report_name: string; title_text: string };
+                return {
+                    invocationMessage: `Creating report "${input.report_name}" in owner object "${input.owner_object_name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as { owner_object_name: string; report_name: string; title_text: string; visualization_type?: string; role_required?: string; target_child_object?: string };
+                    const result = await this.reportTools.create_report(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ create_report registered');
+
         // Register suggest_form_name_and_title tool
         console.log('[MCP Provider] Registering suggest_form_name_and_title...');
         const suggestFormNameAndTitleTool = vscode.lm.registerTool('suggest_form_name_and_title', {
@@ -1182,6 +1303,10 @@ export class AppDNAMcpProvider {
             searchStoriesTool,
             getFormSchemaTool,
             getFormTool,
+            getReportSchemaTool,
+            getReportTool,
+            suggestReportNameAndTitleTool,
+            createReportTool,
             suggestFormNameAndTitleTool,
             createFormTool,
             updateFormTool,
@@ -1194,7 +1319,7 @@ export class AppDNAMcpProvider {
             openAddDataObjectWizardTool,
             openAddReportWizardTool
         );
-        console.log('[MCP Provider] All 32 tools registered and added to disposables');
+        console.log('[MCP Provider] All 36 tools registered and added to disposables');
     }
 
     /**
