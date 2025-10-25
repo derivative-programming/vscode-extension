@@ -826,7 +826,7 @@ export class MCPServer {
         // Register create_form tool
         this.server.registerTool('create_form', {
             title: 'Create Form',
-            description: 'Create a new form (objectWorkflow) in a data object with automatic page init flow creation. Form name must be unique (case-insensitive) across all objects and in PascalCase format. Automatically creates OK and Cancel buttons. Owner object name must match exactly (case-sensitive).',
+            description: 'Create a new form (objectWorkflow) in a data object with automatic page init flow creation. Form name must be unique (case-insensitive) across all objects and in PascalCase format. Automatically creates OK and Cancel buttons. Owner object name must match exactly (case-sensitive). TIP: Use suggest_form_name_and_title tool first to get recommended form name and title based on your context (owner object, role, action, target child object).',
             inputSchema: {
                 owner_object_name: z.string().describe('The name of the owner data object (required, case-sensitive exact match)'),
                 form_name: z.string().describe('The name of the form (required, PascalCase, must be unique case-insensitive across all objects)'),
