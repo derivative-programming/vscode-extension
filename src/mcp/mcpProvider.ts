@@ -835,6 +835,66 @@ export class AppDNAMcpProvider {
         });
         console.log('[MCP Provider] ✓ get_form registered');
 
+        // Register suggest_form_name_and_title tool
+        console.log('[MCP Provider] Registering suggest_form_name_and_title...');
+        const suggestFormNameAndTitleTool = vscode.lm.registerTool('suggest_form_name_and_title', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { owner_object_name: string; role_required?: string; action?: string; target_child_object?: string };
+                return {
+                    invocationMessage: `Suggesting form name and title for owner object "${input.owner_object_name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as { owner_object_name: string; role_required?: string; action?: string; target_child_object?: string };
+                    const result = await this.formTools.suggest_form_name_and_title(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ suggest_form_name_and_title registered');
+
+        // Register create_form tool
+        console.log('[MCP Provider] Registering create_form...');
+        const createFormTool = vscode.lm.registerTool('create_form', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { owner_object_name: string; form_name: string; title_text: string };
+                return {
+                    invocationMessage: `Creating form "${input.form_name}" in owner object "${input.owner_object_name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as { owner_object_name: string; form_name: string; title_text: string; role_required?: string; target_child_object?: string };
+                    const result = await this.formTools.create_form(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ create_form registered');
+
         // Register open_add_data_object_wizard tool
         const openAddDataObjectWizardTool = vscode.lm.registerTool('open_add_data_object_wizard', {
             description: 'Opens the Add Data Object Wizard for creating a new data object. The wizard guides you through creating a data object with options for lookup objects, child objects, and parent-child relationships.',

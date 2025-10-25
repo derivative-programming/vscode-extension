@@ -780,6 +780,87 @@ export class MCPServer {
             }
         });
 
+        // Register suggest_form_name_and_title tool
+        this.server.registerTool('suggest_form_name_and_title', {
+            title: 'Suggest Form Name and Title',
+            description: 'Generate suggested form name (PascalCase) and title (human-readable) based on context: owner object, role, action, and target child object. Useful before creating a form to get naming recommendations that follow conventions.',
+            inputSchema: {
+                owner_object_name: z.string().describe('The name of the owner data object (required, case-sensitive exact match)'),
+                role_required: z.string().optional().describe('Optional: Role required to access the form (case-sensitive)'),
+                action: z.string().optional().describe('Optional: Action verb for the form (e.g., "Save", "Delete", "Approve"). If action is "Add", you should also provide target_child_object.'),
+                target_child_object: z.string().optional().describe('Optional: Target child object when form creates new instances (case-sensitive). Should be provided when action is "Add" to specify which child object is being added.')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                suggestions: z.object({
+                    form_name: z.string(),
+                    title_text: z.string()
+                }).optional(),
+                context: z.object({
+                    owner_object_name: z.string(),
+                    role_required: z.string().nullable(),
+                    action: z.string().nullable(),
+                    target_child_object: z.string().nullable()
+                }).optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async ({ owner_object_name, role_required, action, target_child_object }) => {
+            try {
+                const result = await this.formTools.suggest_form_name_and_title({ owner_object_name, role_required, action, target_child_object });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register create_form tool
+        this.server.registerTool('create_form', {
+            title: 'Create Form',
+            description: 'Create a new form (objectWorkflow) in a data object with automatic page init flow creation. Form name must be unique (case-insensitive) across all objects and in PascalCase format. Automatically creates OK and Cancel buttons. Owner object name must match exactly (case-sensitive).',
+            inputSchema: {
+                owner_object_name: z.string().describe('The name of the owner data object (required, case-sensitive exact match)'),
+                form_name: z.string().describe('The name of the form (required, PascalCase, must be unique case-insensitive across all objects)'),
+                title_text: z.string().describe('The title displayed on the form (required, max 100 characters)'),
+                role_required: z.string().optional().describe('Optional: Role required to access the form (case-sensitive). Auto-sets isAuthorizationRequired="true" and layoutName="{role}Layout"'),
+                target_child_object: z.string().optional().describe('Optional: Target child object when form creates new instances (case-sensitive exact match)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                form: z.any().optional(),
+                page_init_flow: z.any().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async ({ owner_object_name, form_name, title_text, role_required, target_child_object }) => {
+            try {
+                const result = await this.formTools.create_form({ owner_object_name, form_name, title_text, role_required, target_child_object });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register create_data_object tool
         this.server.registerTool('create_data_object', {
             title: 'Create Data Object',

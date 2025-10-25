@@ -1084,4 +1084,405 @@ export class FormTools {
             req.end();
         });
     }
+
+    /**
+     * Suggests form name and title based on context
+     * Tool name: suggest_form_name_and_title
+     * @param parameters - Context for suggestion (owner, role, action, target)
+     * @returns Suggested form name (PascalCase) and title (human-readable)
+     */
+    public async suggest_form_name_and_title(parameters: {
+        owner_object_name: string;
+        role_required?: string;
+        action?: string;
+        target_child_object?: string;
+    }): Promise<any> {
+        const { owner_object_name, role_required, action, target_child_object } = parameters;
+
+        try {
+            // Validate owner object exists
+            const endpoint = `/api/data-objects`;
+            const allObjects = await this.fetchFromBridge(endpoint);
+            
+            const ownerObject = allObjects.find((obj: any) => obj.name === owner_object_name);
+            if (!ownerObject) {
+                return {
+                    success: false,
+                    error: `Owner object "${owner_object_name}" not found`,
+                    note: 'Owner object name must match exactly (case-sensitive). Use list_data_object_summary to see available objects.',
+                    validationErrors: [`Owner object "${owner_object_name}" does not exist in the model`]
+                };
+            }
+
+            // Validate role_required exists if provided
+            if (role_required) {
+                try {
+                    const roles = await this.fetchFromBridge('/api/roles');
+                    const roleExists = roles.some((role: any) => role.name === role_required);
+                    if (!roleExists) {
+                        return {
+                            success: false,
+                            error: `Role "${role_required}" not found`,
+                            note: 'Role must match exactly (case-sensitive). Use list_roles to see available roles.',
+                            validationErrors: [`Role "${role_required}" does not exist in the Role lookup object`]
+                        };
+                    }
+                } catch (error) {
+                    return {
+                        success: false,
+                        error: 'Could not validate role',
+                        note: 'Unable to fetch roles from the model. The Role lookup object may not exist or the bridge connection failed.',
+                        validationErrors: ['Failed to validate role_required parameter']
+                    };
+                }
+            }
+
+            // Validate target_child_object exists if provided
+            if (target_child_object) {
+                const targetObject = allObjects.find((obj: any) => obj.name === target_child_object);
+                if (!targetObject) {
+                    return {
+                        success: false,
+                        error: `Target child object "${target_child_object}" not found`,
+                        note: 'Target child object name must match exactly (case-sensitive). Use list_data_object_summary to see available objects.',
+                        validationErrors: [`Target child object "${target_child_object}" does not exist in the model`]
+                    };
+                }
+            }
+
+            // Build base form name (PascalCase)
+            let baseFormName = owner_object_name;
+            if (role_required) {
+                baseFormName += role_required;
+            }
+            const actionPart = action || (target_child_object ? 'Add' : '');
+            if (actionPart) {
+                baseFormName += actionPart;
+            }
+            if (target_child_object) {
+                baseFormName += target_child_object;
+            }
+
+            // Check for duplicates and append numeric suffix if needed
+            const existingFormNames: string[] = [];
+            for (const obj of allObjects) {
+                if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                    for (const workflow of obj.objectWorkflow) {
+                        if (workflow.name) {
+                            existingFormNames.push(workflow.name.toLowerCase());
+                        }
+                    }
+                }
+            }
+
+            let formName = baseFormName;
+            let suffix = 1;
+            while (existingFormNames.includes(formName.toLowerCase())) {
+                // Append numeric suffix to the action part
+                if (actionPart) {
+                    formName = owner_object_name;
+                    if (role_required) {
+                        formName += role_required;
+                    }
+                    formName += actionPart + suffix;
+                    if (target_child_object) {
+                        formName += target_child_object;
+                    }
+                } else {
+                    // If no action part, append to the entire name
+                    formName = baseFormName + suffix;
+                }
+                suffix++;
+            }
+
+            // Build suggested title (human-readable with spaces)
+            const ownerReadable = this.convertToHumanReadable(owner_object_name);
+            const targetReadable = target_child_object ? this.convertToHumanReadable(target_child_object) : '';
+            const actionReadable = action ? this.convertToHumanReadable(action) : (target_child_object ? 'Add' : '');
+
+            let formTitle = '';
+            if (actionReadable) {
+                formTitle = actionReadable + ' ';
+                // Use target object if creating new instance, otherwise use owner object
+                if (targetReadable) {
+                    formTitle += targetReadable;
+                } else {
+                    formTitle += ownerReadable;
+                }
+            } else {
+                // If no action, just use the object name
+                formTitle = targetReadable || ownerReadable;
+            }
+
+            // Add numeric suffix to title if it was added to the name
+            if (suffix > 1) {
+                formTitle += ' ' + (suffix - 1);
+            }
+
+            return {
+                success: true,
+                suggestions: {
+                    form_name: formName,
+                    title_text: formTitle
+                },
+                context: {
+                    owner_object_name: owner_object_name,
+                    role_required: role_required || null,
+                    action: action || null,
+                    target_child_object: target_child_object || null
+                },
+                note: formName !== baseFormName 
+                    ? `Suggested names follow PascalCase convention. A numeric suffix was added to "${baseFormName}" because that form name already exists.`
+                    : 'Suggested names follow PascalCase convention. You can modify these suggestions before creating the form.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not generate suggestions: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
+     * Creates a new form (objectWorkflow) in the specified owner data object
+     * Tool name: create_form
+     * @param parameters - Form creation parameters
+     * @returns Success status with created form details or validation errors
+     */
+    public async create_form(parameters: {
+        owner_object_name: string;
+        form_name: string;
+        title_text: string;
+        role_required?: string;
+        target_child_object?: string;
+    }): Promise<any> {
+        const { owner_object_name, form_name, title_text, role_required, target_child_object } = parameters;
+
+        // Validation array
+        const validationErrors: string[] = [];
+
+        try {
+            // Validate form_name format (PascalCase)
+            const namePattern = /^[A-Z][a-zA-Z0-9]*$/;
+            if (!form_name || form_name.trim() === '') {
+                validationErrors.push('Form name is required and cannot be empty');
+            } else if (!namePattern.test(form_name)) {
+                validationErrors.push('Form name must be in PascalCase format (start with uppercase letter, only letters and numbers allowed)');
+            }
+
+            // Validate title_text
+            if (!title_text || title_text.trim() === '') {
+                validationErrors.push('Title text is required and cannot be empty');
+            } else if (title_text.length > 100) {
+                validationErrors.push('Title text cannot exceed 100 characters');
+            }
+
+            // If validation errors at this point, return early
+            if (validationErrors.length > 0) {
+                return {
+                    success: false,
+                    error: 'Validation failed',
+                    validationErrors: validationErrors,
+                    note: 'Please fix the validation errors and try again.'
+                };
+            }
+
+            // Fetch all objects to validate owner and check for duplicates
+            const endpoint = `/api/data-objects`;
+            const allObjects = await this.fetchFromBridge(endpoint);
+
+            // Validate owner object exists (case-sensitive exact match)
+            const ownerObject = allObjects.find((obj: any) => obj.name === owner_object_name);
+            if (!ownerObject) {
+                validationErrors.push(`Owner object "${owner_object_name}" not found (case-sensitive match required)`);
+                return {
+                    success: false,
+                    error: `Owner object "${owner_object_name}" not found`,
+                    validationErrors: validationErrors,
+                    note: 'Owner object name must match exactly (case-sensitive). Use list_data_object_summary to see available objects.'
+                };
+            }
+
+            // Validate target_child_object if provided (case-sensitive exact match)
+            if (target_child_object) {
+                const targetObject = allObjects.find((obj: any) => obj.name === target_child_object);
+                if (!targetObject) {
+                    validationErrors.push(`Target child object "${target_child_object}" not found (case-sensitive match required)`);
+                    return {
+                        success: false,
+                        error: `Target child object "${target_child_object}" not found`,
+                        validationErrors: validationErrors,
+                        note: 'Target child object name must match exactly (case-sensitive). Use list_data_object_summary to see available objects.'
+                    };
+                }
+            }
+
+            // Validate role_required if provided (case-sensitive exact match)
+            if (role_required) {
+                try {
+                    const roles = await this.fetchFromBridge('/api/roles');
+                    const roleExists = roles.some((role: any) => role.name === role_required);
+                    if (!roleExists) {
+                        validationErrors.push(`Role "${role_required}" not found in the Role lookup object`);
+                        return {
+                            success: false,
+                            error: `Role "${role_required}" not found`,
+                            validationErrors: validationErrors,
+                            note: 'Role must match exactly (case-sensitive). Use list_roles to see available roles.'
+                        };
+                    }
+                } catch (error) {
+                    validationErrors.push('Failed to validate role_required parameter');
+                    return {
+                        success: false,
+                        error: 'Could not validate role',
+                        validationErrors: validationErrors,
+                        note: 'Unable to fetch roles from the model. The Role lookup object may not exist or the bridge connection failed.'
+                    };
+                }
+            }
+
+            // Check for duplicate form names (case-insensitive across all objects)
+            const formNameLower = form_name.toLowerCase();
+            for (const obj of allObjects) {
+                if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                    const duplicate = obj.objectWorkflow.find((wf: any) => 
+                        wf.name && wf.name.toLowerCase() === formNameLower
+                    );
+                    if (duplicate) {
+                        validationErrors.push(`Form name "${form_name}" already exists in object "${obj.name}" (case-insensitive check)`);
+                        return {
+                            success: false,
+                            error: `Form name "${form_name}" already exists`,
+                            validationErrors: validationErrors,
+                            note: 'Form names must be unique across all data objects (case-insensitive). Use a different name.'
+                        };
+                    }
+                }
+            }
+
+            // Create the new form object
+            const newForm: any = {
+                name: form_name,
+                titleText: title_text,
+                isPage: "true",
+                objectWorkflowButton: [
+                    {
+                        buttonText: "OK",
+                        buttonType: "submit",
+                        isVisible: "true"
+                    },
+                    {
+                        buttonText: "Cancel",
+                        buttonType: "cancel",
+                        isVisible: "true"
+                    }
+                ]
+            };
+
+            // Add optional properties based on parameters
+            if (role_required) {
+                newForm.isAuthorizationRequired = "true";
+                newForm.roleRequired = role_required;
+                newForm.layoutName = role_required + "Layout";
+            } else {
+                newForm.isAuthorizationRequired = "false";
+            }
+
+            if (target_child_object) {
+                newForm.targetChildObject = target_child_object;
+            }
+
+            // Create page init flow
+            const pageInitFlowName = form_name + "InitObjWF";
+            newForm.initObjectWorkflowName = pageInitFlowName;
+
+            const newPageInitFlow = {
+                name: pageInitFlowName,
+                titleText: title_text + " Page Init",
+                objectWorkflowOutputVar: []
+            };
+
+            // Add form and page init flow to owner object via HTTP bridge POST
+            const createEndpoint = `/api/create-form`;
+            const postData = {
+                ownerObjectName: owner_object_name,
+                form: newForm,
+                pageInitFlow: newPageInitFlow
+            };
+
+            // Use HTTP POST to create the form
+            const http = await import('http');
+            const result = await new Promise((resolve, reject) => {
+                const postDataString = JSON.stringify(postData);
+                const options = {
+                    hostname: 'localhost',
+                    port: 3001,
+                    path: createEndpoint,
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Content-Length': Buffer.byteLength(postDataString)
+                    }
+                };
+
+                const req = http.request(options, (res) => {
+                    let data = '';
+
+                    res.on('data', (chunk) => {
+                        data += chunk;
+                    });
+
+                    res.on('end', () => {
+                        try {
+                            const parsedData = JSON.parse(data);
+                            resolve(parsedData);
+                        } catch (error) {
+                            reject(new Error(`Failed to parse response: ${error instanceof Error ? error.message : 'Unknown error'}`));
+                        }
+                    });
+                });
+
+                req.on('error', (error) => {
+                    reject(new Error(`Bridge connection failed: ${error.message}`));
+                });
+
+                req.write(postDataString);
+                req.end();
+            });
+
+            // Filter hidden properties from returned form
+            const filteredForm = this.filterHiddenFormProperties(newForm);
+
+            return {
+                success: true,
+                form: filteredForm,
+                page_init_flow: newPageInitFlow,
+                owner_object_name: owner_object_name,
+                message: `Form "${form_name}" and page init flow "${pageInitFlowName}" created successfully`,
+                note: 'Form has been added to the model with default OK and Cancel buttons. Use add_form_param to add input parameters and add_form_button to add custom buttons.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not create form: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to create forms. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
+     * Converts PascalCase to human-readable format with spaces
+     * @param text - PascalCase text
+     * @returns Human-readable text with spaces
+     */
+    private convertToHumanReadable(text: string): string {
+        if (!text) {
+            return '';
+        }
+        return text.replace(/([A-Z])/g, ' $1').trim();
+    }
 }

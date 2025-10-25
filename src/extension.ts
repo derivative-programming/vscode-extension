@@ -53,6 +53,8 @@ tools:
   - get_role_schema
   - get_form_schema
   - get_form
+  - suggest_form_name_and_title
+  - create_form
   - list_data_object_summary
   - list_data_objects
   - get_data_object
@@ -269,7 +271,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
   - Auto-expand tree nodes
   - Custom model file name
 
-## Comprehensive MCP Tool Suite (96 Tools)
+## Comprehensive MCP Tool Suite (98 Tools)
 
 ### User Story Management (5 Tools)
 **CRUD Operations:**
@@ -385,6 +387,10 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`get_lookup_value_schema\` - View lookup value structure
 - \`get_form_schema\` - View complete form structure (objectWorkflow) with all properties, input parameters, buttons, and output variables
 - \`get_form\` - Retrieve complete form details including all parameters, buttons, and output variables with element counts
+
+### Form Management Tools (2 Tools)
+- \`suggest_form_name_and_title\` - Generate suggested form name (PascalCase) and title based on owner object, role, action, and target child object
+- \`create_form\` - Create new form with automatic page init flow creation, default buttons, and role-based authorization
 
 ### Utility Tools (1 Tool)
 - \`secret_word_of_the_day\` - Test/verification tool

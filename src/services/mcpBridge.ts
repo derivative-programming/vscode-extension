@@ -778,6 +778,74 @@ export class McpBridge {
                         }));
                     }
                 }
+                else if (req.url === '/api/create-form' && req.method === 'POST') {
+                    // Create a new form (objectWorkflow) in an owner data object
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { ownerObjectName, form, pageInitFlow } = JSON.parse(body);
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the owner object
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let ownerObject: any = null;
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    ownerObject = ns.object.find((obj: any) => obj.name === ownerObjectName);
+                                    if (ownerObject) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!ownerObject) {
+                                throw new Error(`Owner object "${ownerObjectName}" not found`);
+                            }
+                            
+                            // Ensure objectWorkflow array exists
+                            if (!ownerObject.objectWorkflow) {
+                                ownerObject.objectWorkflow = [];
+                            }
+                            
+                            // Add form and page init flow
+                            ownerObject.objectWorkflow.push(form);
+                            ownerObject.objectWorkflow.push(pageInitFlow);
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Created form "${form.name}" and page init flow "${pageInitFlow.name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                form: form,
+                                pageInitFlow: pageInitFlow,
+                                ownerObjectName: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error creating form: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                error: error instanceof Error ? error.message : 'Failed to create form'
+                            }));
+                        }
+                    });
+                }
                 else if (req.url?.startsWith('/api/lookup-values?')) {
                     // Get all lookup values from a specific lookup data object
                     // Extract lookupObjectName from query string

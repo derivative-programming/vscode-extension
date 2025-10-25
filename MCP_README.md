@@ -8,7 +8,7 @@
 
 # AppDNA VS Code Extension - MCP Server
 
-This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **96 tools** for interacting with the AppDNA model.
+This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **98 tools** for interacting with the AppDNA model.
 
 ## Features
 
@@ -86,7 +86,7 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
     - Filter by page name (partial match), page type (Form/Report), owner object, target child object, or role required
     - Returns page details including type, owner, role, total element count
 
-#### **Form Management** (2 tools)
+#### **Form Management** (4 tools)
 1. **get_form_schema** - Get JSON schema for complete form structure (objectWorkflow)
     - Returns all form properties including name, isPage, titleText, ownerObject, targetChildObject, roleRequired
     - Includes input parameter structure (objectWorkflowParam array)
@@ -94,10 +94,23 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
     - Includes output variable structure (objectWorkflowOutputVar array)
     - Provides validation rules, SQL data types, and complete usage examples
 2. **get_form** - Retrieve complete form details including all parameters, buttons, and output variables
-    - Get specific form by owner object name and form name
+    - Get specific form by owner object name and form name (case-insensitive matching)
     - Returns all form properties with array element counts (params, buttons, output vars)
     - Enables detailed form inspection and modification
-    - **Note:** Additional form tools (create_form, update_form, add_form_param) coming soon
+3. **suggest_form_name_and_title** - Generate suggested form name and title
+    - Provides PascalCase form name and human-readable title based on context
+    - Considers owner object, role, action verb, and target child object
+    - Follows naming conventions automatically
+    - Useful before creating a form to get naming recommendations
+4. **create_form** - Create new form with automatic setup
+    - Creates form in specified owner data object
+    - Automatically generates page init flow ({FormName}InitObjWF)
+    - Adds default OK and Cancel buttons
+    - Validates PascalCase naming and uniqueness (case-insensitive check)
+    - Supports role-based authorization (auto-sets isAuthorizationRequired and layoutName)
+    - Optional target child object for "Add Child" scenarios
+    - Optional action verb for action-based forms
+    - **Note:** Additional form tools (update_form, add_form_param, add_form_button) coming soon
 
 #### **Wizard Tools** (3 tools)
 - **open_add_data_object_wizard** - Open the Add Data Object Wizard for creating new data objects
