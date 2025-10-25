@@ -727,6 +727,57 @@ export class McpBridge {
                         }));
                     }
                 }
+                else if (req.url && req.url.startsWith('/api/forms')) {
+                    // Get forms (objectWorkflow) with optional filtering by form_name or owner_object_name (case-insensitive)
+                    try {
+                        const url = new URL(req.url, `http://${req.headers.host}`);
+                        const formName = url.searchParams.get('form_name');
+                        const ownerObjectName = url.searchParams.get('owner_object_name');
+                        
+                        const allObjects = modelService.getAllObjects();
+                        const forms: any[] = [];
+                        
+                        for (const obj of allObjects) {
+                            // Skip if owner_object_name filter specified and doesn't match (case-insensitive)
+                            if (ownerObjectName && obj.name.toLowerCase() !== ownerObjectName.toLowerCase()) {
+                                continue;
+                            }
+                            
+                            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                for (const workflow of obj.objectWorkflow) {
+                                    // Skip if form_name filter specified and doesn't match (case-insensitive)
+                                    if (formName && workflow.name.toLowerCase() !== formName.toLowerCase()) {
+                                        continue;
+                                    }
+                                    
+                                    // Add owner object name to each form for context
+                                    forms.push({
+                                        ...workflow,
+                                        _ownerObjectName: obj.name
+                                    });
+                                    
+                                    // If searching for specific form name, we can stop after finding it
+                                    if (formName && workflow.name.toLowerCase() === formName.toLowerCase()) {
+                                        this.outputChannel.appendLine(`[Data Bridge] Found form "${workflow.name}" in owner object "${obj.name}"`);
+                                        res.writeHead(200);
+                                        res.end(JSON.stringify(forms));
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        this.outputChannel.appendLine(`[Data Bridge] Returning ${forms.length} forms`);
+                        res.writeHead(200);
+                        res.end(JSON.stringify(forms));
+                    } catch (error) {
+                        this.outputChannel.appendLine(`[Data Bridge] Error getting forms: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            error: error instanceof Error ? error.message : 'Failed to get forms'
+                        }));
+                    }
+                }
                 else if (req.url?.startsWith('/api/lookup-values?')) {
                     // Get all lookup values from a specific lookup data object
                     // Extract lookupObjectName from query string

@@ -8,11 +8,11 @@
 
 # AppDNA VS Code Extension - MCP Server
 
-This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **95 tools** for interacting with the AppDNA model.
+This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **96 tools** for interacting with the AppDNA model.
 
 ## Features
 
-### **95 Comprehensive Tools** ✅ Verified with GitHub Copilot
+### **96 Comprehensive Tools** ✅ Verified with GitHub Copilot
 
 #### **User Story Management** (5 tools)
 1. **create_user_story** - Create a new user story with format validation
@@ -86,14 +86,18 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
     - Filter by page name (partial match), page type (Form/Report), owner object, target child object, or role required
     - Returns page details including type, owner, role, total element count
 
-#### **Form Management** (1 tool)
+#### **Form Management** (2 tools)
 1. **get_form_schema** - Get JSON schema for complete form structure (objectWorkflow)
     - Returns all form properties including name, isPage, titleText, ownerObject, targetChildObject, roleRequired
     - Includes input parameter structure (objectWorkflowParam array)
     - Includes button structure (objectWorkflowButton array)
     - Includes output variable structure (objectWorkflowOutputVar array)
     - Provides validation rules, SQL data types, and complete usage examples
-    - **Note:** Additional form tools (list_forms, get_form, create_form, update_form) coming soon
+2. **get_form** - Retrieve complete form details including all parameters, buttons, and output variables
+    - Get specific form by owner object name and form name
+    - Returns all form properties with array element counts (params, buttons, output vars)
+    - Enables detailed form inspection and modification
+    - **Note:** Additional form tools (create_form, update_form, add_form_param) coming soon
 
 #### **Wizard Tools** (3 tools)
 - **open_add_data_object_wizard** - Open the Add Data Object Wizard for creating new data objects

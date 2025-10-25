@@ -52,6 +52,7 @@ tools:
   - get_data_object_summary_schema
   - get_role_schema
   - get_form_schema
+  - get_form
   - list_data_object_summary
   - list_data_objects
   - get_data_object
@@ -268,7 +269,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
   - Auto-expand tree nodes
   - Custom model file name
 
-## Comprehensive MCP Tool Suite (95 Tools)
+## Comprehensive MCP Tool Suite (96 Tools)
 
 ### User Story Management (5 Tools)
 **CRUD Operations:**
@@ -376,13 +377,14 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`open_register_view\` - Model services registration
 - \`open_login_view\` - Model services login
 
-### Schema Tools (6 Tools)
+### Schema Tools (7 Tools)
 - \`get_user_story_schema\` - View user story structure
 - \`get_data_object_schema\` - View detailed data object schema
 - \`get_data_object_summary_schema\` - View data object summary structure
 - \`get_role_schema\` - View role structure
 - \`get_lookup_value_schema\` - View lookup value structure
 - \`get_form_schema\` - View complete form structure (objectWorkflow) with all properties, input parameters, buttons, and output variables
+- \`get_form\` - Retrieve complete form details including all parameters, buttons, and output variables with element counts
 
 ### Utility Tools (1 Tool)
 - \`secret_word_of_the_day\` - Test/verification tool
@@ -443,7 +445,7 @@ The extension provides specialized navigation tools to help you explore differen
 - Review the lexicon for business terminology definitions
 
 ### MCP Integration
-- **95 Production-Ready Tools**: Complete coverage of all AppDNA functionality including Model Services API access
+- **96 Production-Ready Tools**: Complete coverage of all AppDNA functionality including Model Services API access
 - **GitHub Copilot Integration**: Natural language queries for model exploration and modification
 - **Safe Model Changes**: All modifications go through validated MCP tools, not direct file editing
 - **Real-time Status**: Visual indicators show MCP server running/stopped states

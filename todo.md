@@ -10,6 +10,14 @@ common types of graphs...
 ---------------------
 
 tools...
+get_form
+create_form
+update_form
+add_form_param 
+add_form_button 
+add_form_output_var 
+update_form_param 
+update_form_button 
   
 Describe data object model restrictions
 

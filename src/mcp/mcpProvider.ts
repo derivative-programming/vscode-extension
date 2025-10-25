@@ -802,6 +802,39 @@ export class AppDNAMcpProvider {
         });
         console.log('[MCP Provider] ✓ get_form_schema registered');
 
+        // Register get_form tool
+        console.log('[MCP Provider] Registering get_form...');
+        const getFormTool = vscode.lm.registerTool('get_form', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { owner_object_name?: string; form_name: string };
+                const message = input.owner_object_name 
+                    ? `Getting form "${input.form_name}" from owner object "${input.owner_object_name}"`
+                    : `Getting form "${input.form_name}" (searching all objects)`;
+                return {
+                    invocationMessage: message,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as { owner_object_name?: string; form_name: string };
+                    const result = await this.formTools.get_form(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ get_form registered');
+
         // Register open_add_data_object_wizard tool
         const openAddDataObjectWizardTool = vscode.lm.registerTool('open_add_data_object_wizard', {
             description: 'Opens the Add Data Object Wizard for creating a new data object. The wizard guides you through creating a data object with options for lookup objects, child objects, and parent-child relationships.',
@@ -854,10 +887,11 @@ export class AppDNAMcpProvider {
             searchByRoleTool, 
             searchStoriesTool,
             getFormSchemaTool,
+            getFormTool,
             openAddDataObjectWizardTool,
             openAddReportWizardTool
         );
-        console.log('[MCP Provider] All 22 tools registered and added to disposables');
+        console.log('[MCP Provider] All 23 tools registered and added to disposables');
     }
 
     /**

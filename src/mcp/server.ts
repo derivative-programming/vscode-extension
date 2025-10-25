@@ -741,6 +741,45 @@ export class MCPServer {
             }
         });
 
+        // Register get_form tool
+        this.server.registerTool('get_form', {
+            title: 'Get Form',
+            description: 'Get complete details of a specific form by name. If owner_object_name is provided, searches only that object; otherwise searches all objects. Returns the full form structure including all input parameters (objectWorkflowParam), buttons (objectWorkflowButton), output variables (objectWorkflowOutputVar), and element counts. Form name matching is case-insensitive.',
+            inputSchema: {
+                form_name: z.string().describe('The name of the form to retrieve (case-insensitive matching)'),
+                owner_object_name: z.string().optional().describe('Optional: The name of the owner data object that contains the form (case-insensitive matching). If not provided, all objects will be searched.')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                form: z.any().optional().describe('Complete form object with all properties and arrays'),
+                owner_object_name: z.string().optional(),
+                element_counts: z.object({
+                    paramCount: z.number(),
+                    buttonCount: z.number(),
+                    outputVarCount: z.number(),
+                    totalElements: z.number()
+                }).optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async ({ owner_object_name, form_name }) => {
+            try {
+                const result = await this.formTools.get_form({ owner_object_name, form_name });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register create_data_object tool
         this.server.registerTool('create_data_object', {
             title: 'Create Data Object',
