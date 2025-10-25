@@ -861,6 +861,73 @@ export class MCPServer {
             }
         });
 
+        // Register update_form tool
+        this.server.registerTool('update_form', {
+            title: 'Update Form',
+            description: 'Update properties of an existing form (objectWorkflow) in the AppDNA model. Form name must match exactly (case-sensitive). At least one property to update is required. Updates only the specified properties, leaving others unchanged. Searches all data objects to find the form.',
+            inputSchema: {
+                form_name: z.string().describe('The name of the form to update (required, case-sensitive exact match)'),
+                titleText: z.string().optional().describe('The title displayed on the form (max 100 characters)'),
+                isInitObjWFSubscribedToParams: z.enum(['true', 'false']).optional().describe('Whether the page init flow subscribes to parameters'),
+                isObjectDelete: z.enum(['true', 'false']).optional().describe('Whether the form is for object deletion'),
+                layoutName: z.string().optional().describe('The layout template for the form (e.g., "ManagerLayout", "AdminLayout")'),
+                introText: z.string().optional().describe('Introduction text displayed on the form'),
+                formTitleText: z.string().optional().describe('Form title text (alternative to titleText)'),
+                formIntroText: z.string().optional().describe('Form introduction text (alternative to introText)'),
+                formFooterText: z.string().optional().describe('Footer text displayed at the bottom of the form'),
+                codeDescription: z.string().optional().describe('Description of the form for code documentation'),
+                isAutoSubmit: z.enum(['true', 'false']).optional().describe('Whether the form auto-submits on load'),
+                isHeaderVisible: z.enum(['true', 'false']).optional().describe('Whether the form header is visible'),
+                isAuthorizationRequired: z.enum(['true', 'false']).optional().describe('Whether authorization is required to access the form'),
+                isLoginPage: z.enum(['true', 'false']).optional().describe('Whether this is the login page'),
+                isLogoutPage: z.enum(['true', 'false']).optional().describe('Whether this is the logout page'),
+                isCaptchaVisible: z.enum(['true', 'false']).optional().describe('Whether CAPTCHA is visible on the form'),
+                isCustomLogicOverwritten: z.enum(['true', 'false']).optional().describe('Whether custom logic overwrites default behavior')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                form: z.any().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ form_name, titleText, isInitObjWFSubscribedToParams, isObjectDelete, layoutName, introText, formTitleText, formIntroText, formFooterText, codeDescription, isAutoSubmit, isHeaderVisible, isAuthorizationRequired, isLoginPage, isLogoutPage, isCaptchaVisible, isCustomLogicOverwritten }) => {
+            try {
+                // Build updates object with only provided properties
+                const updates: any = {};
+                if (titleText !== undefined) { updates.titleText = titleText; }
+                if (isInitObjWFSubscribedToParams !== undefined) { updates.isInitObjWFSubscribedToParams = isInitObjWFSubscribedToParams; }
+                if (isObjectDelete !== undefined) { updates.isObjectDelete = isObjectDelete; }
+                if (layoutName !== undefined) { updates.layoutName = layoutName; }
+                if (introText !== undefined) { updates.introText = introText; }
+                if (formTitleText !== undefined) { updates.formTitleText = formTitleText; }
+                if (formIntroText !== undefined) { updates.formIntroText = formIntroText; }
+                if (formFooterText !== undefined) { updates.formFooterText = formFooterText; }
+                if (codeDescription !== undefined) { updates.codeDescription = codeDescription; }
+                if (isAutoSubmit !== undefined) { updates.isAutoSubmit = isAutoSubmit; }
+                if (isHeaderVisible !== undefined) { updates.isHeaderVisible = isHeaderVisible; }
+                if (isAuthorizationRequired !== undefined) { updates.isAuthorizationRequired = isAuthorizationRequired; }
+                if (isLoginPage !== undefined) { updates.isLoginPage = isLoginPage; }
+                if (isLogoutPage !== undefined) { updates.isLogoutPage = isLogoutPage; }
+                if (isCaptchaVisible !== undefined) { updates.isCaptchaVisible = isCaptchaVisible; }
+                if (isCustomLogicOverwritten !== undefined) { updates.isCustomLogicOverwritten = isCustomLogicOverwritten; }
+
+                const result = await this.formTools.update_form(form_name, updates);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register create_data_object tool
         this.server.registerTool('create_data_object', {
             title: 'Create Data Object',

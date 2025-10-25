@@ -846,6 +846,89 @@ export class McpBridge {
                         }
                     });
                 }
+                else if (req.url === '/api/update-form' && req.method === 'POST') {
+                    // Update an existing form (objectWorkflow)
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { form_name, updates } = JSON.parse(body);
+                            
+                            if (!form_name) {
+                                throw new Error('form_name is required');
+                            }
+                            
+                            if (!updates || Object.keys(updates).length === 0) {
+                                throw new Error('At least one property to update is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the form across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundForm: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                            const form = obj.objectWorkflow.find((wf: any) => wf.name === form_name);
+                                            if (form) {
+                                                foundForm = form;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundForm) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundForm) {
+                                throw new Error(`Form "${form_name}" not found in any data object`);
+                            }
+                            
+                            // Update the form properties
+                            for (const [key, value] of Object.entries(updates)) {
+                                foundForm[key] = value;
+                            }
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated form "${form_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                form: foundForm,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating form: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to update form'
+                            }));
+                        }
+                    });
+                }
                 else if (req.url?.startsWith('/api/lookup-values?')) {
                     // Get all lookup values from a specific lookup data object
                     // Extract lookupObjectName from query string

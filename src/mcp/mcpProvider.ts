@@ -895,6 +895,58 @@ export class AppDNAMcpProvider {
         });
         console.log('[MCP Provider] ✓ create_form registered');
 
+        // Register update_form tool
+        console.log('[MCP Provider] Registering update_form...');
+        const updateFormTool = vscode.lm.registerTool('update_form', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { form_name: string };
+                return {
+                    invocationMessage: `Updating form "${input.form_name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as { 
+                        form_name: string;
+                        titleText?: string;
+                        isInitObjWFSubscribedToParams?: 'true' | 'false';
+                        isObjectDelete?: 'true' | 'false';
+                        layoutName?: string;
+                        introText?: string;
+                        formTitleText?: string;
+                        formIntroText?: string;
+                        formFooterText?: string;
+                        codeDescription?: string;
+                        isAutoSubmit?: 'true' | 'false';
+                        isHeaderVisible?: 'true' | 'false';
+                        isAuthorizationRequired?: 'true' | 'false';
+                        isLoginPage?: 'true' | 'false';
+                        isLogoutPage?: 'true' | 'false';
+                        isCaptchaVisible?: 'true' | 'false';
+                        isCustomLogicOverwritten?: 'true' | 'false';
+                    };
+                    
+                    // Extract form_name and build updates object
+                    const { form_name, ...updates } = input;
+                    const result = await this.formTools.update_form(form_name, updates);
+                    
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ update_form registered');
+
         // Register open_add_data_object_wizard tool
         const openAddDataObjectWizardTool = vscode.lm.registerTool('open_add_data_object_wizard', {
             description: 'Opens the Add Data Object Wizard for creating a new data object. The wizard guides you through creating a data object with options for lookup objects, child objects, and parent-child relationships.',
@@ -948,10 +1000,13 @@ export class AppDNAMcpProvider {
             searchStoriesTool,
             getFormSchemaTool,
             getFormTool,
+            suggestFormNameAndTitleTool,
+            createFormTool,
+            updateFormTool,
             openAddDataObjectWizardTool,
             openAddReportWizardTool
         );
-        console.log('[MCP Provider] All 23 tools registered and added to disposables');
+        console.log('[MCP Provider] All 26 tools registered and added to disposables');
     }
 
     /**

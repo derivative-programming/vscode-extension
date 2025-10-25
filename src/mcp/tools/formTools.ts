@@ -1475,6 +1475,126 @@ export class FormTools {
     }
 
     /**
+     * Update an existing form's properties
+     * @param form_name - Name of the form to update (case-sensitive, exact match required)
+     * @param updates - Object containing properties to update (at least one required)
+     * @returns Result object with success status
+     */
+    async update_form(
+        form_name: string,
+        updates: {
+            titleText?: string;
+            isInitObjWFSubscribedToParams?: 'true' | 'false';
+            isObjectDelete?: 'true' | 'false';
+            layoutName?: string;
+            introText?: string;
+            formTitleText?: string;
+            formIntroText?: string;
+            formFooterText?: string;
+            codeDescription?: string;
+            isAutoSubmit?: 'true' | 'false';
+            isHeaderVisible?: 'true' | 'false';
+            isAuthorizationRequired?: 'true' | 'false';
+            isLoginPage?: 'true' | 'false';
+            isLogoutPage?: 'true' | 'false';
+            isCaptchaVisible?: 'true' | 'false';
+            isCustomLogicOverwritten?: 'true' | 'false';
+        }
+    ): Promise<{ success: boolean; form?: any; owner_object_name?: string; message?: string; error?: string; note?: string }> {
+        try {
+            // Validate at least one property to update
+            const updateKeys = Object.keys(updates);
+            if (updateKeys.length === 0) {
+                return {
+                    success: false,
+                    error: 'At least one property to update must be provided'
+                };
+            }
+
+            // Convert string boolean values to actual booleans for the update
+            const processedUpdates: any = {};
+            for (const [key, value] of Object.entries(updates)) {
+                if (value === 'true') {
+                    processedUpdates[key] = true;
+                } else if (value === 'false') {
+                    processedUpdates[key] = false;
+                } else {
+                    processedUpdates[key] = value;
+                }
+            }
+
+            // Call bridge API to update form
+            const http = await import('http');
+            const postData = {
+                form_name,
+                updates: processedUpdates
+            };
+
+            const postDataString = JSON.stringify(postData);
+
+            const updatedForm: any = await new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/update-form',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => {
+                            data += chunk;
+                        });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+
+                req.on('error', (error) => {
+                    reject(error);
+                });
+
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!updatedForm.success) {
+                return {
+                    success: false,
+                    error: updatedForm.error || 'Failed to update form'
+                };
+            }
+
+            // Filter hidden properties from returned form
+            const filteredForm = this.filterHiddenFormProperties(updatedForm.form);
+
+            return {
+                success: true,
+                form: filteredForm,
+                owner_object_name: updatedForm.owner_object_name,
+                message: `Form "${form_name}" updated successfully`,
+                note: 'Form properties have been updated. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not update form: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to update forms. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
      * Converts PascalCase to human-readable format with spaces
      * @param text - PascalCase text
      * @returns Human-readable text with spaces
