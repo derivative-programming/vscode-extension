@@ -1172,6 +1172,142 @@ export class MCPServer {
             }
         });
 
+        // Register add_form_output_var tool
+        this.server.registerTool('add_form_output_var', {
+            title: 'Add Form Output Variable',
+            description: 'Add a new output variable to an existing form in the AppDNA model. Output variables display results or data after form submission. Form name is case-sensitive exact match. name is required.',
+            inputSchema: {
+                form_name: z.string().describe('Name of the form to add output variable to (required, case-sensitive exact match)'),
+                name: z.string().describe('Name of the output variable (required, PascalCase)'),
+                sqlServerDBDataType: z.enum(['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date', 'varchar', 'text']).optional().describe('SQL Server data type for this output variable'),
+                sqlServerDBDataTypeSize: z.string().optional().describe('Size of data type (for nvarchar, varchar, decimal). Default is 100 for nvarchar.'),
+                labelText: z.string().optional().describe('Human-readable label text displayed for this output variable'),
+                buttonText: z.string().optional().describe('Text displayed on button (if output variable includes a button)'),
+                buttonNavURL: z.string().optional().describe('Navigation URL for button'),
+                isLabelVisible: z.enum(['true', 'false']).optional().describe('Whether label is visible (optional): "true" or "false"'),
+                defaultValue: z.enum(['true', 'false']).optional().describe('Default value (optional): "true" or "false"'),
+                isLink: z.enum(['true', 'false']).optional().describe('Whether output variable is a link (optional): "true" or "false"'),
+                isAutoRedirectURL: z.enum(['true', 'false']).optional().describe('Whether to auto-redirect to URL (optional): "true" or "false"'),
+                buttonObjectWFName: z.string().optional().describe('Workflow name for button action'),
+                conditionalVisiblePropertyName: z.string().optional().describe('Property name that controls visibility (optional)'),
+                isVisible: z.enum(['true', 'false']).optional().describe('Whether output variable is visible (optional): "true" or "false"'),
+                isFK: z.enum(['true', 'false']).optional().describe('Is this a foreign key? (optional): "true" or "false"'),
+                fKObjectName: z.string().optional().describe('Foreign key object name (required if isFK="true")'),
+                isFKLookup: z.enum(['true', 'false']).optional().describe('Is FK to a lookup object? (optional): "true" or "false"'),
+                isHeaderText: z.enum(['true', 'false']).optional().describe('Display as header text? (optional): "true" or "false"'),
+                isIgnored: z.enum(['true', 'false']).optional().describe('Should be ignored by code generator? (optional): "true" or "false"'),
+                sourceObjectName: z.string().optional().describe('Source data object name'),
+                sourcePropertyName: z.string().optional().describe('Source property name from source object')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                output_var: z.any().optional(),
+                form_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async (args: Record<string, unknown>) => {
+            try {
+                const { form_name, name, ...optionalProps } = args;
+                
+                // Build output variable object with only provided properties
+                const output_var: any = { name };
+                
+                // Add optional properties if provided
+                if (optionalProps.sqlServerDBDataType !== undefined) { output_var.sqlServerDBDataType = optionalProps.sqlServerDBDataType; }
+                if (optionalProps.sqlServerDBDataTypeSize !== undefined) { output_var.sqlServerDBDataTypeSize = optionalProps.sqlServerDBDataTypeSize; }
+                if (optionalProps.labelText !== undefined) { output_var.labelText = optionalProps.labelText; }
+                if (optionalProps.buttonText !== undefined) { output_var.buttonText = optionalProps.buttonText; }
+                if (optionalProps.buttonNavURL !== undefined) { output_var.buttonNavURL = optionalProps.buttonNavURL; }
+                if (optionalProps.isLabelVisible !== undefined) { output_var.isLabelVisible = optionalProps.isLabelVisible; }
+                if (optionalProps.defaultValue !== undefined) { output_var.defaultValue = optionalProps.defaultValue; }
+                if (optionalProps.isLink !== undefined) { output_var.isLink = optionalProps.isLink; }
+                if (optionalProps.isAutoRedirectURL !== undefined) { output_var.isAutoRedirectURL = optionalProps.isAutoRedirectURL; }
+                if (optionalProps.buttonObjectWFName !== undefined) { output_var.buttonObjectWFName = optionalProps.buttonObjectWFName; }
+                if (optionalProps.conditionalVisiblePropertyName !== undefined) { output_var.conditionalVisiblePropertyName = optionalProps.conditionalVisiblePropertyName; }
+                if (optionalProps.isVisible !== undefined) { output_var.isVisible = optionalProps.isVisible; }
+                if (optionalProps.isFK !== undefined) { output_var.isFK = optionalProps.isFK; }
+                if (optionalProps.fKObjectName !== undefined) { output_var.fKObjectName = optionalProps.fKObjectName; }
+                if (optionalProps.isFKLookup !== undefined) { output_var.isFKLookup = optionalProps.isFKLookup; }
+                if (optionalProps.isHeaderText !== undefined) { output_var.isHeaderText = optionalProps.isHeaderText; }
+                if (optionalProps.isIgnored !== undefined) { output_var.isIgnored = optionalProps.isIgnored; }
+                if (optionalProps.sourceObjectName !== undefined) { output_var.sourceObjectName = optionalProps.sourceObjectName; }
+                if (optionalProps.sourcePropertyName !== undefined) { output_var.sourcePropertyName = optionalProps.sourcePropertyName; }
+                
+                const result = await this.formTools.add_form_output_var(form_name as string, output_var);
+                
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register update_form_output_var tool
+        this.server.registerTool('update_form_output_var', {
+            title: 'Update Form Output Variable',
+            description: 'Update properties of an existing output variable in a form. Form name and output variable name are case-sensitive exact matches. At least one property to update is required.',
+            inputSchema: {
+                form_name: z.string().describe('Name of the form containing the output variable (required, case-sensitive exact match)'),
+                output_var_name: z.string().describe('Name of the output variable to update (required, case-sensitive exact match, used to identify the output variable)'),
+                name: z.string().optional().describe('New name for the output variable (optional, PascalCase)'),
+                sqlServerDBDataType: z.enum(['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date', 'varchar', 'text']).optional().describe('New SQL Server data type'),
+                sqlServerDBDataTypeSize: z.string().optional().describe('New data type size'),
+                labelText: z.string().optional().describe('New label text'),
+                buttonText: z.string().optional().describe('New button text'),
+                buttonNavURL: z.string().optional().describe('New navigation URL for button'),
+                isLabelVisible: z.enum(['true', 'false']).optional().describe('New label visibility: "true" or "false"'),
+                defaultValue: z.enum(['true', 'false']).optional().describe('New default value: "true" or "false"'),
+                isLink: z.enum(['true', 'false']).optional().describe('New link setting: "true" or "false"'),
+                isAutoRedirectURL: z.enum(['true', 'false']).optional().describe('New auto-redirect setting: "true" or "false"'),
+                buttonObjectWFName: z.string().optional().describe('New workflow name for button'),
+                conditionalVisiblePropertyName: z.string().optional().describe('New conditional visibility property'),
+                isVisible: z.enum(['true', 'false']).optional().describe('New visibility: "true" or "false"'),
+                isFK: z.enum(['true', 'false']).optional().describe('New FK setting: "true" or "false"'),
+                fKObjectName: z.string().optional().describe('New foreign key object name'),
+                isFKLookup: z.enum(['true', 'false']).optional().describe('New FK lookup setting: "true" or "false"'),
+                isHeaderText: z.enum(['true', 'false']).optional().describe('New header text setting: "true" or "false"'),
+                isIgnored: z.enum(['true', 'false']).optional().describe('New ignored setting: "true" or "false"'),
+                sourceObjectName: z.string().optional().describe('New source object name'),
+                sourcePropertyName: z.string().optional().describe('New source property name')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                output_var: z.any().optional(),
+                form_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async (args: Record<string, unknown>) => {
+            try {
+                const { form_name, output_var_name, ...updates } = args;
+                
+                const result = await this.formTools.update_form_output_var(form_name as string, output_var_name as string, updates);
+                
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register create_data_object tool
         this.server.registerTool('create_data_object', {
             title: 'Create Data Object',

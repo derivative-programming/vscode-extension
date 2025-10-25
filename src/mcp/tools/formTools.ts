@@ -2036,6 +2036,207 @@ export class FormTools {
     }
 
     /**
+     * Add a new output variable to an existing form
+     * @param form_name - Name of the form (case-sensitive exact match)
+     * @param output_var - Output variable object with name (required) and optional properties
+     * @returns Result with success status and output variable details
+     */
+    async add_form_output_var(
+        form_name: string,
+        output_var: {
+            name: string;
+            sqlServerDBDataType?: string;
+            sqlServerDBDataTypeSize?: string;
+            labelText?: string;
+            buttonText?: string;
+            buttonNavURL?: string;
+            isLabelVisible?: string;
+            defaultValue?: string;
+            isLink?: string;
+            isAutoRedirectURL?: string;
+            buttonObjectWFName?: string;
+            conditionalVisiblePropertyName?: string;
+            isVisible?: string;
+            isFK?: string;
+            fKObjectName?: string;
+            isFKLookup?: string;
+            isHeaderText?: string;
+            isIgnored?: string;
+            sourceObjectName?: string;
+            sourcePropertyName?: string;
+        }
+    ): Promise<any> {
+        if (!output_var.name) {
+            return {
+                success: false,
+                error: 'Output variable name is required'
+            };
+        }
+
+        try {
+            const postData = {
+                form_name,
+                output_var: output_var
+            };
+
+            const http = await import('http');
+            const result = await new Promise((resolve, reject) => {
+                const postDataString = JSON.stringify(postData);
+                const options = {
+                    hostname: 'localhost',
+                    port: 3001,
+                    path: '/api/add-form-output-var',
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Content-Length': Buffer.byteLength(postDataString)
+                    }
+                };
+
+                const req = http.request(options, (res) => {
+                    let data = '';
+                    res.on('data', (chunk) => { data += chunk; });
+                    res.on('end', () => {
+                        try {
+                            resolve(JSON.parse(data));
+                        } catch (e) {
+                            reject(new Error('Failed to parse response'));
+                        }
+                    });
+                });
+
+                req.on('error', reject);
+                req.write(postDataString);
+                req.end();
+            });
+
+            const response = result as any;
+
+            if (response.success) {
+                return {
+                    success: true,
+                    output_var: response.output_var,
+                    form_name: form_name,
+                    owner_object_name: response.owner_object_name,
+                    message: `Output variable "${output_var.name}" added to form "${form_name}" successfully`
+                };
+            } else {
+                return {
+                    success: false,
+                    error: response.error || 'Failed to add form output variable'
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Failed to add form output variable'
+            };
+        }
+    }
+
+    /**
+     * Update an existing output variable in a form
+     * @param form_name - Name of the form (case-sensitive exact match)
+     * @param output_var_name - Name of the output variable to update (case-sensitive exact match)
+     * @param updates - Object containing properties to update
+     * @returns Result with success status and updated output variable
+     */
+    async update_form_output_var(
+        form_name: string,
+        output_var_name: string,
+        updates: {
+            name?: string;
+            sqlServerDBDataType?: string;
+            sqlServerDBDataTypeSize?: string;
+            labelText?: string;
+            buttonText?: string;
+            buttonNavURL?: string;
+            isLabelVisible?: string;
+            defaultValue?: string;
+            isLink?: string;
+            isAutoRedirectURL?: string;
+            buttonObjectWFName?: string;
+            conditionalVisiblePropertyName?: string;
+            isVisible?: string;
+            isFK?: string;
+            fKObjectName?: string;
+            isFKLookup?: string;
+            isHeaderText?: string;
+            isIgnored?: string;
+            sourceObjectName?: string;
+            sourcePropertyName?: string;
+        }
+    ): Promise<any> {
+        if (Object.keys(updates).length === 0) {
+            return {
+                success: false,
+                error: 'At least one property to update is required'
+            };
+        }
+
+        try {
+            const postData = {
+                form_name,
+                output_var_name,
+                updates: updates
+            };
+
+            const http = await import('http');
+            const result = await new Promise((resolve, reject) => {
+                const postDataString = JSON.stringify(postData);
+                const options = {
+                    hostname: 'localhost',
+                    port: 3001,
+                    path: '/api/update-form-output-var',
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Content-Length': Buffer.byteLength(postDataString)
+                    }
+                };
+
+                const req = http.request(options, (res) => {
+                    let data = '';
+                    res.on('data', (chunk) => { data += chunk; });
+                    res.on('end', () => {
+                        try {
+                            resolve(JSON.parse(data));
+                        } catch (e) {
+                            reject(new Error('Failed to parse response'));
+                        }
+                    });
+                });
+
+                req.on('error', reject);
+                req.write(postDataString);
+                req.end();
+            });
+
+            const response = result as any;
+
+            if (response.success) {
+                return {
+                    success: true,
+                    output_var: response.output_var,
+                    form_name: form_name,
+                    owner_object_name: response.owner_object_name,
+                    message: `Output variable "${output_var_name}" in form "${form_name}" updated successfully`
+                };
+            } else {
+                return {
+                    success: false,
+                    error: response.error || 'Failed to update form output variable'
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Failed to update form output variable'
+            };
+        }
+    }
+
+    /**
      * Converts PascalCase to human-readable format with spaces
      * @param text - PascalCase text
      * @returns Human-readable text with spaces

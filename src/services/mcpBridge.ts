@@ -1301,6 +1301,189 @@ export class McpBridge {
                         }
                     });
                 }
+                else if (req.url === '/api/add-form-output-var' && req.method === 'POST') {
+                    // Add a new output variable to an existing form
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { form_name, output_var } = JSON.parse(body);
+                            
+                            if (!form_name) {
+                                throw new Error('form_name is required');
+                            }
+                            
+                            if (!output_var || !output_var.name) {
+                                throw new Error('output_var with name property is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the form across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundForm: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                            const form = obj.objectWorkflow.find((wf: any) => wf.name === form_name);
+                                            if (form) {
+                                                foundForm = form;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundForm) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundForm) {
+                                throw new Error(`Form "${form_name}" not found in any data object`);
+                            }
+                            
+                            // Ensure objectWorkflowOutputVar array exists
+                            if (!foundForm.objectWorkflowOutputVar) {
+                                foundForm.objectWorkflowOutputVar = [];
+                            }
+                            
+                            // Add the output variable
+                            foundForm.objectWorkflowOutputVar.push(output_var);
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Added output variable "${output_var.name}" to form "${form_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                output_var: output_var,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error adding form output variable: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to add form output variable'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/update-form-output-var' && req.method === 'POST') {
+                    // Update an existing output variable in a form
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { form_name, output_var_name, updates } = JSON.parse(body);
+                            
+                            if (!form_name) {
+                                throw new Error('form_name is required');
+                            }
+                            
+                            if (!output_var_name) {
+                                throw new Error('output_var_name is required');
+                            }
+                            
+                            if (!updates || Object.keys(updates).length === 0) {
+                                throw new Error('At least one property to update is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the form across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundForm: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                            const form = obj.objectWorkflow.find((wf: any) => wf.name === form_name);
+                                            if (form) {
+                                                foundForm = form;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundForm) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundForm) {
+                                throw new Error(`Form "${form_name}" not found in any data object`);
+                            }
+                            
+                            // Find the output variable
+                            if (!foundForm.objectWorkflowOutputVar || !Array.isArray(foundForm.objectWorkflowOutputVar)) {
+                                throw new Error(`Form "${form_name}" has no output variables`);
+                            }
+                            
+                            const foundOutputVar = foundForm.objectWorkflowOutputVar.find((v: any) => v.name === output_var_name);
+                            if (!foundOutputVar) {
+                                throw new Error(`Output variable "${output_var_name}" not found in form "${form_name}"`);
+                            }
+                            
+                            // Update the output variable properties
+                            for (const [key, value] of Object.entries(updates)) {
+                                foundOutputVar[key] = value;
+                            }
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated output variable "${output_var_name}" in form "${form_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                output_var: foundOutputVar,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating form output variable: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to update form output variable'
+                            }));
+                        }
+                    });
+                }
                 else if (req.url?.startsWith('/api/lookup-values?')) {
                     // Get all lookup values from a specific lookup data object
                     // Extract lookupObjectName from query string

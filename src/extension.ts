@@ -60,6 +60,8 @@ tools:
   - update_form_param
   - add_form_button
   - update_form_button
+  - add_form_output_var
+  - update_form_output_var
   - list_data_object_summary
   - list_data_objects
   - get_data_object
@@ -233,6 +235,23 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 
 ### Tool Usage Patterns
 
+**View Navigation Commands:**
+- When users say **"view"**, **"show"**, or **"open"**, these are synonyms - they all refer to the \`open_*_view\` tools
+- Examples: "view user stories" → use \`open_user_stories_view\`, "show form details" → use \`open_form_details_view\`, "open data objects" → use \`open_data_objects_list_view\`
+- All view navigation tools start with \`open_\` prefix and end with \`_view\` suffix
+
+**Creation Commands:**
+- When users say **"create"** or **"add"**, these are synonyms - both refer to creation/addition tools
+- Examples: "create a data object" or "add a data object" → use \`create_data_object\`, "add a form parameter" or "create a form parameter" → use \`add_form_param\`
+- Some tools use \`create_\` prefix (e.g., \`create_user_story\`, \`create_data_object\`, \`create_form\`)
+- Other tools use \`add_\` prefix (e.g., \`add_role\`, \`add_form_param\`, \`add_form_button\`, \`add_form_output_var\`)
+- The prefix difference is semantic: \`create_\` for new standalone entities, \`add_\` for adding elements to existing entities
+
+**Update Commands:**
+- When users say **"update"** or **"modify"**, these are synonyms - both refer to modification tools
+- Examples: "update a form" or "modify a form" → use \`update_form\`, "modify form button" or "update form button" → use \`update_form_button\`
+- All update/modify tools use the \`update_\` prefix (e.g., \`update_user_story\`, \`update_data_object\`, \`update_form_param\`, \`update_form_output_var\`)
+
 **Viewing Data Objects:**
 - **Use \`open_object_details_view\`** when you want to see and interact with a data object's details, properties, and settings in a visual interface
 - **Use \`get_data_object\`** only when you need the raw JSON data for programmatic analysis or when the visual interface is not available
@@ -276,7 +295,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
   - Auto-expand tree nodes
   - Custom model file name
 
-## Comprehensive MCP Tool Suite (103 Tools)
+## Comprehensive MCP Tool Suite (105 Tools)
 
 ### User Story Management (5 Tools)
 **CRUD Operations:**
@@ -393,7 +412,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`get_form_schema\` - View complete form structure (objectWorkflow) with all properties, input parameters, buttons, and output variables
 - \`get_form\` - Retrieve complete form details including all parameters, buttons, and output variables with element counts
 
-### Form Management Tools (9 Tools)
+### Form Management Tools (11 Tools)
 - \`get_form_schema\` - View complete form structure (objectWorkflow) with all properties, input parameters, buttons, and output variables
 - \`get_form\` - Retrieve complete form details including all parameters, buttons, and output variables with element counts
 - \`suggest_form_name_and_title\` - Generate suggested form name (PascalCase) and title based on owner object, role, action, and target child object
@@ -403,6 +422,8 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`update_form_param\` - Update properties of an existing form parameter (34 updatable properties, case-sensitive name matching)
 - \`add_form_button\` - Add a new button to an existing form with 9 configurable properties (buttonText, buttonType, isVisible, etc.)
 - \`update_form_button\` - Update properties of an existing form button (10 updatable properties, case-sensitive buttonText matching)
+- \`add_form_output_var\` - Add a new output variable to a form with 20 configurable properties (displays results/data after submission)
+- \`update_form_output_var\` - Update properties of an existing form output variable (21 updatable properties including name itself)
 
 ### Utility Tools (1 Tool)
 - \`secret_word_of_the_day\` - Test/verification tool

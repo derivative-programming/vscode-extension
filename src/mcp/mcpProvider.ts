@@ -1068,6 +1068,67 @@ export class AppDNAMcpProvider {
         });
         console.log('[MCP Provider] ✓ update_form_button registered');
 
+        // Register add_form_output_var tool
+        console.log('[MCP Provider] Registering add_form_output_var...');
+        const addFormOutputVarTool = vscode.lm.registerTool('add_form_output_var', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { form_name: string; name: string };
+                return {
+                    invocationMessage: `Adding output variable "${input.name}" to form "${input.form_name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const { form_name, name, ...otherProps } = options.input as any;
+                    const output_var = { name, ...otherProps };
+                    const result = await this.formTools.add_form_output_var(form_name, output_var);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ add_form_output_var registered');
+
+        // Register update_form_output_var tool
+        console.log('[MCP Provider] Registering update_form_output_var...');
+        const updateFormOutputVarTool = vscode.lm.registerTool('update_form_output_var', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { form_name: string; output_var_name: string };
+                return {
+                    invocationMessage: `Updating output variable "${input.output_var_name}" in form "${input.form_name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const { form_name, output_var_name, ...updates } = options.input as any;
+                    const result = await this.formTools.update_form_output_var(form_name, output_var_name, updates);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ update_form_output_var registered');
+
         // Register open_add_data_object_wizard tool
         const openAddDataObjectWizardTool = vscode.lm.registerTool('open_add_data_object_wizard', {
             description: 'Opens the Add Data Object Wizard for creating a new data object. The wizard guides you through creating a data object with options for lookup objects, child objects, and parent-child relationships.',
@@ -1128,10 +1189,12 @@ export class AppDNAMcpProvider {
             updateFormParamTool,
             addFormButtonTool,
             updateFormButtonTool,
+            addFormOutputVarTool,
+            updateFormOutputVarTool,
             openAddDataObjectWizardTool,
             openAddReportWizardTool
         );
-        console.log('[MCP Provider] All 30 tools registered and added to disposables');
+        console.log('[MCP Provider] All 32 tools registered and added to disposables');
     }
 
     /**

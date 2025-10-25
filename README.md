@@ -102,7 +102,7 @@ A complete agile project management solution with 8 comprehensive tabs for manag
 - **Visual Diagrams**: Hierarchy diagrams and page flow visualizations
 - **Professional Design**: VS Code-native UI with comprehensive keyboard navigation and accessibility features
 - **Live Updates**: Real-time synchronization between AI conversations and extension state
-- **MCP Integration**: Production-ready Model Context Protocol server with 103 tools for GitHub Copilot integration
+- **MCP Integration**: Production-ready Model Context Protocol server with 105 tools for GitHub Copilot integration
 - **HTTP Bridge**: Support for both stdio and HTTP-based MCP communication for maximum compatibility
 - **Keyboard Shortcuts**: Quick access to common actions with Alt+A combinations
 
@@ -425,16 +425,16 @@ Complete listing of general flow definitions:
 
 ## Model Context Protocol (MCP) Integration
 
-The extension includes comprehensive MCP server capabilities for seamless integration with GitHub Copilot and other AI assistants. **Production Ready** with **103 tools** covering the entire AppDNA model.
+The extension includes comprehensive MCP server capabilities for seamless integration with GitHub Copilot and other AI assistants. **Production Ready** with **105 tools** covering the entire AppDNA model.
 
 ### MCP Server Features
-- **103 Comprehensive Tools**: Complete coverage of user stories, data objects, forms, pages, reports, APIs, flows, and more
+- **105 Comprehensive Tools**: Complete coverage of user stories, data objects, forms, pages, reports, APIs, flows, and more
 - **Three Transport Options**: Stdio (default), HTTP server, and VS Code API integration
 - **Real-time Status**: Visual indicators show server running/stopped states in the tree view
 - **GitHub Copilot Integration**: Natural language queries to explore and modify your AppDNA model
 - **HTTP Bridge Architecture**: Dual HTTP bridges on ports 3001 (data) and 3002 (commands) for seamless communication
 
-### Available MCP Tools (101 Total)
+### Available MCP Tools (105 Total)
 
 #### User Story Management (5 tools)
 - Create, list, and search user stories with format validation
@@ -448,13 +448,14 @@ The extension includes comprehensive MCP server capabilities for seamless integr
 - **Data object usage analysis** - Find where objects are referenced across forms, reports, flows, and user stories
 - Property schema definitions and validation
 
-#### Form Management (9 tools)
+#### Form Management (11 tools)
 - Get form schema and retrieve complete form details with all parameters, buttons, output variables
 - Suggest form name and title based on context (owner object, role, action, target)
 - Create new forms with automatic page init flow creation, default buttons, role-based authorization
 - Update form properties (16 updatable properties)
 - Add and update form parameters with 34 configurable properties (data types, validation, foreign keys, display settings)
 - Add and update form buttons with 10 configurable properties (buttonText, buttonType, visibility, navigation targets, access keys)
+- Add and update form output variables with 20 configurable properties (displays results/data after submission, data types, labels, buttons, links, FK relationships)
 - Support for all input types: text, dropdown, FK lookup, radio buttons, file upload, address autocomplete
 
 
@@ -539,7 +540,7 @@ Use this mode for questions about AppDNA model design, schema compliance, extens
 - **MCP SDK Version**: 1.20.0
 - **JSON-RPC 2.0**: Standard protocol over stdio or HTTP transports
 
-For complete MCP documentation including all 103 tools, examples, and configuration details, see [MCP_README.md](./MCP_README.md).
+For complete MCP documentation including all 105 tools, examples, and configuration details, see [MCP_README.md](./MCP_README.md).
 
 ## Requirements
 

@@ -8,11 +8,11 @@
 
 # AppDNA VS Code Extension - MCP Server
 
-This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **103 tools** for interacting with the AppDNA model.
+This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **105 tools** for interacting with the AppDNA model.
 
 ## Features
 
-### **103 Comprehensive Tools** ✅ Verified with GitHub Copilot
+### **105 Comprehensive Tools** ✅ Verified with GitHub Copilot
 
 #### **User Story Management** (5 tools)
 1. **create_user_story** - Create a new user story with format validation
@@ -131,12 +131,23 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
     - Marks model with unsaved changes
 8. **add_form_button** - Add new button to a form
     - Add new button with required buttonText and 9 optional properties
-    - Configure button type (submit, cancel, back, other), visibility, navigation targets
+    - Configure button type (submit, cancel, other), visibility, navigation targets
     - Set call-to-action highlighting and keyboard shortcuts (access keys)
     - Marks model with unsaved changes
 9. **update_form_button** - Update properties of an existing form button
     - Update any of 10 button properties (including buttonText itself)
     - Form name and button_text must match exactly (case-sensitive)
+    - At least one property to update required
+    - Marks model with unsaved changes
+10. **add_form_output_var** - Add new output variable to a form
+    - Add output variable with required name and 19 optional properties
+    - Display results or data after form submission
+    - Configure data type, labels, buttons, links, FK relationships, visibility
+    - Supports header text, auto-redirect URLs, and conditional visibility
+    - Marks model with unsaved changes
+11. **update_form_output_var** - Update properties of an existing form output variable
+    - Update any of 20 output variable properties (including name itself)
+    - Form name and output_var_name must match exactly (case-sensitive)
     - At least one property to update required
     - Marks model with unsaved changes
 
