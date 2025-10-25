@@ -196,6 +196,58 @@ export class ReportTools {
     }
 
     /**
+     * Helper method to post data to the HTTP bridge
+     * @param endpoint API endpoint to post to
+     * @param postData Data to post
+     * @returns Parsed JSON response
+     */
+    private async postToBridge(endpoint: string, postData: any): Promise<any> {
+        const http = await import('http');
+        
+        return new Promise((resolve, reject) => {
+            const postDataString = JSON.stringify(postData);
+            const options = {
+                hostname: 'localhost',
+                port: 3001,
+                path: endpoint,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(postDataString)
+                }
+            };
+
+            const req = http.request(options, (res) => {
+                let data = '';
+
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+
+                res.on('end', () => {
+                    try {
+                        if (res.statusCode === 200) {
+                            const parsedData = JSON.parse(data);
+                            resolve(parsedData);
+                        } else {
+                            reject(new Error(data || `HTTP ${res.statusCode}`));
+                        }
+                    } catch (error) {
+                        reject(new Error(`Failed to parse response: ${error instanceof Error ? error.message : 'Unknown error'}`));
+                    }
+                });
+            });
+
+            req.on('error', (error) => {
+                reject(new Error(`Bridge connection failed: ${error.message}`));
+            });
+
+            req.write(postDataString);
+            req.end();
+        });
+    }
+
+    /**
      * Suggests report name and title based on context
      * Tool name: suggest_report_name_and_title
      * @param parameters - Context for suggestion (owner, role, visualization_type, target)
@@ -506,7 +558,6 @@ export class ReportTools {
             };
 
             // Add report and page init flow to owner object via HTTP bridge POST
-            const createEndpoint = `/api/create-report`;
             const postData = {
                 ownerObjectName: owner_object_name,
                 report: newReport,
@@ -514,44 +565,7 @@ export class ReportTools {
             };
 
             // Use HTTP POST to create the report
-            const http = await import('http');
-            const result = await new Promise((resolve, reject) => {
-                const postDataString = JSON.stringify(postData);
-                const options = {
-                    hostname: 'localhost',
-                    port: 3001,
-                    path: createEndpoint,
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Content-Length': Buffer.byteLength(postDataString)
-                    }
-                };
-
-                const req = http.request(options, (res) => {
-                    let data = '';
-
-                    res.on('data', (chunk) => {
-                        data += chunk;
-                    });
-
-                    res.on('end', () => {
-                        try {
-                            const parsedData = JSON.parse(data);
-                            resolve(parsedData);
-                        } catch (error) {
-                            reject(new Error(`Failed to parse response: ${error instanceof Error ? error.message : 'Unknown error'}`));
-                        }
-                    });
-                });
-
-                req.on('error', (error) => {
-                    reject(new Error(`Bridge connection failed: ${error.message}`));
-                });
-
-                req.write(postDataString);
-                req.end();
-            });
+            await this.postToBridge('/api/create-report', postData);
 
             return {
                 success: true,
@@ -626,48 +640,12 @@ export class ReportTools {
             }
 
             // Call bridge API to update report
-            const http = await import('http');
             const postData = {
                 report_name,
                 updates: updates
             };
 
-            const postDataString = JSON.stringify(postData);
-
-            const updatedReport: any = await new Promise((resolve, reject) => {
-                const req = http.request(
-                    {
-                        hostname: 'localhost',
-                        port: 3001,
-                        path: '/api/update-report',
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Content-Length': Buffer.byteLength(postDataString)
-                        }
-                    },
-                    (res) => {
-                        let data = '';
-                        res.on('data', (chunk) => {
-                            data += chunk;
-                        });
-                        res.on('end', () => {
-                            if (res.statusCode === 200) {
-                                resolve(JSON.parse(data));
-                            } else {
-                                reject(new Error(data || `HTTP ${res.statusCode}`));
-                            }
-                        });
-                    }
-                );
-
-                req.on('error', (error) => {
-                    reject(error);
-                });
-
-                req.write(postDataString);
-                req.end();
-            });
+            const updatedReport: any = await this.postToBridge('/api/update-report', postData);
 
             if (!updatedReport.success) {
                 return {
@@ -730,48 +708,12 @@ export class ReportTools {
             }
 
             // Call bridge API to add report param
-            const http = await import('http');
             const postData = {
                 report_name,
                 param: param
             };
 
-            const postDataString = JSON.stringify(postData);
-
-            const result: any = await new Promise((resolve, reject) => {
-                const req = http.request(
-                    {
-                        hostname: 'localhost',
-                        port: 3001,
-                        path: '/api/add-report-param',
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Content-Length': Buffer.byteLength(postDataString)
-                        }
-                    },
-                    (res) => {
-                        let data = '';
-                        res.on('data', (chunk) => {
-                            data += chunk;
-                        });
-                        res.on('end', () => {
-                            if (res.statusCode === 200) {
-                                resolve(JSON.parse(data));
-                            } else {
-                                reject(new Error(data || `HTTP ${res.statusCode}`));
-                            }
-                        });
-                    }
-                );
-
-                req.on('error', (error) => {
-                    reject(error);
-                });
-
-                req.write(postDataString);
-                req.end();
-            });
+            const result: any = await this.postToBridge('/api/add-report-param', postData);
 
             if (!result.success) {
                 return {
@@ -834,48 +776,12 @@ export class ReportTools {
             }
 
             // Call bridge API to add report column
-            const http = await import('http');
             const postData = {
                 report_name,
                 column: column
             };
 
-            const postDataString = JSON.stringify(postData);
-
-            const result: any = await new Promise((resolve, reject) => {
-                const req = http.request(
-                    {
-                        hostname: 'localhost',
-                        port: 3001,
-                        path: '/api/add-report-column',
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Content-Length': Buffer.byteLength(postDataString)
-                        }
-                    },
-                    (res) => {
-                        let data = '';
-                        res.on('data', (chunk) => {
-                            data += chunk;
-                        });
-                        res.on('end', () => {
-                            if (res.statusCode === 200) {
-                                resolve(JSON.parse(data));
-                            } else {
-                                reject(new Error(data || `HTTP ${res.statusCode}`));
-                            }
-                        });
-                    }
-                );
-
-                req.on('error', (error) => {
-                    reject(error);
-                });
-
-                req.write(postDataString);
-                req.end();
-            });
+            const result: any = await this.postToBridge('/api/add-report-column', postData);
 
             if (!result.success) {
                 return {
@@ -930,48 +836,12 @@ export class ReportTools {
             }
 
             // Call bridge API to add report button
-            const http = await import('http');
             const postData = {
                 report_name,
                 button: button
             };
 
-            const postDataString = JSON.stringify(postData);
-
-            const result: any = await new Promise((resolve, reject) => {
-                const req = http.request(
-                    {
-                        hostname: 'localhost',
-                        port: 3001,
-                        path: '/api/add-report-button',
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Content-Length': Buffer.byteLength(postDataString)
-                        }
-                    },
-                    (res) => {
-                        let data = '';
-                        res.on('data', (chunk) => {
-                            data += chunk;
-                        });
-                        res.on('end', () => {
-                            if (res.statusCode === 200) {
-                                resolve(JSON.parse(data));
-                            } else {
-                                reject(new Error(data || `HTTP ${res.statusCode}`));
-                            }
-                        });
-                    }
-                );
-
-                req.on('error', (error) => {
-                    reject(error);
-                });
-
-                req.write(postDataString);
-                req.end();
-            });
+            const result: any = await this.postToBridge('/api/add-report-button', postData);
 
             if (!result.success) {
                 return {
