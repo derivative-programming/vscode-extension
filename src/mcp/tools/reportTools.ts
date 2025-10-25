@@ -582,4 +582,419 @@ export class ReportTools {
         }
         return text.replace(/([A-Z])/g, ' $1').trim();
     }
+
+    /**
+     * Update an existing report's properties
+     * @param report_name - Name of the report to update (case-sensitive, exact match required)
+     * @param updates - Object containing properties to update (at least one required)
+     * @returns Result object with success status
+     */
+    async update_report(
+        report_name: string,
+        updates: {
+            titleText?: string;
+            visualizationType?: 'Grid' | 'PieChart' | 'LineChart' | 'FlowChart' | 'CardView' | 'FolderView';
+            introText?: string;
+            layoutName?: string;
+            codeDescription?: string;
+            isCachingAllowed?: 'true' | 'false';
+            cacheExpirationInMinutes?: string;
+            isPagingAvailable?: 'true' | 'false';
+            defaultPageSize?: string;
+            isFilterSectionHidden?: 'true' | 'false';
+            isFilterSectionCollapsable?: 'true' | 'false';
+            isRefreshButtonHidden?: 'true' | 'false';
+            isExportButtonsHidden?: 'true' | 'false';
+            isAutoRefresh?: 'true' | 'false';
+            autoRefreshFrequencyInMinutes?: string;
+            defaultOrderByColumnName?: string;
+            defaultOrderByDescending?: 'true' | 'false';
+            isHeaderVisible?: 'true' | 'false';
+            isHeaderLabelsVisible?: 'true' | 'false';
+            noRowsReturnedText?: string;
+            isAuthorizationRequired?: 'true' | 'false';
+        }
+    ): Promise<{ success: boolean; report?: any; owner_object_name?: string; message?: string; error?: string; note?: string }> {
+        try {
+            // Validate at least one property to update
+            const updateKeys = Object.keys(updates);
+            if (updateKeys.length === 0) {
+                return {
+                    success: false,
+                    error: 'At least one property to update must be provided'
+                };
+            }
+
+            // Call bridge API to update report
+            const http = await import('http');
+            const postData = {
+                report_name,
+                updates: updates
+            };
+
+            const postDataString = JSON.stringify(postData);
+
+            const updatedReport: any = await new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/update-report',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => {
+                            data += chunk;
+                        });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+
+                req.on('error', (error) => {
+                    reject(error);
+                });
+
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!updatedReport.success) {
+                return {
+                    success: false,
+                    error: updatedReport.error || 'Failed to update report'
+                };
+            }
+
+            return {
+                success: true,
+                report: updatedReport.report,
+                owner_object_name: updatedReport.owner_object_name,
+                message: `Report "${report_name}" updated successfully`,
+                note: 'Report properties have been updated. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not update report: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to update reports. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
+     * Add a new parameter (filter control) to an existing report
+     * @param report_name - Name of the report to add the parameter to (case-sensitive, exact match required)
+     * @param param - The parameter object to add
+     * @returns Result object with success status
+     */
+    async add_report_param(
+        report_name: string,
+        param: {
+            name: string;
+            sqlServerDBDataType?: string;
+            sqlServerDBDataTypeSize?: string;
+            labelText?: string;
+            targetColumnName?: string;
+            isFK?: 'true' | 'false';
+            fKObjectName?: string;
+            isFKLookup?: 'true' | 'false';
+            isFKList?: 'true' | 'false';
+            isFKListInactiveIncluded?: 'true' | 'false';
+            fKListOrderBy?: string;
+            isFKListSearchable?: 'true' | 'false';
+            isUnknownLookupAllowed?: 'true' | 'false';
+            defaultValue?: string;
+            isVisible?: 'true' | 'false';
+            codeDescription?: string;
+        }
+    ): Promise<{ success: boolean; param?: any; report_name?: string; owner_object_name?: string; message?: string; error?: string; note?: string }> {
+        try {
+            // Validate required parameter name
+            if (!param.name) {
+                return {
+                    success: false,
+                    error: 'Parameter name is required'
+                };
+            }
+
+            // Call bridge API to add report param
+            const http = await import('http');
+            const postData = {
+                report_name,
+                param: param
+            };
+
+            const postDataString = JSON.stringify(postData);
+
+            const result: any = await new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/add-report-param',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => {
+                            data += chunk;
+                        });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+
+                req.on('error', (error) => {
+                    reject(error);
+                });
+
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error || 'Failed to add report parameter'
+                };
+            }
+
+            return {
+                success: true,
+                param: result.param,
+                report_name: report_name,
+                owner_object_name: result.owner_object_name,
+                message: `Parameter "${param.name}" added to report "${report_name}" successfully`,
+                note: 'Report parameter has been added. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not add report parameter: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to add report parameters. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
+     * Add a new column to an existing report
+     * @param report_name - Name of the report to add the column to (case-sensitive, exact match required)
+     * @param column - The column object to add
+     * @returns Result object with success status
+     */
+    async add_report_column(
+        report_name: string,
+        column: {
+            name: string;
+            headerText?: string;
+            sqlServerDBDataType?: string;
+            sqlServerDBDataTypeSize?: string;
+            sourceObjectName?: string;
+            sourcePropertyName?: string;
+            isVisible?: 'true' | 'false';
+            minWidth?: string;
+            maxWidth?: string;
+            isButton?: 'true' | 'false';
+            buttonText?: string;
+            destinationContextObjectName?: string;
+            destinationTargetName?: string;
+            isFilterAvailable?: 'true' | 'false';
+            codeDescription?: string;
+        }
+    ): Promise<{ success: boolean; column?: any; report_name?: string; owner_object_name?: string; message?: string; error?: string; note?: string }> {
+        try {
+            // Validate required column name
+            if (!column.name) {
+                return {
+                    success: false,
+                    error: 'Column name is required'
+                };
+            }
+
+            // Call bridge API to add report column
+            const http = await import('http');
+            const postData = {
+                report_name,
+                column: column
+            };
+
+            const postDataString = JSON.stringify(postData);
+
+            const result: any = await new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/add-report-column',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => {
+                            data += chunk;
+                        });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+
+                req.on('error', (error) => {
+                    reject(error);
+                });
+
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error || 'Failed to add report column'
+                };
+            }
+
+            return {
+                success: true,
+                column: result.column,
+                report_name: report_name,
+                owner_object_name: result.owner_object_name,
+                message: `Column "${column.name}" added to report "${report_name}" successfully`,
+                note: 'Report column has been added. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not add report column: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to add report columns. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
+     * Add a new button to an existing report
+     * @param report_name - Name of the report to add the button to (case-sensitive, exact match required)
+     * @param button - The button object to add
+     * @returns Result object with success status
+     */
+    async add_report_button(
+        report_name: string,
+        button: {
+            buttonName?: string;
+            buttonText: string;
+            buttonType?: string;
+            isVisible?: 'true' | 'false';
+            destinationContextObjectName?: string;
+            destinationTargetName?: string;
+            isButtonCallToAction?: 'true' | 'false';
+        }
+    ): Promise<{ success: boolean; button?: any; report_name?: string; owner_object_name?: string; message?: string; error?: string; note?: string }> {
+        try {
+            // Validate required button text
+            if (!button.buttonText) {
+                return {
+                    success: false,
+                    error: 'Button text is required'
+                };
+            }
+
+            // Call bridge API to add report button
+            const http = await import('http');
+            const postData = {
+                report_name,
+                button: button
+            };
+
+            const postDataString = JSON.stringify(postData);
+
+            const result: any = await new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/add-report-button',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => {
+                            data += chunk;
+                        });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+
+                req.on('error', (error) => {
+                    reject(error);
+                });
+
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error || 'Failed to add report button'
+                };
+            }
+
+            return {
+                success: true,
+                button: result.button,
+                report_name: report_name,
+                owner_object_name: result.owner_object_name,
+                message: `Button "${button.buttonText}" added to report "${report_name}" successfully`,
+                note: 'Report button has been added. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not add report button: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to add report buttons. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
 }
