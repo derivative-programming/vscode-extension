@@ -198,7 +198,7 @@ The test file `src/test/mcp-wizard-tools.test.ts` verifies:
 ### Tool Not Found in Copilot
 1. Reset Copilot tool cache: Command Palette → "MCP: Reset Cached Tools"
 2. Restart VS Code
-3. Verify extension version is 1.0.21 or higher
+3. Verify extension version is 1.0.22 or higher
 
 ### Wizard Closes Immediately
 1. Check for validation errors in the Output panel

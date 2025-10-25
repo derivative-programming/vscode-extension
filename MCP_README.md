@@ -1,7 +1,7 @@
 # AppDNA MCP Server Documentation
 
 **Status:** ✅ **Production Ready** - Tested with GitHub Copilot (October 19, 2025)  
-**Version:** 1.0.21  
+**Version:** 1.0.22  
 **MCP SDK:** 1.20.0
 
 ## Overview
@@ -369,7 +369,7 @@ For GitHub Copilot to properly discover and use the MCP server, the following se
         "command": "${execPath}",
         "args": [
           "${workspaceFolder}",
-          "--extensionDevelopmentPath=${execPath}/extensions/derivative-programming.appdna-1.0.21",
+          "--extensionDevelopmentPath=${execPath}/extensions/derivative-programming.appdna-1.0.22",
           "--command=appdna.startMCPServer"
         ]
       }
@@ -586,6 +586,6 @@ For issues, feature requests, or questions:
 
 ---
 
-**Version:** 1.0.21  
+**Version:** 1.0.22 
 **Last Updated:** October 15, 2025  
 **Status:** ✅ Production Ready
