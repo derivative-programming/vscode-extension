@@ -11,6 +11,7 @@ import { UserStoryTools } from './tools/userStoryTools';
 import { ViewTools } from './tools/viewTools';
 import { DataObjectTools } from './tools/dataObjectTools';
 import { FormTools } from './tools/formTools';
+import { ReportTools } from './tools/reportTools';
 import { ModelTools } from './tools/modelTools';
 import { ModelServiceTools } from './tools/modelServiceTools';
 
@@ -24,6 +25,7 @@ export class MCPServer {
     private viewTools: ViewTools;
     private dataObjectTools: DataObjectTools;
     private formTools: FormTools;
+    private reportTools: ReportTools;
     private modelTools: ModelTools;
     private modelServiceTools: ModelServiceTools;
     private transport: StdioServerTransport;
@@ -34,6 +36,7 @@ export class MCPServer {
         this.viewTools = new ViewTools();
         this.dataObjectTools = new DataObjectTools(null);
         this.formTools = new FormTools(null);
+        this.reportTools = new ReportTools(null);
         this.modelTools = new ModelTools();
         this.modelServiceTools = new ModelServiceTools();
 
@@ -1294,6 +1297,352 @@ export class MCPServer {
                 
                 const result = await this.formTools.update_form_output_var(form_name as string, output_var_name as string, updates);
                 
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // ========================================
+        // Report Tools
+        // ========================================
+
+        // Register get_report_schema tool
+        this.server.registerTool('get_report_schema', {
+            title: 'Get Report Schema',
+            description: 'Get the schema definition for complete report structure. Includes all report properties (name, titleText, visualizationType, targetChildObject, etc.), filter parameter structure (reportParam), column structure (reportColumn), button structure (reportButton), validation rules, SQL data types, and examples of complete reports with all components.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                schema: z.any(),
+                note: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.reportTools.get_report_schema();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register get_report tool
+        this.server.registerTool('get_report', {
+            title: 'Get Report',
+            description: 'Get complete details of a specific report by name. If owner_object_name is provided, searches only that object; otherwise searches all objects. Returns the full report structure including all filter parameters (reportParam), columns (reportColumn), buttons (reportButton), and element counts. Report name matching is case-insensitive.',
+            inputSchema: {
+                report_name: z.string().describe('The name of the report to retrieve (case-insensitive matching)'),
+                owner_object_name: z.string().optional().describe('Optional: The name of the owner data object that contains the report (case-insensitive matching). If not provided, all objects will be searched.')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                report: z.any().optional().describe('Complete report object with all properties and arrays'),
+                owner_object_name: z.string().optional(),
+                element_counts: z.object({
+                    paramCount: z.number(),
+                    columnCount: z.number(),
+                    buttonCount: z.number(),
+                    totalElements: z.number()
+                }).optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async ({ owner_object_name, report_name }) => {
+            try {
+                const result = await this.reportTools.get_report({ owner_object_name, report_name });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register suggest_report_name_and_title tool
+        this.server.registerTool('suggest_report_name_and_title', {
+            title: 'Suggest Report Name and Title',
+            description: 'Generate suggested report name (PascalCase) and title (human-readable) based on context: owner object, role, visualization type, and target child object. Useful before creating a report to get naming recommendations that follow conventions.',
+            inputSchema: {
+                owner_object_name: z.string().describe('The name of the owner data object (required, case-sensitive exact match)'),
+                role_required: z.string().optional().describe('Optional: Role required to access the report (case-sensitive)'),
+                visualization_type: z.string().optional().describe('Optional: Visualization type (Grid, PieChart, LineChart, FlowChart, CardView, FolderView). Defaults to Grid if not provided.'),
+                target_child_object: z.string().optional().describe('Optional: Target child object when report displays list of items (case-sensitive). Commonly used with Grid visualization type.')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                suggestions: z.object({
+                    report_name: z.string(),
+                    title_text: z.string()
+                }).optional(),
+                context: z.object({
+                    owner_object_name: z.string(),
+                    role_required: z.string().nullable(),
+                    visualization_type: z.string(),
+                    target_child_object: z.string().nullable()
+                }).optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async ({ owner_object_name, role_required, visualization_type, target_child_object }) => {
+            try {
+                const result = await this.reportTools.suggest_report_name_and_title({ owner_object_name, role_required, visualization_type, target_child_object });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register create_report tool
+        this.server.registerTool('create_report', {
+            title: 'Create Report',
+            description: 'Create a new report in a data object with automatic page init flow creation. Report name must be unique (case-insensitive) across all objects and in PascalCase format. Automatically creates Back button. Owner object name must match exactly (case-sensitive). TIP: Use suggest_report_name_and_title tool first to get recommended report name and title based on your context (owner object, role, visualization type, target child object).',
+            inputSchema: {
+                owner_object_name: z.string().describe('The name of the owner data object (required, case-sensitive exact match)'),
+                report_name: z.string().describe('The name of the report (required, PascalCase, must be unique case-insensitive across all objects)'),
+                title_text: z.string().describe('The title displayed on the report (required, max 100 characters)'),
+                visualization_type: z.string().optional().describe('Optional: Visualization type (Grid, PieChart, LineChart, FlowChart, CardView, FolderView). Defaults to Grid if not provided.'),
+                role_required: z.string().optional().describe('Optional: Role required to access the report (case-sensitive). Auto-sets isAuthorizationRequired="true" and layoutName="{role}Layout"'),
+                target_child_object: z.string().optional().describe('Optional: Target child object when report displays list of items (case-sensitive exact match)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                report: z.any().optional(),
+                page_init_flow: z.any().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async ({ owner_object_name, report_name, title_text, visualization_type, role_required, target_child_object }) => {
+            try {
+                const result = await this.reportTools.create_report({ owner_object_name, report_name, title_text, visualization_type, role_required, target_child_object });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register update_report tool
+        this.server.registerTool('update_report', {
+            title: 'Update Report',
+            description: 'Update properties of an existing report in the AppDNA model. Report name must match exactly (case-sensitive). At least one property to update is required. Updates only the specified properties, leaving others unchanged. Searches all data objects to find the report.',
+            inputSchema: {
+                report_name: z.string().describe('Name of the report to update (case-sensitive exact match)'),
+                titleText: z.string().optional(),
+                visualizationType: z.enum(['Grid', 'PieChart', 'LineChart', 'FlowChart', 'CardView', 'FolderView']).optional(),
+                introText: z.string().optional(),
+                layoutName: z.string().optional(),
+                codeDescription: z.string().optional(),
+                isCachingAllowed: z.enum(['true', 'false']).optional(),
+                cacheExpirationInMinutes: z.string().optional(),
+                isPagingAvailable: z.enum(['true', 'false']).optional(),
+                defaultPageSize: z.string().optional(),
+                isFilterSectionHidden: z.enum(['true', 'false']).optional(),
+                isFilterSectionCollapsable: z.enum(['true', 'false']).optional(),
+                isRefreshButtonHidden: z.enum(['true', 'false']).optional(),
+                isExportButtonsHidden: z.enum(['true', 'false']).optional(),
+                isAutoRefresh: z.enum(['true', 'false']).optional(),
+                autoRefreshFrequencyInMinutes: z.string().optional(),
+                defaultOrderByColumnName: z.string().optional(),
+                defaultOrderByDescending: z.enum(['true', 'false']).optional(),
+                isHeaderVisible: z.enum(['true', 'false']).optional(),
+                isHeaderLabelsVisible: z.enum(['true', 'false']).optional(),
+                noRowsReturnedText: z.string().optional(),
+                isAuthorizationRequired: z.enum(['true', 'false']).optional()
+            },
+            outputSchema: {
+                success: z.boolean(),
+                report: z.any().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: Record<string, unknown>) => {
+            try {
+                const { report_name, ...updates } = args;
+                const result = await this.reportTools.update_report(report_name as string, updates);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register add_report_param tool
+        this.server.registerTool('add_report_param', {
+            title: 'Add Report Parameter',
+            description: 'Add a new filter parameter (input control) to an existing report. Parameters allow users to filter report data. Report name must match exactly (case-sensitive). Parameter names must be unique within the report and in PascalCase format.',
+            inputSchema: {
+                report_name: z.string().describe('Name of the report (case-sensitive exact match)'),
+                name: z.string().describe('Parameter name (required, PascalCase)'),
+                sqlServerDBDataType: z.string().optional(),
+                sqlServerDBDataTypeSize: z.string().optional(),
+                labelText: z.string().optional(),
+                targetColumnName: z.string().optional(),
+                isFK: z.enum(['true', 'false']).optional(),
+                fKObjectName: z.string().optional(),
+                isFKLookup: z.enum(['true', 'false']).optional(),
+                isFKList: z.enum(['true', 'false']).optional(),
+                isFKListInactiveIncluded: z.enum(['true', 'false']).optional(),
+                fKListOrderBy: z.string().optional(),
+                isFKListSearchable: z.enum(['true', 'false']).optional(),
+                isUnknownLookupAllowed: z.enum(['true', 'false']).optional(),
+                defaultValue: z.string().optional(),
+                isVisible: z.enum(['true', 'false']).optional(),
+                codeDescription: z.string().optional()
+            },
+            outputSchema: {
+                success: z.boolean(),
+                param: z.any().optional(),
+                report_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: Record<string, unknown>) => {
+            try {
+                const { report_name, ...param } = args;
+                const result = await this.reportTools.add_report_param(report_name as string, param as any);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register add_report_column tool
+        this.server.registerTool('add_report_column', {
+            title: 'Add Report Column',
+            description: 'Add a new column to an existing report. Columns display data in the report grid or chart. Report name must match exactly (case-sensitive). Column names must be unique within the report and in PascalCase format. Columns can be data fields or action buttons.',
+            inputSchema: {
+                report_name: z.string().describe('Name of the report (case-sensitive exact match)'),
+                name: z.string().describe('Column name (required, PascalCase)'),
+                headerText: z.string().optional(),
+                sqlServerDBDataType: z.string().optional(),
+                sqlServerDBDataTypeSize: z.string().optional(),
+                sourceObjectName: z.string().optional(),
+                sourcePropertyName: z.string().optional(),
+                isVisible: z.enum(['true', 'false']).optional(),
+                minWidth: z.string().optional(),
+                maxWidth: z.string().optional(),
+                isButton: z.enum(['true', 'false']).optional(),
+                buttonText: z.string().optional(),
+                destinationContextObjectName: z.string().optional(),
+                destinationTargetName: z.string().optional(),
+                isFilterAvailable: z.enum(['true', 'false']).optional(),
+                codeDescription: z.string().optional()
+            },
+            outputSchema: {
+                success: z.boolean(),
+                column: z.any().optional(),
+                report_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: Record<string, unknown>) => {
+            try {
+                const { report_name, ...column } = args;
+                const result = await this.reportTools.add_report_column(report_name as string, column as any);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register add_report_button tool
+        this.server.registerTool('add_report_button', {
+            title: 'Add Report Button',
+            description: 'Add a new button to an existing report. Buttons allow navigation or actions from the report page. Report name must match exactly (case-sensitive). Common button types: back, other.',
+            inputSchema: {
+                report_name: z.string().describe('Name of the report (case-sensitive exact match)'),
+                buttonText: z.string().describe('Text displayed on the button (required)'),
+                buttonName: z.string().optional(),
+                buttonType: z.string().optional(),
+                isVisible: z.enum(['true', 'false']).optional(),
+                destinationContextObjectName: z.string().optional(),
+                destinationTargetName: z.string().optional(),
+                isButtonCallToAction: z.enum(['true', 'false']).optional()
+            },
+            outputSchema: {
+                success: z.boolean(),
+                button: z.any().optional(),
+                report_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: Record<string, unknown>) => {
+            try {
+                const { report_name, ...button } = args;
+                const result = await this.reportTools.add_report_button(report_name as string, button as any);
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result
