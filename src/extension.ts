@@ -58,10 +58,13 @@ tools:
   - update_form
   - add_form_param
   - update_form_param
+  - move_form_param
   - add_form_button
   - update_form_button
+  - move_form_button
   - add_form_output_var
   - update_form_output_var
+  - move_form_output_var
   - get_report_schema
   - get_report
   - suggest_report_name_and_title
@@ -69,10 +72,13 @@ tools:
   - update_report
   - add_report_param
   - update_report_param
+  - move_report_param
   - add_report_column
   - update_report_column
+  - move_report_column
   - add_report_button
   - update_report_button
+  - move_report_button
   - list_data_object_summary
   - list_data_objects
   - get_data_object
@@ -425,7 +431,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`get_report_schema\` - View complete report structure with all properties, columns, buttons, and parameters
 - \`get_report\` - Retrieve complete report details including all columns, buttons, and parameters with element counts
 
-### Form Management Tools (11 Tools)
+### Form Management Tools (14 Tools)
 - \`get_form_schema\` - View complete form structure (objectWorkflow) with all properties, input parameters, buttons, and output variables
 - \`get_form\` - Retrieve complete form details including all parameters, buttons, and output variables with element counts
 - \`suggest_form_name_and_title\` - Generate suggested form name (PascalCase) and title based on owner object, role, action, and target child object
@@ -433,16 +439,22 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`update_form\` - Update properties of an existing form (16 updatable properties, requires exact case-sensitive form name match)
 - \`add_form_param\` - Add a new input parameter (form field/control) to an existing form with 34 configurable properties
 - \`update_form_param\` - Update properties of an existing form parameter (34 updatable properties, case-sensitive name matching)
+- \`move_form_param\` - Move a form parameter to a new position (0-based index) to reorder input controls on the form
 - \`add_form_button\` - Add a new button to an existing form with 9 configurable properties (buttonText, buttonType, isVisible, etc.)
 - \`update_form_button\` - Update properties of an existing form button (10 updatable properties, case-sensitive buttonText matching)
+- \`move_form_button\` - Move a form button to a new position (0-based index) to reorder buttons on the form
 - \`add_form_output_var\` - Add a new output variable to a form with 20 configurable properties (displays results/data after submission)
 - \`update_form_output_var\` - Update properties of an existing form output variable (21 updatable properties including name itself)
+- \`move_form_output_var\` - Move a form output variable to a new position (0-based index) to reorder output display on the form
 
-### Report Management Tools (4 Tools)
+### Report Management Tools (7 Tools)
 - \`get_report_schema\` - View complete report structure with all properties, columns, buttons, and parameters
 - \`get_report\` - Retrieve complete report details including all columns, buttons, and parameters with element counts
 - \`suggest_report_name_and_title\` - Generate suggested report name (PascalCase) and title based on owner object, role, visualization type, and target child object
 - \`create_report\` - Create new report with automatic page init flow creation, default buttons, and role-based authorization
+- \`move_report_param\` - Move a report parameter (filter control) to a new position (0-based index) to reorder filter controls on the report
+- \`move_report_column\` - Move a report column to a new position (0-based index) to reorder columns in the report grid/table
+- \`move_report_button\` - Move a report button to a new position (0-based index) to reorder buttons on the report
 
 ### Utility Tools (1 Tool)
 - \`secret_word_of_the_day\` - Test/verification tool

@@ -2237,6 +2237,256 @@ export class FormTools {
     }
 
     /**
+     * Move a form parameter to a new position in the objectWorkflowParam array
+     * @param form_name - Name of the form (case-sensitive exact match)
+     * @param param_name - Name of the parameter to move (case-sensitive exact match)
+     * @param new_position - New 0-based index position for the parameter
+     * @returns Result with success status and position details
+     */
+    async move_form_param(
+        form_name: string,
+        param_name: string,
+        new_position: number
+    ): Promise<any> {
+        try {
+            // Validate inputs
+            if (new_position < 0) {
+                return {
+                    success: false,
+                    error: 'new_position must be 0 or greater'
+                };
+            }
+
+            // Call bridge API to move form param
+            const http = await import('http');
+            const postData = {
+                form_name,
+                param_name,
+                new_position
+            };
+
+            const postDataString = JSON.stringify(postData);
+
+            const result: any = await new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/move-form-param',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => {
+                            data += chunk;
+                        });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+
+                req.on('error', (error) => {
+                    reject(error);
+                });
+
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error || 'Failed to move form parameter'
+                };
+            }
+
+            return {
+                success: true,
+                form_name: form_name,
+                owner_object_name: result.owner_object_name,
+                param_name: param_name,
+                old_position: result.old_position,
+                new_position: new_position,
+                param_count: result.param_count,
+                message: `Parameter "${param_name}" moved from position ${result.old_position} to position ${new_position}`,
+                note: 'Form parameter has been reordered. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not move form parameter: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to move form parameters. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
+     * Move a form button to a new position in the objectWorkflowButton array
+     * @param form_name - Name of the form (case-sensitive exact match)
+     * @param button_text - Text of the button to move (case-sensitive exact match)
+     * @param new_position - New 0-based index position for the button
+     * @returns Result with success status and position details
+     */
+    async move_form_button(
+        form_name: string,
+        button_text: string,
+        new_position: number
+    ): Promise<any> {
+        try {
+            if (new_position < 0) {
+                return {
+                    success: false,
+                    error: 'new_position must be 0 or greater'
+                };
+            }
+
+            const http = await import('http');
+            const postData = { form_name, button_text, new_position };
+            const postDataString = JSON.stringify(postData);
+
+            const result: any = await new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/move-form-button',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => { data += chunk; });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+                req.on('error', (error) => { reject(error); });
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!result.success) {
+                return { success: false, error: result.error || 'Failed to move form button' };
+            }
+
+            return {
+                success: true,
+                form_name: form_name,
+                owner_object_name: result.owner_object_name,
+                button_text: button_text,
+                old_position: result.old_position,
+                new_position: new_position,
+                button_count: result.button_count,
+                message: `Button "${button_text}" moved from position ${result.old_position} to position ${new_position}`,
+                note: 'Form button has been reordered. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not move form button: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
+     * Move a form output variable to a new position in the objectWorkflowOutputVar array
+     * @param form_name - Name of the form (case-sensitive exact match)
+     * @param output_var_name - Name of the output variable to move (case-sensitive exact match)
+     * @param new_position - New 0-based index position for the output variable
+     * @returns Result with success status and position details
+     */
+    async move_form_output_var(
+        form_name: string,
+        output_var_name: string,
+        new_position: number
+    ): Promise<any> {
+        try {
+            if (new_position < 0) {
+                return {
+                    success: false,
+                    error: 'new_position must be 0 or greater'
+                };
+            }
+
+            const http = await import('http');
+            const postData = { form_name, output_var_name, new_position };
+            const postDataString = JSON.stringify(postData);
+
+            const result: any = await new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/move-form-output-var',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => { data += chunk; });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+                req.on('error', (error) => { reject(error); });
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!result.success) {
+                return { success: false, error: result.error || 'Failed to move form output variable' };
+            }
+
+            return {
+                success: true,
+                form_name: form_name,
+                owner_object_name: result.owner_object_name,
+                output_var_name: output_var_name,
+                old_position: result.old_position,
+                new_position: new_position,
+                output_var_count: result.output_var_count,
+                message: `Output variable "${output_var_name}" moved from position ${result.old_position} to position ${new_position}`,
+                note: 'Form output variable has been reordered. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not move form output variable: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
      * Converts PascalCase to human-readable format with spaces
      * @param text - PascalCase text
      * @returns Human-readable text with spaces

@@ -1118,6 +1118,388 @@ export class McpBridge {
                         }
                     });
                 }
+                else if (req.url === '/api/move-form-param' && req.method === 'POST') {
+                    // Move a form parameter to a new position
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { form_name, param_name, new_position } = JSON.parse(body);
+                            
+                            if (!form_name) {
+                                throw new Error('form_name is required');
+                            }
+                            
+                            if (!param_name) {
+                                throw new Error('param_name is required');
+                            }
+                            
+                            if (new_position === undefined || new_position === null) {
+                                throw new Error('new_position is required');
+                            }
+                            
+                            if (typeof new_position !== 'number' || new_position < 0) {
+                                throw new Error('new_position must be a non-negative number');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the form across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundForm: any = null;
+                            let ownerObject: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (!ns.object || !Array.isArray(ns.object)) {
+                                    continue;
+                                }
+                                
+                                for (const obj of ns.object) {
+                                    if (!obj.objectWorkflow || !Array.isArray(obj.objectWorkflow)) {
+                                        continue;
+                                    }
+                                    
+                                    const form = obj.objectWorkflow.find((wf: any) => wf.name === form_name);
+                                    if (form) {
+                                        foundForm = form;
+                                        ownerObject = obj;
+                                        ownerObjectName = obj.name;
+                                        break;
+                                    }
+                                }
+                                
+                                if (foundForm) {
+                                    break;
+                                }
+                            }
+                            
+                            if (!foundForm) {
+                                throw new Error(`Form "${form_name}" not found in any object`);
+                            }
+                            
+                            // Ensure objectWorkflowParam array exists
+                            if (!foundForm.objectWorkflowParam || !Array.isArray(foundForm.objectWorkflowParam)) {
+                                throw new Error(`Form "${form_name}" has no parameters`);
+                            }
+                            
+                            // Find the parameter to move (case-sensitive exact match)
+                            const paramIndex = foundForm.objectWorkflowParam.findIndex((p: any) => p.name === param_name);
+                            
+                            if (paramIndex === -1) {
+                                throw new Error(`Parameter "${param_name}" not found in form "${form_name}"`);
+                            }
+                            
+                            // Validate new_position
+                            const paramCount = foundForm.objectWorkflowParam.length;
+                            if (new_position >= paramCount) {
+                                throw new Error(`new_position (${new_position}) must be less than parameter count (${paramCount}). Valid range: 0 to ${paramCount - 1}`);
+                            }
+                            
+                            // Store old position
+                            const old_position = paramIndex;
+                            
+                            // If already at target position, no move needed
+                            if (old_position === new_position) {
+                                res.writeHead(200);
+                                res.end(JSON.stringify({
+                                    success: true,
+                                    owner_object_name: ownerObjectName,
+                                    old_position: old_position,
+                                    new_position: new_position,
+                                    param_count: paramCount,
+                                    message: `Parameter "${param_name}" is already at position ${new_position}`
+                                }));
+                                return;
+                            }
+                            
+                            // Remove parameter from old position
+                            const [movedParam] = foundForm.objectWorkflowParam.splice(paramIndex, 1);
+                            
+                            // Insert at new position
+                            foundForm.objectWorkflowParam.splice(new_position, 0, movedParam);
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Moved parameter "${param_name}" in form "${form_name}" from position ${old_position} to ${new_position}`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                owner_object_name: ownerObjectName,
+                                old_position: old_position,
+                                new_position: new_position,
+                                param_count: paramCount
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error moving form parameter: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to move form parameter'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/move-form-button' && req.method === 'POST') {
+                    // Move a form button to a new position
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { form_name, button_text, new_position } = JSON.parse(body);
+                            
+                            if (!form_name) {
+                                throw new Error('form_name is required');
+                            }
+                            
+                            if (!button_text) {
+                                throw new Error('button_text is required');
+                            }
+                            
+                            if (new_position === undefined || new_position === null) {
+                                throw new Error('new_position is required');
+                            }
+                            
+                            if (typeof new_position !== 'number' || new_position < 0) {
+                                throw new Error('new_position must be a non-negative number');
+                            }
+                            
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundForm: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (!ns.object || !Array.isArray(ns.object)) {
+                                    continue;
+                                }
+                                
+                                for (const obj of ns.object) {
+                                    if (!obj.objectWorkflow || !Array.isArray(obj.objectWorkflow)) {
+                                        continue;
+                                    }
+                                    
+                                    const form = obj.objectWorkflow.find((wf: any) => wf.name === form_name);
+                                    if (form) {
+                                        foundForm = form;
+                                        ownerObjectName = obj.name;
+                                        break;
+                                    }
+                                }
+                                
+                                if (foundForm) {
+                                    break;
+                                }
+                            }
+                            
+                            if (!foundForm) {
+                                throw new Error(`Form "${form_name}" not found in any object`);
+                            }
+                            
+                            if (!foundForm.objectWorkflowButton || !Array.isArray(foundForm.objectWorkflowButton)) {
+                                throw new Error(`Form "${form_name}" has no buttons`);
+                            }
+                            
+                            const buttonIndex = foundForm.objectWorkflowButton.findIndex((b: any) => b.buttonText === button_text);
+                            
+                            if (buttonIndex === -1) {
+                                throw new Error(`Button "${button_text}" not found in form "${form_name}"`);
+                            }
+                            
+                            const buttonCount = foundForm.objectWorkflowButton.length;
+                            if (new_position >= buttonCount) {
+                                throw new Error(`new_position (${new_position}) must be less than button count (${buttonCount}). Valid range: 0 to ${buttonCount - 1}`);
+                            }
+                            
+                            const old_position = buttonIndex;
+                            
+                            if (old_position === new_position) {
+                                res.writeHead(200);
+                                res.end(JSON.stringify({
+                                    success: true,
+                                    owner_object_name: ownerObjectName,
+                                    old_position: old_position,
+                                    new_position: new_position,
+                                    button_count: buttonCount,
+                                    message: `Button "${button_text}" is already at position ${new_position}`
+                                }));
+                                return;
+                            }
+                            
+                            const [movedButton] = foundForm.objectWorkflowButton.splice(buttonIndex, 1);
+                            foundForm.objectWorkflowButton.splice(new_position, 0, movedButton);
+                            
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Moved button "${button_text}" in form "${form_name}" from position ${old_position} to ${new_position}`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                owner_object_name: ownerObjectName,
+                                old_position: old_position,
+                                new_position: new_position,
+                                button_count: buttonCount
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error moving form button: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to move form button'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/move-form-output-var' && req.method === 'POST') {
+                    // Move a form output variable to a new position
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { form_name, output_var_name, new_position } = JSON.parse(body);
+                            
+                            if (!form_name) {
+                                throw new Error('form_name is required');
+                            }
+                            
+                            if (!output_var_name) {
+                                throw new Error('output_var_name is required');
+                            }
+                            
+                            if (new_position === undefined || new_position === null) {
+                                throw new Error('new_position is required');
+                            }
+                            
+                            if (typeof new_position !== 'number' || new_position < 0) {
+                                throw new Error('new_position must be a non-negative number');
+                            }
+                            
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundForm: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (!ns.object || !Array.isArray(ns.object)) {
+                                    continue;
+                                }
+                                
+                                for (const obj of ns.object) {
+                                    if (!obj.objectWorkflow || !Array.isArray(obj.objectWorkflow)) {
+                                        continue;
+                                    }
+                                    
+                                    const form = obj.objectWorkflow.find((wf: any) => wf.name === form_name);
+                                    if (form) {
+                                        foundForm = form;
+                                        ownerObjectName = obj.name;
+                                        break;
+                                    }
+                                }
+                                
+                                if (foundForm) {
+                                    break;
+                                }
+                            }
+                            
+                            if (!foundForm) {
+                                throw new Error(`Form "${form_name}" not found in any object`);
+                            }
+                            
+                            if (!foundForm.objectWorkflowOutputVar || !Array.isArray(foundForm.objectWorkflowOutputVar)) {
+                                throw new Error(`Form "${form_name}" has no output variables`);
+                            }
+                            
+                            const outputVarIndex = foundForm.objectWorkflowOutputVar.findIndex((v: any) => v.name === output_var_name);
+                            
+                            if (outputVarIndex === -1) {
+                                throw new Error(`Output variable "${output_var_name}" not found in form "${form_name}"`);
+                            }
+                            
+                            const outputVarCount = foundForm.objectWorkflowOutputVar.length;
+                            if (new_position >= outputVarCount) {
+                                throw new Error(`new_position (${new_position}) must be less than output variable count (${outputVarCount}). Valid range: 0 to ${outputVarCount - 1}`);
+                            }
+                            
+                            const old_position = outputVarIndex;
+                            
+                            if (old_position === new_position) {
+                                res.writeHead(200);
+                                res.end(JSON.stringify({
+                                    success: true,
+                                    owner_object_name: ownerObjectName,
+                                    old_position: old_position,
+                                    new_position: new_position,
+                                    output_var_count: outputVarCount,
+                                    message: `Output variable "${output_var_name}" is already at position ${new_position}`
+                                }));
+                                return;
+                            }
+                            
+                            const [movedVar] = foundForm.objectWorkflowOutputVar.splice(outputVarIndex, 1);
+                            foundForm.objectWorkflowOutputVar.splice(new_position, 0, movedVar);
+                            
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Moved output variable "${output_var_name}" in form "${form_name}" from position ${old_position} to ${new_position}`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                owner_object_name: ownerObjectName,
+                                old_position: old_position,
+                                new_position: new_position,
+                                output_var_count: outputVarCount
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error moving form output variable: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to move form output variable'
+                            }));
+                        }
+                    });
+                }
                 else if (req.url === '/api/add-form-button' && req.method === 'POST') {
                     // Add a new button to an existing form
                     let body = '';
@@ -2249,6 +2631,360 @@ export class McpBridge {
                             res.end(JSON.stringify({
                                 success: false,
                                 error: error instanceof Error ? error.message : 'Failed to update report button'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/move-report-param' && req.method === 'POST') {
+                    // Move a report parameter to a new position
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { report_name, param_name, new_position } = JSON.parse(body);
+                            
+                            if (!report_name) {
+                                throw new Error('report_name is required');
+                            }
+                            
+                            if (!param_name) {
+                                throw new Error('param_name is required');
+                            }
+                            
+                            if (new_position === undefined || new_position === null) {
+                                throw new Error('new_position is required');
+                            }
+                            
+                            if (typeof new_position !== 'number' || new_position < 0) {
+                                throw new Error('new_position must be a non-negative number');
+                            }
+                            
+                            const model = modelService.getCurrentModel();
+                            if (!model || !model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundReport: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (!ns.object || !Array.isArray(ns.object)) {
+                                    continue;
+                                }
+                                
+                                for (const obj of ns.object) {
+                                    if (!obj.report || !Array.isArray(obj.report)) {
+                                        continue;
+                                    }
+                                    
+                                    const report = obj.report.find((r: any) => r.name === report_name);
+                                    if (report) {
+                                        foundReport = report;
+                                        ownerObjectName = obj.name;
+                                        break;
+                                    }
+                                }
+                                
+                                if (foundReport) {
+                                    break;
+                                }
+                            }
+                            
+                            if (!foundReport) {
+                                throw new Error(`Report "${report_name}" not found in any object`);
+                            }
+                            
+                            if (!foundReport.reportParam || !Array.isArray(foundReport.reportParam)) {
+                                throw new Error(`Report "${report_name}" has no parameters`);
+                            }
+                            
+                            const paramIndex = foundReport.reportParam.findIndex((p: any) => p.name === param_name);
+                            
+                            if (paramIndex === -1) {
+                                throw new Error(`Parameter "${param_name}" not found in report "${report_name}"`);
+                            }
+                            
+                            const paramCount = foundReport.reportParam.length;
+                            if (new_position >= paramCount) {
+                                throw new Error(`new_position (${new_position}) must be less than parameter count (${paramCount}). Valid range: 0 to ${paramCount - 1}`);
+                            }
+                            
+                            const old_position = paramIndex;
+                            
+                            if (old_position === new_position) {
+                                res.writeHead(200);
+                                res.end(JSON.stringify({
+                                    success: true,
+                                    owner_object_name: ownerObjectName,
+                                    old_position: old_position,
+                                    new_position: new_position,
+                                    param_count: paramCount
+                                }));
+                                return;
+                            }
+                            
+                            const [movedParam] = foundReport.reportParam.splice(paramIndex, 1);
+                            foundReport.reportParam.splice(new_position, 0, movedParam);
+                            
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Moved parameter "${param_name}" in report "${report_name}" from position ${old_position} to ${new_position}`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                owner_object_name: ownerObjectName,
+                                old_position: old_position,
+                                new_position: new_position,
+                                param_count: paramCount
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error moving report parameter: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to move report parameter'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/move-report-column' && req.method === 'POST') {
+                    // Move a report column to a new position
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { report_name, column_name, new_position } = JSON.parse(body);
+                            
+                            if (!report_name) {
+                                throw new Error('report_name is required');
+                            }
+                            
+                            if (!column_name) {
+                                throw new Error('column_name is required');
+                            }
+                            
+                            if (new_position === undefined || new_position === null) {
+                                throw new Error('new_position is required');
+                            }
+                            
+                            if (typeof new_position !== 'number' || new_position < 0) {
+                                throw new Error('new_position must be a non-negative number');
+                            }
+                            
+                            const model = modelService.getCurrentModel();
+                            if (!model || !model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundReport: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (!ns.object || !Array.isArray(ns.object)) {
+                                    continue;
+                                }
+                                
+                                for (const obj of ns.object) {
+                                    if (!obj.report || !Array.isArray(obj.report)) {
+                                        continue;
+                                    }
+                                    
+                                    const report = obj.report.find((r: any) => r.name === report_name);
+                                    if (report) {
+                                        foundReport = report;
+                                        ownerObjectName = obj.name;
+                                        break;
+                                    }
+                                }
+                                
+                                if (foundReport) {
+                                    break;
+                                }
+                            }
+                            
+                            if (!foundReport) {
+                                throw new Error(`Report "${report_name}" not found in any object`);
+                            }
+                            
+                            if (!foundReport.reportColumn || !Array.isArray(foundReport.reportColumn)) {
+                                throw new Error(`Report "${report_name}" has no columns`);
+                            }
+                            
+                            const columnIndex = foundReport.reportColumn.findIndex((c: any) => c.name === column_name);
+                            
+                            if (columnIndex === -1) {
+                                throw new Error(`Column "${column_name}" not found in report "${report_name}"`);
+                            }
+                            
+                            const columnCount = foundReport.reportColumn.length;
+                            if (new_position >= columnCount) {
+                                throw new Error(`new_position (${new_position}) must be less than column count (${columnCount}). Valid range: 0 to ${columnCount - 1}`);
+                            }
+                            
+                            const old_position = columnIndex;
+                            
+                            if (old_position === new_position) {
+                                res.writeHead(200);
+                                res.end(JSON.stringify({
+                                    success: true,
+                                    owner_object_name: ownerObjectName,
+                                    old_position: old_position,
+                                    new_position: new_position,
+                                    column_count: columnCount
+                                }));
+                                return;
+                            }
+                            
+                            const [movedColumn] = foundReport.reportColumn.splice(columnIndex, 1);
+                            foundReport.reportColumn.splice(new_position, 0, movedColumn);
+                            
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Moved column "${column_name}" in report "${report_name}" from position ${old_position} to ${new_position}`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                owner_object_name: ownerObjectName,
+                                old_position: old_position,
+                                new_position: new_position,
+                                column_count: columnCount
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error moving report column: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to move report column'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/move-report-button' && req.method === 'POST') {
+                    // Move a report button to a new position
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { report_name, button_name, new_position } = JSON.parse(body);
+                            
+                            if (!report_name) {
+                                throw new Error('report_name is required');
+                            }
+                            
+                            if (!button_name) {
+                                throw new Error('button_name is required');
+                            }
+                            
+                            if (new_position === undefined || new_position === null) {
+                                throw new Error('new_position is required');
+                            }
+                            
+                            if (typeof new_position !== 'number' || new_position < 0) {
+                                throw new Error('new_position must be a non-negative number');
+                            }
+                            
+                            const model = modelService.getCurrentModel();
+                            if (!model || !model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundReport: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (!ns.object || !Array.isArray(ns.object)) {
+                                    continue;
+                                }
+                                
+                                for (const obj of ns.object) {
+                                    if (!obj.report || !Array.isArray(obj.report)) {
+                                        continue;
+                                    }
+                                    
+                                    const report = obj.report.find((r: any) => r.name === report_name);
+                                    if (report) {
+                                        foundReport = report;
+                                        ownerObjectName = obj.name;
+                                        break;
+                                    }
+                                }
+                                
+                                if (foundReport) {
+                                    break;
+                                }
+                            }
+                            
+                            if (!foundReport) {
+                                throw new Error(`Report "${report_name}" not found in any object`);
+                            }
+                            
+                            if (!foundReport.reportButton || !Array.isArray(foundReport.reportButton)) {
+                                throw new Error(`Report "${report_name}" has no buttons`);
+                            }
+                            
+                            const buttonIndex = foundReport.reportButton.findIndex((b: any) => b.buttonName === button_name);
+                            
+                            if (buttonIndex === -1) {
+                                throw new Error(`Button "${button_name}" not found in report "${report_name}"`);
+                            }
+                            
+                            const buttonCount = foundReport.reportButton.length;
+                            if (new_position >= buttonCount) {
+                                throw new Error(`new_position (${new_position}) must be less than button count (${buttonCount}). Valid range: 0 to ${buttonCount - 1}`);
+                            }
+                            
+                            const old_position = buttonIndex;
+                            
+                            if (old_position === new_position) {
+                                res.writeHead(200);
+                                res.end(JSON.stringify({
+                                    success: true,
+                                    owner_object_name: ownerObjectName,
+                                    old_position: old_position,
+                                    new_position: new_position,
+                                    button_count: buttonCount
+                                }));
+                                return;
+                            }
+                            
+                            const [movedButton] = foundReport.reportButton.splice(buttonIndex, 1);
+                            foundReport.reportButton.splice(new_position, 0, movedButton);
+                            
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Moved button "${button_name}" in report "${report_name}" from position ${old_position} to ${new_position}`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                owner_object_name: ownerObjectName,
+                                old_position: old_position,
+                                new_position: new_position,
+                                button_count: buttonCount
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error moving report button: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to move report button'
                             }));
                         }
                     });

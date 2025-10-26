@@ -1311,6 +1311,121 @@ export class MCPServer {
             }
         });
 
+        // Register move_form_param tool
+        this.server.registerTool('move_form_param', {
+            title: 'Move Form Parameter',
+            description: 'Move a form parameter to a new position in the parameter list. Changes the display order of input controls on the form. Form name and parameter name must match exactly (case-sensitive). Position is 0-based index (0 = first position).',
+            inputSchema: {
+                form_name: z.string().describe('The name of the form containing the parameter (required, case-sensitive exact match)'),
+                param_name: z.string().describe('The name of the parameter to move (required, case-sensitive exact match)'),
+                new_position: z.number().min(0).describe('The new 0-based index position for the parameter (0 = first position). Must be less than the total parameter count.')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                report_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                param_name: z.string().optional(),
+                old_position: z.number().optional(),
+                new_position: z.number().optional(),
+                param_count: z.number().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ form_name, param_name, new_position }) => {
+            try {
+                const result = await this.formTools.move_form_param(form_name, param_name, new_position);
+                
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register move_form_button tool
+        this.server.registerTool('move_form_button', {
+            title: 'Move Form Button',
+            description: 'Move a form button to a new position in the button list. Changes the display order of buttons on the form. Form name and button text must match exactly (case-sensitive). Position is 0-based index (0 = first position).',
+            inputSchema: {
+                form_name: z.string().describe('The name of the form containing the button (required, case-sensitive exact match)'),
+                button_text: z.string().describe('The text of the button to move (required, case-sensitive exact match)'),
+                new_position: z.number().min(0).describe('The new 0-based index position for the button (0 = first position). Must be less than the total button count.')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                form_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                button_text: z.string().optional(),
+                old_position: z.number().optional(),
+                new_position: z.number().optional(),
+                button_count: z.number().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ form_name, button_text, new_position }) => {
+            try {
+                const result = await this.formTools.move_form_button(form_name, button_text, new_position);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register move_form_output_var tool
+        this.server.registerTool('move_form_output_var', {
+            title: 'Move Form Output Variable',
+            description: 'Move a form output variable to a new position in the output variable list. Changes the display order of output variables on the form. Form name and output variable name must match exactly (case-sensitive). Position is 0-based index (0 = first position).',
+            inputSchema: {
+                form_name: z.string().describe('The name of the form containing the output variable (required, case-sensitive exact match)'),
+                output_var_name: z.string().describe('The name of the output variable to move (required, case-sensitive exact match)'),
+                new_position: z.number().min(0).describe('The new 0-based index position for the output variable (0 = first position). Must be less than the total output variable count.')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                form_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                output_var_name: z.string().optional(),
+                old_position: z.number().optional(),
+                new_position: z.number().optional(),
+                output_var_count: z.number().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ form_name, output_var_name, new_position }) => {
+            try {
+                const result = await this.formTools.move_form_output_var(form_name, output_var_name, new_position);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // ========================================
         // Report Tools
         // ========================================
@@ -1801,6 +1916,120 @@ export class MCPServer {
                     button_name as string,
                     updates as any
                 );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register move_report_param tool
+        this.server.registerTool('move_report_param', {
+            title: 'Move Report Parameter',
+            description: 'Move a report parameter (filter control) to a new position in the parameter list. Changes the display order of filter controls on the report. Report name and parameter name must match exactly (case-sensitive). Position is 0-based index (0 = first position).',
+            inputSchema: {
+                report_name: z.string().describe('The name of the report containing the parameter (required, case-sensitive exact match)'),
+                param_name: z.string().describe('The name of the parameter to move (required, case-sensitive exact match)'),
+                new_position: z.number().min(0).describe('The new 0-based index position for the parameter (0 = first position). Must be less than the total parameter count.')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                report_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                param_name: z.string().optional(),
+                old_position: z.number().optional(),
+                new_position: z.number().optional(),
+                param_count: z.number().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ report_name, param_name, new_position }) => {
+            try {
+                const result = await this.reportTools.move_report_param(report_name, param_name, new_position);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register move_report_column tool
+        this.server.registerTool('move_report_column', {
+            title: 'Move Report Column',
+            description: 'Move a report column to a new position in the column list. Changes the display order of columns in the report grid/table. Report name and column name must match exactly (case-sensitive). Position is 0-based index (0 = first/leftmost position).',
+            inputSchema: {
+                report_name: z.string().describe('The name of the report containing the column (required, case-sensitive exact match)'),
+                column_name: z.string().describe('The name of the column to move (required, case-sensitive exact match)'),
+                new_position: z.number().min(0).describe('The new 0-based index position for the column (0 = first/leftmost position). Must be less than the total column count.')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                report_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                column_name: z.string().optional(),
+                old_position: z.number().optional(),
+                new_position: z.number().optional(),
+                column_count: z.number().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ report_name, column_name, new_position }) => {
+            try {
+                const result = await this.reportTools.move_report_column(report_name, column_name, new_position);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register move_report_button tool
+        this.server.registerTool('move_report_button', {
+            title: 'Move Report Button',
+            description: 'Move a report button to a new position in the button list. Changes the display order of buttons on the report. Report name and button name must match exactly (case-sensitive). Position is 0-based index (0 = first position).',
+            inputSchema: {
+                report_name: z.string().describe('The name of the report containing the button (required, case-sensitive exact match)'),
+                button_name: z.string().describe('The name of the button to move (required, case-sensitive exact match)'),
+                new_position: z.number().min(0).describe('The new 0-based index position for the button (0 = first position). Must be less than the total button count.')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                report_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                button_name: z.string().optional(),
+                old_position: z.number().optional(),
+                new_position: z.number().optional(),
+                button_count: z.number().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ report_name, button_name, new_position }) => {
+            try {
+                const result = await this.reportTools.move_report_button(report_name, button_name, new_position);
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result

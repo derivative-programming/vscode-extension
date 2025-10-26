@@ -1888,4 +1888,238 @@ export class ReportTools {
             };
         }
     }
+
+    /**
+     * Move a report parameter to a new position in the reportParam array
+     * @param report_name - Name of the report (case-sensitive exact match)
+     * @param param_name - Name of the parameter to move (case-sensitive exact match)
+     * @param new_position - New 0-based index position for the parameter
+     * @returns Result with success status and position details
+     */
+    async move_report_param(
+        report_name: string,
+        param_name: string,
+        new_position: number
+    ): Promise<any> {
+        try {
+            if (new_position < 0) {
+                return {
+                    success: false,
+                    error: 'new_position must be 0 or greater'
+                };
+            }
+
+            const http = await import('http');
+            const postData = { report_name, param_name, new_position };
+            const postDataString = JSON.stringify(postData);
+
+            const result: any = await new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/move-report-param',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => { data += chunk; });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+                req.on('error', (error) => { reject(error); });
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!result.success) {
+                return { success: false, error: result.error || 'Failed to move report parameter' };
+            }
+
+            return {
+                success: true,
+                report_name: report_name,
+                owner_object_name: result.owner_object_name,
+                param_name: param_name,
+                old_position: result.old_position,
+                new_position: new_position,
+                param_count: result.param_count,
+                message: `Parameter "${param_name}" moved from position ${result.old_position} to position ${new_position}`,
+                note: 'Report parameter has been reordered. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not move report parameter: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
+     * Move a report column to a new position in the reportColumn array
+     * @param report_name - Name of the report (case-sensitive exact match)
+     * @param column_name - Name of the column to move (case-sensitive exact match)
+     * @param new_position - New 0-based index position for the column
+     * @returns Result with success status and position details
+     */
+    async move_report_column(
+        report_name: string,
+        column_name: string,
+        new_position: number
+    ): Promise<any> {
+        try {
+            if (new_position < 0) {
+                return {
+                    success: false,
+                    error: 'new_position must be 0 or greater'
+                };
+            }
+
+            const http = await import('http');
+            const postData = { report_name, column_name, new_position };
+            const postDataString = JSON.stringify(postData);
+
+            const result: any = await new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/move-report-column',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => { data += chunk; });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+                req.on('error', (error) => { reject(error); });
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!result.success) {
+                return { success: false, error: result.error || 'Failed to move report column' };
+            }
+
+            return {
+                success: true,
+                report_name: report_name,
+                owner_object_name: result.owner_object_name,
+                column_name: column_name,
+                old_position: result.old_position,
+                new_position: new_position,
+                column_count: result.column_count,
+                message: `Column "${column_name}" moved from position ${result.old_position} to position ${new_position}`,
+                note: 'Report column has been reordered. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not move report column: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
+     * Move a report button to a new position in the reportButton array
+     * @param report_name - Name of the report (case-sensitive exact match)
+     * @param button_name - Name of the button to move (case-sensitive exact match)
+     * @param new_position - New 0-based index position for the button
+     * @returns Result with success status and position details
+     */
+    async move_report_button(
+        report_name: string,
+        button_name: string,
+        new_position: number
+    ): Promise<any> {
+        try {
+            if (new_position < 0) {
+                return {
+                    success: false,
+                    error: 'new_position must be 0 or greater'
+                };
+            }
+
+            const http = await import('http');
+            const postData = { report_name, button_name, new_position };
+            const postDataString = JSON.stringify(postData);
+
+            const result: any = await new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/move-report-button',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => { data += chunk; });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+                req.on('error', (error) => { reject(error); });
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!result.success) {
+                return { success: false, error: result.error || 'Failed to move report button' };
+            }
+
+            return {
+                success: true,
+                report_name: report_name,
+                owner_object_name: result.owner_object_name,
+                button_name: button_name,
+                old_position: result.old_position,
+                new_position: new_position,
+                button_count: result.button_count,
+                message: `Button "${button_name}" moved from position ${result.old_position} to position ${new_position}`,
+                note: 'Report button has been reordered. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not move report button: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
 }

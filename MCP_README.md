@@ -8,11 +8,11 @@
 
 # AppDNA VS Code Extension - MCP Server
 
-This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **105 tools** for interacting with the AppDNA model.
+This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **110 tools** for interacting with the AppDNA model.
 
 ## Features
 
-### **105 Comprehensive Tools** ✅ Verified with GitHub Copilot
+### **110 Comprehensive Tools** ✅ Verified with GitHub Copilot
 
 #### **User Story Management** (5 tools)
 1. **create_user_story** - Create a new user story with format validation
@@ -86,7 +86,7 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
     - Filter by page name (partial match), page type (Form/Report), owner object, target child object, or role required
     - Returns page details including type, owner, role, total element count
 
-#### **Form Management** (9 tools)
+#### **Form Management** (14 tools)
 1. **get_form_schema** - Get JSON schema for complete form structure (objectWorkflow)
     - Returns all form properties including name, isPage, titleText, ownerObject, targetChildObject, roleRequired
     - Includes input parameter structure (objectWorkflowParam array with 35 properties)
@@ -149,6 +149,66 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
     - Update any of 20 output variable properties (including name itself)
     - Form name and output_var_name must match exactly (case-sensitive)
     - At least one property to update required
+    - Marks model with unsaved changes
+12. **move_form_param** - Move a form parameter to a new position
+    - Reorder input controls on the form
+    - Specify form name, parameter name, and new 0-based position
+    - Position 0 = first position
+    - Validates position is within valid range (0 to count-1)
+    - Marks model with unsaved changes
+13. **move_form_button** - Move a form button to a new position
+    - Reorder buttons on the form
+    - Specify form name, button text, and new 0-based position
+    - Position 0 = first position
+    - Validates position is within valid range (0 to count-1)
+    - Marks model with unsaved changes
+14. **move_form_output_var** - Move a form output variable to a new position
+    - Reorder output variables on the form
+    - Specify form name, output variable name, and new 0-based position
+    - Position 0 = first position
+    - Validates position is within valid range (0 to count-1)
+    - Marks model with unsaved changes
+
+#### **Report Management** (7 tools)
+1. **get_report_schema** - Get JSON schema for complete report structure
+    - Returns all report properties with validation rules and examples
+    - Includes filter parameter (reportParam) structure with 20+ properties
+    - Includes column (reportColumn) structure with 15+ properties
+    - Includes button (reportButton) structure
+    - Provides SQL data types and complete usage examples
+2. **get_report** - Retrieve complete report details
+    - Get specific report by owner object name and report name (case-insensitive matching)
+    - Returns all report properties with array element counts (params, columns, buttons)
+    - Enables detailed report inspection and modification
+3. **suggest_report_name_and_title** - Generate suggested report name and title
+    - Provides PascalCase report name and human-readable title based on context
+    - Considers owner object, role, visualization type, and target child object
+    - Follows naming conventions automatically
+    - Validates role_required and target_child_object existence
+    - Prevents duplicate report names with numeric suffix generation
+4. **create_report** - Create new report with automatic setup
+    - Creates report in specified owner data object
+    - Automatically generates page init flow ({ReportName}InitObjWF)
+    - Adds default buttons based on report type
+    - Validates PascalCase naming and uniqueness (case-insensitive check)
+    - Supports role-based authorization and various visualization types
+5. **move_report_param** - Move a report parameter to a new position
+    - Reorder filter controls on the report
+    - Specify report name, parameter name, and new 0-based position
+    - Position 0 = first position
+    - Validates position is within valid range (0 to count-1)
+    - Marks model with unsaved changes
+6. **move_report_column** - Move a report column to a new position
+    - Reorder columns in the report grid/table
+    - Specify report name, column name, and new 0-based position
+    - Position 0 = first/leftmost position
+    - Validates position is within valid range (0 to count-1)
+    - Marks model with unsaved changes
+7. **move_report_button** - Move a report button to a new position
+    - Reorder buttons on the report
+    - Specify report name, button name, and new 0-based position
+    - Position 0 = first position
+    - Validates position is within valid range (0 to count-1)
     - Marks model with unsaved changes
 
 #### **Wizard Tools** (3 tools)
