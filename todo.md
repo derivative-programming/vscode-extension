@@ -23,8 +23,11 @@ done:suggest_report_name_and_title
 done:create_report
 done:update_report
 add_report_param
+update_report_param
 add_report_column
+update_report_column
 add_report_button
+update_report_button
 
   
 Describe data object model restrictions

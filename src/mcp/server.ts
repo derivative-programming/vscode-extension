@@ -1388,7 +1388,7 @@ export class MCPServer {
             inputSchema: {
                 owner_object_name: z.string().describe('The name of the owner data object (required, case-sensitive exact match)'),
                 role_required: z.string().optional().describe('Optional: Role required to access the report (case-sensitive)'),
-                visualization_type: z.string().optional().describe('Optional: Visualization type (Grid, PieChart, LineChart, FlowChart, CardView, FolderView). Defaults to Grid if not provided.'),
+                visualization_type: z.enum(['Grid', 'PieChart', 'LineChart', 'FlowChart', 'CardView', 'FolderView']).optional().describe('Optional: Visualization type. Defaults to Grid if not provided.'),
                 target_child_object: z.string().optional().describe('Optional: Target child object when report displays list of items (case-sensitive). Commonly used with Grid visualization type.')
             },
             outputSchema: {
@@ -1432,7 +1432,7 @@ export class MCPServer {
                 owner_object_name: z.string().describe('The name of the owner data object (required, case-sensitive exact match)'),
                 report_name: z.string().describe('The name of the report (required, PascalCase, must be unique case-insensitive across all objects)'),
                 title_text: z.string().describe('The title displayed on the report (required, max 100 characters)'),
-                visualization_type: z.string().optional().describe('Optional: Visualization type (Grid, PieChart, LineChart, FlowChart, CardView, FolderView). Defaults to Grid if not provided.'),
+                visualization_type: z.enum(['Grid', 'PieChart', 'LineChart', 'FlowChart', 'CardView', 'FolderView']).optional().describe('Optional: Visualization type. Defaults to Grid if not provided.'),
                 role_required: z.string().optional().describe('Optional: Role required to access the report (case-sensitive). Auto-sets isAuthorizationRequired="true" and layoutName="{role}Layout"'),
                 target_child_object: z.string().optional().describe('Optional: Target child object when report displays list of items (case-sensitive exact match)')
             },
@@ -1524,21 +1524,21 @@ export class MCPServer {
             inputSchema: {
                 report_name: z.string().describe('Name of the report (case-sensitive exact match)'),
                 name: z.string().describe('Parameter name (required, PascalCase)'),
-                sqlServerDBDataType: z.string().optional(),
-                sqlServerDBDataTypeSize: z.string().optional(),
-                labelText: z.string().optional(),
-                targetColumnName: z.string().optional(),
-                isFK: z.enum(['true', 'false']).optional(),
-                fKObjectName: z.string().optional(),
-                isFKLookup: z.enum(['true', 'false']).optional(),
-                isFKList: z.enum(['true', 'false']).optional(),
-                isFKListInactiveIncluded: z.enum(['true', 'false']).optional(),
-                fKListOrderBy: z.string().optional(),
-                isFKListSearchable: z.enum(['true', 'false']).optional(),
-                isUnknownLookupAllowed: z.enum(['true', 'false']).optional(),
-                defaultValue: z.string().optional(),
-                isVisible: z.enum(['true', 'false']).optional(),
-                codeDescription: z.string().optional()
+                sqlServerDBDataType: z.enum(['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date', 'varchar', 'text']).optional().describe('SQL Server data type for this parameter'),
+                sqlServerDBDataTypeSize: z.string().optional().describe('Size of data type (for nvarchar, varchar, decimal)'),
+                labelText: z.string().optional().describe('Human-readable label text displayed for this field'),
+                targetColumnName: z.string().optional().describe('Target column name in the report data source'),
+                isFK: z.enum(['true', 'false']).optional().describe('Is this parameter a foreign key?'),
+                fKObjectName: z.string().optional().describe('Name of the foreign key object target (data object name, case-sensitive)'),
+                isFKLookup: z.enum(['true', 'false']).optional().describe('Is this parameter a foreign key to a lookup object?'),
+                isFKList: z.enum(['true', 'false']).optional().describe('Should a dropdown list be shown for this FK?'),
+                isFKListInactiveIncluded: z.enum(['true', 'false']).optional().describe('Should inactive items be included in the FK dropdown list?'),
+                fKListOrderBy: z.enum(['NameDesc', 'NameAsc', 'DisplayOrderDesc', 'DisplayOrderAsc']).optional().describe('Sort order for FK dropdown list'),
+                isFKListSearchable: z.enum(['true', 'false']).optional().describe('Should the FK dropdown list be searchable?'),
+                isUnknownLookupAllowed: z.enum(['true', 'false']).optional().describe('Should "Unknown" option be allowed in lookup?'),
+                defaultValue: z.string().optional().describe('Default value for this parameter'),
+                isVisible: z.enum(['true', 'false']).optional().describe('Is this parameter visible on the report?'),
+                codeDescription: z.string().optional().describe('Code description for documentation')
             },
             outputSchema: {
                 success: z.boolean(),
@@ -1567,6 +1567,62 @@ export class MCPServer {
             }
         });
 
+        // Register update_report_param tool
+        this.server.registerTool('update_report_param', {
+            title: 'Update Report Parameter',
+            description: 'Update properties of an existing filter parameter in a report. Report name and parameter name must match exactly (case-sensitive). At least one property to update must be provided.',
+            inputSchema: {
+                report_name: z.string().describe('Name of the report (case-sensitive exact match)'),
+                param_name: z.string().describe('Name of the parameter to update (case-sensitive exact match)'),
+                updates: z.object({
+                    sqlServerDBDataType: z.enum(['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date', 'varchar', 'text']).optional().describe('SQL Server data type for this parameter'),
+                    sqlServerDBDataTypeSize: z.string().optional().describe('Size of data type (for nvarchar, varchar, decimal)'),
+                    labelText: z.string().optional().describe('Human-readable label text displayed for this field'),
+                    targetColumnName: z.string().optional().describe('Target column name in the report data source'),
+                    isFK: z.enum(['true', 'false']).optional().describe('Is this parameter a foreign key?'),
+                    fKObjectName: z.string().optional().describe('Name of the foreign key object target (data object name, case-sensitive)'),
+                    isFKLookup: z.enum(['true', 'false']).optional().describe('Is this parameter a foreign key to a lookup object?'),
+                    isFKList: z.enum(['true', 'false']).optional().describe('Should a dropdown list be shown for this FK?'),
+                    isFKListInactiveIncluded: z.enum(['true', 'false']).optional().describe('Should inactive items be included in the FK dropdown list?'),
+                    fKListOrderBy: z.enum(['NameDesc', 'NameAsc', 'DisplayOrderDesc', 'DisplayOrderAsc']).optional().describe('Sort order for FK dropdown list'),
+                    isFKListSearchable: z.enum(['true', 'false']).optional().describe('Should the FK dropdown list be searchable?'),
+                    isUnknownLookupAllowed: z.enum(['true', 'false']).optional().describe('Should "Unknown" option be allowed in lookup?'),
+                    defaultValue: z.string().optional().describe('Default value for this parameter'),
+                    isVisible: z.enum(['true', 'false']).optional().describe('Is this parameter visible on the report?'),
+                    codeDescription: z.string().optional().describe('Code description for documentation')
+                }).describe('Object containing properties to update')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                param: z.any().optional(),
+                report_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: Record<string, unknown>) => {
+            try {
+                const { report_name, param_name, updates } = args;
+                const result = await this.reportTools.update_report_param(
+                    report_name as string, 
+                    param_name as string, 
+                    updates as any
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register add_report_column tool
         this.server.registerTool('add_report_column', {
             title: 'Add Report Column',
@@ -1574,20 +1630,20 @@ export class MCPServer {
             inputSchema: {
                 report_name: z.string().describe('Name of the report (case-sensitive exact match)'),
                 name: z.string().describe('Column name (required, PascalCase)'),
-                headerText: z.string().optional(),
-                sqlServerDBDataType: z.string().optional(),
-                sqlServerDBDataTypeSize: z.string().optional(),
-                sourceObjectName: z.string().optional(),
-                sourcePropertyName: z.string().optional(),
-                isVisible: z.enum(['true', 'false']).optional(),
-                minWidth: z.string().optional(),
-                maxWidth: z.string().optional(),
-                isButton: z.enum(['true', 'false']).optional(),
-                buttonText: z.string().optional(),
-                destinationContextObjectName: z.string().optional(),
-                destinationTargetName: z.string().optional(),
-                isFilterAvailable: z.enum(['true', 'false']).optional(),
-                codeDescription: z.string().optional()
+                headerText: z.string().optional().describe('Column header text displayed in the report grid'),
+                sqlServerDBDataType: z.enum(['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date', 'varchar', 'text']).optional().describe('SQL Server data type for this column'),
+                sqlServerDBDataTypeSize: z.string().optional().describe('Size of data type (for nvarchar, varchar, decimal)'),
+                sourceObjectName: z.string().optional().describe('Source data object name (case-sensitive)'),
+                sourcePropertyName: z.string().optional().describe('Source property name from the source object'),
+                isVisible: z.enum(['true', 'false']).optional().describe('Is this column visible in the report?'),
+                minWidth: z.string().optional().describe('Minimum column width (e.g., "100px", "10%")'),
+                maxWidth: z.string().optional().describe('Maximum column width (e.g., "200px", "20%")'),
+                isButton: z.enum(['true', 'false']).optional().describe('Is this column a button?'),
+                buttonText: z.string().optional().describe('Button text if isButton="true"'),
+                destinationContextObjectName: z.string().optional().describe('Owner object of the destination for button navigation'),
+                destinationTargetName: z.string().optional().describe('Target form/report/workflow for button navigation'),
+                isFilterAvailable: z.enum(['true', 'false']).optional().describe('Is filtering available for this column?'),
+                codeDescription: z.string().optional().describe('Code description for documentation')
             },
             outputSchema: {
                 success: z.boolean(),
@@ -1616,19 +1672,74 @@ export class MCPServer {
             }
         });
 
+        // Register update_report_column tool
+        this.server.registerTool('update_report_column', {
+            title: 'Update Report Column',
+            description: 'Update properties of an existing column in a report. Report name and column name must match exactly (case-sensitive). At least one property to update must be provided.',
+            inputSchema: {
+                report_name: z.string().describe('Name of the report (case-sensitive exact match)'),
+                column_name: z.string().describe('Name of the column to update (case-sensitive exact match)'),
+                updates: z.object({
+                    headerText: z.string().optional().describe('Column header text displayed in the report grid'),
+                    sqlServerDBDataType: z.enum(['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date', 'varchar', 'text']).optional().describe('SQL Server data type for this column'),
+                    sqlServerDBDataTypeSize: z.string().optional().describe('Size of data type (for nvarchar, varchar, decimal)'),
+                    sourceObjectName: z.string().optional().describe('Source data object name (case-sensitive)'),
+                    sourcePropertyName: z.string().optional().describe('Source property name from the source object'),
+                    isVisible: z.enum(['true', 'false']).optional().describe('Is this column visible in the report?'),
+                    minWidth: z.string().optional().describe('Minimum column width (e.g., "100px", "10%")'),
+                    maxWidth: z.string().optional().describe('Maximum column width (e.g., "200px", "20%")'),
+                    isButton: z.enum(['true', 'false']).optional().describe('Is this column a button?'),
+                    buttonText: z.string().optional().describe('Button text if isButton="true"'),
+                    destinationContextObjectName: z.string().optional().describe('Owner object of the destination for button navigation'),
+                    destinationTargetName: z.string().optional().describe('Target form/report/workflow for button navigation'),
+                    isFilterAvailable: z.enum(['true', 'false']).optional().describe('Is filtering available for this column?'),
+                    codeDescription: z.string().optional().describe('Code description for documentation')
+                }).describe('Object containing properties to update')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                column: z.any().optional(),
+                report_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: Record<string, unknown>) => {
+            try {
+                const { report_name, column_name, updates } = args;
+                const result = await this.reportTools.update_report_column(
+                    report_name as string,
+                    column_name as string,
+                    updates as any
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register add_report_button tool
         this.server.registerTool('add_report_button', {
             title: 'Add Report Button',
-            description: 'Add a new button to an existing report. Buttons allow navigation or actions from the report page. Report name must match exactly (case-sensitive). Common button types: back, other.',
+            description: 'Add a new button to an existing report. Buttons allow navigation or actions from the report page. Report name must match exactly (case-sensitive). Common button types: back, add, other.',
             inputSchema: {
                 report_name: z.string().describe('Name of the report (case-sensitive exact match)'),
                 buttonText: z.string().describe('Text displayed on the button (required)'),
-                buttonName: z.string().optional(),
-                buttonType: z.string().optional(),
-                isVisible: z.enum(['true', 'false']).optional(),
-                destinationContextObjectName: z.string().optional(),
-                destinationTargetName: z.string().optional(),
-                isButtonCallToAction: z.enum(['true', 'false']).optional()
+                buttonName: z.string().optional().describe('Unique identifier for the button (optional, auto-generated if not provided)'),
+                buttonType: z.enum(['add', 'back', 'other', 'multiSelectProcessing', 'breadcrumb']).optional().describe('Type of button: "back" (top left navigation), "add" (top right), "other" (top right), "multiSelectProcessing" (above report list for batch operations), "breadcrumb" (breadcrumb navigation)'),
+                isVisible: z.enum(['true', 'false']).optional().describe('Is this button visible on the report?'),
+                destinationContextObjectName: z.string().optional().describe('Owner object of the destination for button navigation'),
+                destinationTargetName: z.string().optional().describe('Target form/report/workflow for button navigation'),
+                isButtonCallToAction: z.enum(['true', 'false']).optional().describe('Should this button be highlighted as a call-to-action?')
             },
             outputSchema: {
                 success: z.boolean(),
@@ -1643,6 +1754,53 @@ export class MCPServer {
             try {
                 const { report_name, ...button } = args;
                 const result = await this.reportTools.add_report_button(report_name as string, button as any);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register update_report_button tool
+        this.server.registerTool('update_report_button', {
+            title: 'Update Report Button',
+            description: 'Update properties of an existing button in a report. Report name and button name must match exactly (case-sensitive). At least one property to update must be provided.',
+            inputSchema: {
+                report_name: z.string().describe('Name of the report (case-sensitive exact match)'),
+                button_name: z.string().describe('buttonName of the button to update (case-sensitive exact match)'),
+                updates: z.object({
+                    buttonText: z.string().optional().describe('Text displayed on the button'),
+                    buttonType: z.enum(['add', 'back', 'other', 'multiSelectProcessing', 'breadcrumb']).optional().describe('Type of button: "back" (top left navigation), "add" (top right), "other" (top right), "multiSelectProcessing" (above report list for batch operations), "breadcrumb" (breadcrumb navigation)'),
+                    isVisible: z.enum(['true', 'false']).optional().describe('Is this button visible on the report?'),
+                    destinationContextObjectName: z.string().optional().describe('Owner object of the destination for button navigation'),
+                    destinationTargetName: z.string().optional().describe('Target form/report/workflow for button navigation'),
+                    isButtonCallToAction: z.enum(['true', 'false']).optional().describe('Should this button be highlighted as a call-to-action?')
+                }).describe('Object containing properties to update')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                button: z.any().optional(),
+                report_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: Record<string, unknown>) => {
+            try {
+                const { report_name, button_name, updates } = args;
+                const result = await this.reportTools.update_report_button(
+                    report_name as string,
+                    button_name as string,
+                    updates as any
+                );
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result

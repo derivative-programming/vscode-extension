@@ -440,8 +440,13 @@ export class ReportTools {
                                 },
                                 sqlServerDBDataType: {
                                     type: 'string',
-                                    enum: ['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date'],
+                                    enum: ['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date', 'varchar', 'text'],
                                     description: 'SQL Server data type for the parameter'
+                                },
+                                sqlServerDBDataTypeSize: {
+                                    type: 'string',
+                                    description: 'Size of nvarchar (100 by default for nvarchar)',
+                                    examples: ['50', '100', '500', 'max']
                                 },
                                 isFK: {
                                     type: 'string',
@@ -458,18 +463,47 @@ export class ReportTools {
                                     enum: ['true', 'false'],
                                     description: 'Whether FK is to a lookup object'
                                 },
+                                isFKList: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'Whether dropdown list should be shown for FK selection'
+                                },
+                                isFKListInactiveIncluded: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'Whether inactive items are included in FK dropdown list'
+                                },
+                                fKListOrderBy: {
+                                    type: 'string',
+                                    enum: ['NameDesc', 'NameAsc', 'DisplayOrderDesc', 'DisplayOrderAsc'],
+                                    description: 'Sort order for FK dropdown list'
+                                },
+                                isFKListSearchable: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'Whether FK dropdown list is searchable'
+                                },
+                                isUnknownLookupAllowed: {
+                                    type: 'string',
+                                    enum: ['', 'true', 'false'],
+                                    description: 'Whether unknown lookup values are allowed'
+                                },
                                 defaultValue: {
                                     type: 'string',
                                     description: 'Default value for the parameter'
                                 },
                                 isVisible: {
                                     type: 'string',
-                                    enum: ['true', 'false'],
+                                    enum: ['', 'true', 'false'],
                                     description: 'Whether parameter is visible in filter section'
                                 },
                                 targetColumnName: {
                                     type: 'string',
                                     description: 'Target database column name for filtering'
+                                },
+                                codeDescription: {
+                                    type: 'string',
+                                    description: 'Developer notes or description for documentation'
                                 }
                             }
                         },
@@ -480,6 +514,7 @@ export class ReportTools {
                                 sqlServerDBDataType: 'int',
                                 isFK: 'true',
                                 fKObjectName: 'Customer',
+                                isFKList: 'true',
                                 isVisible: 'true'
                             }
                         ]
@@ -1521,6 +1556,78 @@ export class ReportTools {
     }
 
     /**
+     * Update an existing parameter (filter control) in a report
+     * @param report_name - Name of the report containing the parameter (case-sensitive, exact match required)
+     * @param param_name - Name of the parameter to update (case-sensitive, exact match required)
+     * @param updates - Object containing the properties to update
+     * @returns Result object with success status
+     */
+    async update_report_param(
+        report_name: string,
+        param_name: string,
+        updates: {
+            sqlServerDBDataType?: string;
+            sqlServerDBDataTypeSize?: string;
+            labelText?: string;
+            targetColumnName?: string;
+            isFK?: 'true' | 'false';
+            fKObjectName?: string;
+            isFKLookup?: 'true' | 'false';
+            isFKList?: 'true' | 'false';
+            isFKListInactiveIncluded?: 'true' | 'false';
+            fKListOrderBy?: string;
+            isFKListSearchable?: 'true' | 'false';
+            isUnknownLookupAllowed?: 'true' | 'false';
+            defaultValue?: string;
+            isVisible?: 'true' | 'false';
+            codeDescription?: string;
+        }
+    ): Promise<{ success: boolean; param?: any; report_name?: string; owner_object_name?: string; message?: string; error?: string; note?: string }> {
+        try {
+            // Validate at least one property to update
+            const updateKeys = Object.keys(updates);
+            if (updateKeys.length === 0) {
+                return {
+                    success: false,
+                    error: 'At least one property to update must be provided'
+                };
+            }
+
+            // Call bridge API to update report param
+            const postData = {
+                report_name,
+                param_name,
+                updates: updates
+            };
+
+            const result: any = await this.postToBridge('/api/update-report-param', postData);
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error || 'Failed to update report parameter'
+                };
+            }
+
+            return {
+                success: true,
+                param: result.param,
+                report_name: report_name,
+                owner_object_name: result.owner_object_name,
+                message: `Parameter "${param_name}" in report "${report_name}" updated successfully`,
+                note: 'Report parameter has been updated. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not update report parameter: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to update report parameters. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
      * Add a new column to an existing report
      * @param report_name - Name of the report to add the column to (case-sensitive, exact match required)
      * @param column - The column object to add
@@ -1589,6 +1696,77 @@ export class ReportTools {
     }
 
     /**
+     * Update an existing column in a report
+     * @param report_name - Name of the report containing the column (case-sensitive, exact match required)
+     * @param column_name - Name of the column to update (case-sensitive, exact match required)
+     * @param updates - Object containing the properties to update
+     * @returns Result object with success status
+     */
+    async update_report_column(
+        report_name: string,
+        column_name: string,
+        updates: {
+            headerText?: string;
+            sqlServerDBDataType?: string;
+            sqlServerDBDataTypeSize?: string;
+            sourceObjectName?: string;
+            sourcePropertyName?: string;
+            isVisible?: 'true' | 'false';
+            minWidth?: string;
+            maxWidth?: string;
+            isButton?: 'true' | 'false';
+            buttonText?: string;
+            destinationContextObjectName?: string;
+            destinationTargetName?: string;
+            isFilterAvailable?: 'true' | 'false';
+            codeDescription?: string;
+        }
+    ): Promise<{ success: boolean; column?: any; report_name?: string; owner_object_name?: string; message?: string; error?: string; note?: string }> {
+        try {
+            // Validate at least one property to update
+            const updateKeys = Object.keys(updates);
+            if (updateKeys.length === 0) {
+                return {
+                    success: false,
+                    error: 'At least one property to update must be provided'
+                };
+            }
+
+            // Call bridge API to update report column
+            const postData = {
+                report_name,
+                column_name,
+                updates: updates
+            };
+
+            const result: any = await this.postToBridge('/api/update-report-column', postData);
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error || 'Failed to update report column'
+                };
+            }
+
+            return {
+                success: true,
+                column: result.column,
+                report_name: report_name,
+                owner_object_name: result.owner_object_name,
+                message: `Column "${column_name}" in report "${report_name}" updated successfully`,
+                note: 'Report column has been updated. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not update report column: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to update report columns. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
      * Add a new button to an existing report
      * @param report_name - Name of the report to add the button to (case-sensitive, exact match required)
      * @param button - The button object to add
@@ -1644,6 +1822,69 @@ export class ReportTools {
                 success: false,
                 error: `Could not add report button: ${error instanceof Error ? error.message : 'Unknown error'}`,
                 note: 'Bridge connection required to add report buttons. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
+     * Update an existing button in a report
+     * @param report_name - Name of the report containing the button (case-sensitive, exact match required)
+     * @param button_name - buttonName of the button to update (case-sensitive, exact match required)
+     * @param updates - Object containing the properties to update
+     * @returns Result object with success status
+     */
+    async update_report_button(
+        report_name: string,
+        button_name: string,
+        updates: {
+            buttonText?: string;
+            buttonType?: string;
+            isVisible?: 'true' | 'false';
+            destinationContextObjectName?: string;
+            destinationTargetName?: string;
+            isButtonCallToAction?: 'true' | 'false';
+        }
+    ): Promise<{ success: boolean; button?: any; report_name?: string; owner_object_name?: string; message?: string; error?: string; note?: string }> {
+        try {
+            // Validate at least one property to update
+            const updateKeys = Object.keys(updates);
+            if (updateKeys.length === 0) {
+                return {
+                    success: false,
+                    error: 'At least one property to update must be provided'
+                };
+            }
+
+            // Call bridge API to update report button
+            const postData = {
+                report_name,
+                button_name,
+                updates: updates
+            };
+
+            const result: any = await this.postToBridge('/api/update-report-button', postData);
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error || 'Failed to update report button'
+                };
+            }
+
+            return {
+                success: true,
+                button: result.button,
+                report_name: report_name,
+                owner_object_name: result.owner_object_name,
+                message: `Button "${button_name}" in report "${report_name}" updated successfully`,
+                note: 'Report button has been updated. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not update report button: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to update report buttons. Make sure the AppDNA extension is running and a model file is loaded.'
             };
         }
     }

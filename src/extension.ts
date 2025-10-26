@@ -67,6 +67,12 @@ tools:
   - suggest_report_name_and_title
   - create_report
   - update_report
+  - add_report_param
+  - update_report_param
+  - add_report_column
+  - update_report_column
+  - add_report_button
+  - update_report_button
   - list_data_object_summary
   - list_data_objects
   - get_data_object

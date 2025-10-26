@@ -1692,6 +1692,567 @@ export class McpBridge {
                         }
                     });
                 }
+                else if (req.url === '/api/add-report-param' && req.method === 'POST') {
+                    // Add a new parameter to an existing report
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { report_name, param } = JSON.parse(body);
+                            
+                            if (!report_name) {
+                                throw new Error('report_name is required');
+                            }
+                            
+                            if (!param || !param.name) {
+                                throw new Error('param with name is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the report across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundReport: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.report && Array.isArray(obj.report)) {
+                                            const report = obj.report.find((rpt: any) => rpt.name === report_name);
+                                            if (report) {
+                                                foundReport = report;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundReport) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundReport) {
+                                throw new Error(`Report "${report_name}" not found in any data object`);
+                            }
+                            
+                            // Ensure reportParam array exists
+                            if (!foundReport.reportParam) {
+                                foundReport.reportParam = [];
+                            }
+                            
+                            // Check for duplicate parameter name
+                            const existingParam = foundReport.reportParam.find((p: any) => p.name === param.name);
+                            if (existingParam) {
+                                throw new Error(`Parameter "${param.name}" already exists in report "${report_name}"`);
+                            }
+                            
+                            // Add the parameter
+                            foundReport.reportParam.push(param);
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Added parameter "${param.name}" to report "${report_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                param: param,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error adding report parameter: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to add report parameter'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/update-report-param' && req.method === 'POST') {
+                    // Update an existing parameter in a report
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { report_name, param_name, updates } = JSON.parse(body);
+                            
+                            if (!report_name) {
+                                throw new Error('report_name is required');
+                            }
+                            
+                            if (!param_name) {
+                                throw new Error('param_name is required');
+                            }
+                            
+                            if (!updates || Object.keys(updates).length === 0) {
+                                throw new Error('At least one property to update is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the report across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundReport: any = null;
+                            let foundParam: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.report && Array.isArray(obj.report)) {
+                                            const report = obj.report.find((rpt: any) => rpt.name === report_name);
+                                            if (report) {
+                                                foundReport = report;
+                                                ownerObjectName = obj.name;
+                                                
+                                                // Find the parameter
+                                                if (report.reportParam && Array.isArray(report.reportParam)) {
+                                                    foundParam = report.reportParam.find((p: any) => p.name === param_name);
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundReport) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundReport) {
+                                throw new Error(`Report "${report_name}" not found in any data object`);
+                            }
+                            
+                            if (!foundParam) {
+                                throw new Error(`Parameter "${param_name}" not found in report "${report_name}"`);
+                            }
+                            
+                            // Update the parameter properties
+                            for (const [key, value] of Object.entries(updates)) {
+                                foundParam[key] = value;
+                            }
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated parameter "${param_name}" in report "${report_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                param: foundParam,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating report parameter: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to update report parameter'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/add-report-column' && req.method === 'POST') {
+                    // Add a new column to an existing report
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { report_name, column } = JSON.parse(body);
+                            
+                            if (!report_name) {
+                                throw new Error('report_name is required');
+                            }
+                            
+                            if (!column || !column.name) {
+                                throw new Error('column with name is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the report across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundReport: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.report && Array.isArray(obj.report)) {
+                                            const report = obj.report.find((rpt: any) => rpt.name === report_name);
+                                            if (report) {
+                                                foundReport = report;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundReport) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundReport) {
+                                throw new Error(`Report "${report_name}" not found in any data object`);
+                            }
+                            
+                            // Ensure reportColumn array exists
+                            if (!foundReport.reportColumn) {
+                                foundReport.reportColumn = [];
+                            }
+                            
+                            // Check for duplicate column name
+                            const existingColumn = foundReport.reportColumn.find((c: any) => c.name === column.name);
+                            if (existingColumn) {
+                                throw new Error(`Column "${column.name}" already exists in report "${report_name}"`);
+                            }
+                            
+                            // Add the column
+                            foundReport.reportColumn.push(column);
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Added column "${column.name}" to report "${report_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                column: column,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error adding report column: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to add report column'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/update-report-column' && req.method === 'POST') {
+                    // Update an existing column in a report
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { report_name, column_name, updates } = JSON.parse(body);
+                            
+                            if (!report_name) {
+                                throw new Error('report_name is required');
+                            }
+                            
+                            if (!column_name) {
+                                throw new Error('column_name is required');
+                            }
+                            
+                            if (!updates || Object.keys(updates).length === 0) {
+                                throw new Error('At least one property to update is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the report across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundReport: any = null;
+                            let foundColumn: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.report && Array.isArray(obj.report)) {
+                                            const report = obj.report.find((rpt: any) => rpt.name === report_name);
+                                            if (report) {
+                                                foundReport = report;
+                                                ownerObjectName = obj.name;
+                                                
+                                                // Find the column
+                                                if (report.reportColumn && Array.isArray(report.reportColumn)) {
+                                                    foundColumn = report.reportColumn.find((c: any) => c.name === column_name);
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundReport) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundReport) {
+                                throw new Error(`Report "${report_name}" not found in any data object`);
+                            }
+                            
+                            if (!foundColumn) {
+                                throw new Error(`Column "${column_name}" not found in report "${report_name}"`);
+                            }
+                            
+                            // Update the column properties
+                            for (const [key, value] of Object.entries(updates)) {
+                                foundColumn[key] = value;
+                            }
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated column "${column_name}" in report "${report_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                column: foundColumn,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating report column: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to update report column'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/add-report-button' && req.method === 'POST') {
+                    // Add a new button to an existing report
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { report_name, button } = JSON.parse(body);
+                            
+                            if (!report_name) {
+                                throw new Error('report_name is required');
+                            }
+                            
+                            if (!button || !button.buttonText) {
+                                throw new Error('button with buttonText is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the report across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundReport: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.report && Array.isArray(obj.report)) {
+                                            const report = obj.report.find((rpt: any) => rpt.name === report_name);
+                                            if (report) {
+                                                foundReport = report;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundReport) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundReport) {
+                                throw new Error(`Report "${report_name}" not found in any data object`);
+                            }
+                            
+                            // Ensure reportButton array exists
+                            if (!foundReport.reportButton) {
+                                foundReport.reportButton = [];
+                            }
+                            
+                            // Add the button
+                            foundReport.reportButton.push(button);
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Added button "${button.buttonText}" to report "${report_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                button: button,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error adding report button: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to add report button'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/update-report-button' && req.method === 'POST') {
+                    // Update an existing button in a report
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { report_name, button_name, updates } = JSON.parse(body);
+                            
+                            if (!report_name) {
+                                throw new Error('report_name is required');
+                            }
+                            
+                            if (!button_name) {
+                                throw new Error('button_name is required');
+                            }
+                            
+                            if (!updates || Object.keys(updates).length === 0) {
+                                throw new Error('At least one property to update is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the report across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundReport: any = null;
+                            let foundButton: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.report && Array.isArray(obj.report)) {
+                                            const report = obj.report.find((rpt: any) => rpt.name === report_name);
+                                            if (report) {
+                                                foundReport = report;
+                                                ownerObjectName = obj.name;
+                                                
+                                                // Find the button by buttonName
+                                                if (report.reportButton && Array.isArray(report.reportButton)) {
+                                                    foundButton = report.reportButton.find((b: any) => b.buttonName === button_name);
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundReport) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundReport) {
+                                throw new Error(`Report "${report_name}" not found in any data object`);
+                            }
+                            
+                            if (!foundButton) {
+                                throw new Error(`Button "${button_name}" not found in report "${report_name}"`);
+                            }
+                            
+                            // Update the button properties
+                            for (const [key, value] of Object.entries(updates)) {
+                                foundButton[key] = value;
+                            }
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated button "${button_name}" in report "${report_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                button: foundButton,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating report button: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to update report button'
+                            }));
+                        }
+                    });
+                }
                 else if (req.url?.startsWith('/api/lookup-values?')) {
                     // Get all lookup values from a specific lookup data object
                     // Extract lookupObjectName from query string
