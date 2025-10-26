@@ -19,9 +19,9 @@ tools...
 report tools
 done:get_report_schema
 done:get_report
-test:suggest_report_name_and_title
-test:create_report
-test:update_report
+done:suggest_report_name_and_title
+done:create_report
+done:update_report
 add_report_param
 add_report_column
 add_report_button

@@ -897,7 +897,9 @@ function generateWizardHTML(allObjects, roleObjects) {
                     }
                     
                     if (selectedVisualization === 'Grid' && selectedTargetObject) {
-                        generatedName += selectedTargetObject;
+                        generatedName += selectedTargetObject + 'List';
+                    } else if (selectedVisualization === 'Grid') {
+                        generatedName += 'List';
                     } else if (selectedVisualization === 'DetailThreeColumn') {
                         generatedName += 'Detail';
                     } else if (selectedVisualization === 'DetailTwoColumn') {

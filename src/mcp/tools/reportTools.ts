@@ -1062,22 +1062,29 @@ export class ReportTools {
                 }
             }
 
-            // Build base report name (PascalCase)
-            let baseReportName = target_child_object || owner_object_name;
+            // Build base report name (PascalCase) - matches wizard logic exactly
+            // Start with owner object (report belongs to this object)
+            let baseReportName = owner_object_name;
+            
+            // Add role qualifier if provided
             if (role_required) {
-                baseReportName = role_required + baseReportName;
+                baseReportName += role_required;
             }
             
-            // Add visualization type suffix if not Grid (default)
+            // Add visualization-specific suffix (matches wizard's logic exactly)
             const vizType = visualization_type || 'Grid';
-            if (vizType !== 'Grid') {
-                baseReportName += vizType;
-            } else {
-                // For Grid type, add "List" suffix if it's a list of items
-                if (target_child_object || !baseReportName.endsWith('List')) {
-                    baseReportName += 'List';
-                }
+            if (vizType === 'Grid' && target_child_object) {
+                // Grid with target: add target object name + "List"
+                baseReportName += target_child_object + 'List';
+            } else if (vizType === 'Grid') {
+                // Grid without target: add "List"
+                baseReportName += 'List';
+            } else if (vizType === 'DetailThreeColumn') {
+                baseReportName += 'Detail';
+            } else if (vizType === 'DetailTwoColumn') {
+                baseReportName += 'Dashboard';
             }
+            // Note: Other visualization types (PieChart, LineChart, etc.) get no suffix - matches wizard behavior
 
             // Check for duplicates and append numeric suffix if needed
             const existingReportNames: string[] = [];
@@ -1098,20 +1105,9 @@ export class ReportTools {
                 suffix++;
             }
 
-            // Build suggested title (human-readable with spaces)
-            const targetReadable = target_child_object ? this.convertToHumanReadable(target_child_object) : this.convertToHumanReadable(owner_object_name);
-            
-            let reportTitle = targetReadable;
-            if (vizType !== 'Grid') {
-                reportTitle += ' ' + this.convertToHumanReadable(vizType);
-            } else {
-                reportTitle += ' List';
-            }
-
-            // Add numeric suffix to title if it was added to the name
-            if (suffix > 1) {
-                reportTitle += ' ' + (suffix - 1);
-            }
+            // Build suggested title (human-readable with spaces) - matches wizard logic
+            // Convert the generated name directly to human-readable format
+            let reportTitle = this.convertToHumanReadable(reportName);
 
             return {
                 success: true,
@@ -1265,88 +1261,33 @@ export class ReportTools {
                 }
             }
 
-            // Create the new report object with sensible defaults
+            // Create the new report object - matches wizard's minimal approach
             const newReport: any = {
-                // Core Properties
                 name: report_name,
                 titleText: title_text,
                 visualizationType: vizType,
-                introText: "",
-                
-                // Data Source Properties
                 isCustomSqlUsed: "false",
                 isPage: "true",
-                
-                // Display Control Properties
-                isButtonDropDownAllowed: "false",
-                isPagingAvailable: vizType === "Grid" ? "true" : "false",
-                defaultPageSize: vizType === "Grid" ? "25" : "",
-                isFilterSectionHidden: "false",
-                isFilterSectionCollapsable: "true",
-                isFilterPersistant: "false",
-                isBreadcrumbSectionHidden: "false",
-                isRefreshButtonHidden: "false",
-                isExportButtonsHidden: "false",
-                isHeaderVisible: "true",
-                
-                // Rating and Styling Properties
-                ratingLevelColumnName: "RatingLevel",
-                isRatingLevelChangingRowBackgroundColor: "false",
-                
-                // Sorting Properties
-                defaultOrderByColumnName: "",
-                defaultOrderByDescending: "false",
-                
-                // Auto-Refresh Properties
-                isAutoRefresh: "false",
-                isAutoRefreshVisible: "false",
-                isAutoRefreshFrequencyVisible: "false",
-                isAutoRefreshDegraded: "false",
-                autoRefreshFrequencyInMinutes: "",
-                
-                // Feature Flags
-                isSchedulingAllowed: "false",
-                isFavoriteCreationAllowed: "true",
-                isPageUserSettingsDistinctForApp: "false",
-                
-                // Authorization Properties
-                isAuthorizationRequired: "false",
-                
-                // Layout and UI Properties
-                noRowsReturnedText: "No results found",
-                isBasicHeaderAutomaticallyAdded: "true",
-                
-                // Azure Storage Properties
-                isAzureTableUsed: "",
-                azureTablePrimaryKeyColumn: "",
-                
-                // Documentation and Metadata
-                codeDescription: "",
-                filteringSqlLogic: "",
-                
-                // Array Properties (initialized to defaults)
                 reportColumn: [],
-                reportButton: [
-                    {
-                        buttonName: "Back",
-                        buttonText: "Back",
-                        buttonType: "back",
-                        isVisible: "true"
-                    }
-                ],
+                reportButton: [],
                 reportParam: []
             };
+
+            // Add default Back button
+            newReport.reportButton.push({
+                buttonName: "Back",
+                buttonText: "Back",
+                buttonType: "back"
+            });
 
             // Add optional properties based on parameters
             if (role_required) {
                 newReport.isAuthorizationRequired = "true";
                 newReport.roleRequired = role_required;
                 newReport.layoutName = role_required + "Layout";
-            } else {
-                newReport.layoutName = "";
             }
 
-            if (target_child_object) {
+            if (target_child_object && vizType === "Grid") {
                 newReport.targetChildObject = target_child_object;
             }
 
@@ -1356,7 +1297,7 @@ export class ReportTools {
 
             const newPageInitFlow = {
                 name: pageInitFlowName,
-                titleText: title_text + " Page Init",
+                titleText: title_text + " Initialization",
                 objectWorkflowOutputVar: []
             };
 
@@ -1466,11 +1407,6 @@ export class ReportTools {
             // Documentation and Metadata
             codeDescription?: string;
             filteringSqlLogic?: string;
-            
-            // Legacy/Deprecated (kept for backward compatibility)
-            isCachingAllowed?: 'true' | 'false';
-            cacheExpirationInMinutes?: string;
-            isHeaderLabelsVisible?: 'true' | 'false';
         }
     ): Promise<{ success: boolean; report?: any; owner_object_name?: string; message?: string; error?: string; note?: string }> {
         try {
