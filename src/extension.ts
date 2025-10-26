@@ -62,6 +62,11 @@ tools:
   - update_form_button
   - add_form_output_var
   - update_form_output_var
+  - get_report_schema
+  - get_report
+  - suggest_report_name_and_title
+  - create_report
+  - update_report
   - list_data_object_summary
   - list_data_objects
   - get_data_object

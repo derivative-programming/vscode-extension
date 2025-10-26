@@ -901,8 +901,18 @@ export class AppDNAMcpProvider {
         const suggestReportNameAndTitleTool = vscode.lm.registerTool('suggest_report_name_and_title', {
             prepareInvocation: async (options, token) => {
                 const input = options.input as { owner_object_name: string; role_required?: string; visualization_type?: string; target_child_object?: string };
+                let message = `Suggesting report name and title for owner object "${input.owner_object_name}"`;
+                if (input.role_required) {
+                    message += `, role: ${input.role_required}`;
+                }
+                if (input.visualization_type) {
+                    message += `, visualization: ${input.visualization_type}`;
+                }
+                if (input.target_child_object) {
+                    message += `, target: ${input.target_child_object}`;
+                }
                 return {
-                    invocationMessage: `Suggesting report name and title for owner object "${input.owner_object_name}"`,
+                    invocationMessage: message,
                     confirmationMessages: undefined
                 };
             },

@@ -9,10 +9,16 @@ common types of graphs...
 
 ---------------------
 
+form output var has unnecessary properties shown
+
+if item has role required then auth is required
+
+_ownerdataobject prop added for mcp forms and reports tools?
+
 tools...  
 report tools
-test:get_report_schema
-test:get_report
+done:get_report_schema
+done:get_report
 test:suggest_report_name_and_title
 test:create_report
 test:update_report

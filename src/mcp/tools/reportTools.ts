@@ -745,7 +745,19 @@ export class ReportTools {
                 endpoint = `/api/reports?report_name=${encodeURIComponent(report_name)}`;
             }
             
-            reports = await this.fetchFromBridge(endpoint);
+            const response = await this.fetchFromBridge(endpoint);
+            
+            // Debug: Check the response structure
+            if (!response) {
+                return {
+                    success: false,
+                    error: 'No response received from bridge',
+                    note: 'Bridge connection required to retrieve reports. Make sure the AppDNA extension is running and a model file is loaded.'
+                };
+            }
+
+            // Handle array response (expected)
+            reports = Array.isArray(response) ? response : [];
             
             // Check if we found the report
             if (!reports || reports.length === 0) {
@@ -768,7 +780,9 @@ export class ReportTools {
             
             // Get the first (and should be only) report from results
             const report = reports[0];
-            const ownerObjectName = report._ownerObjectName;
+            
+            // Safely get owner object name
+            const ownerObjectName = report?._ownerObjectName || 'Unknown';
             
             // Remove the temporary _ownerObjectName property
             delete report._ownerObjectName;

@@ -1484,6 +1484,214 @@ export class McpBridge {
                         }
                     });
                 }
+                else if (req.url && req.url.startsWith('/api/reports')) {
+                    // Get reports (from object.report array) with optional filtering by report_name or owner_object_name (case-insensitive)
+                    try {
+                        const url = new URL(req.url, `http://${req.headers.host}`);
+                        const reportName = url.searchParams.get('report_name');
+                        const ownerObjectName = url.searchParams.get('owner_object_name');
+                        
+                        const allObjects = modelService.getAllObjects();
+                        const reports: any[] = [];
+                        
+                        for (const obj of allObjects) {
+                            // Skip if owner_object_name filter specified and doesn't match (case-insensitive)
+                            if (ownerObjectName && obj.name.toLowerCase() !== ownerObjectName.toLowerCase()) {
+                                continue;
+                            }
+                            
+                            // Reports are stored in obj.report array
+                            if (obj.report && Array.isArray(obj.report)) {
+                                for (const report of obj.report) {
+                                    // Skip if report_name filter specified and doesn't match (case-insensitive)
+                                    if (reportName && report.name.toLowerCase() !== reportName.toLowerCase()) {
+                                        continue;
+                                    }
+                                    
+                                    // Add owner object name to each report for context
+                                    reports.push({
+                                        ...report,
+                                        _ownerObjectName: obj.name
+                                    });
+                                    
+                                    // If searching for specific report name, we can stop after finding it
+                                    if (reportName && report.name.toLowerCase() === reportName.toLowerCase()) {
+                                        this.outputChannel.appendLine(`[Data Bridge] Found report "${report.name}" in owner object "${obj.name}"`);
+                                        res.writeHead(200);
+                                        res.end(JSON.stringify(reports));
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        this.outputChannel.appendLine(`[Data Bridge] Returning ${reports.length} reports`);
+                        res.writeHead(200);
+                        res.end(JSON.stringify(reports));
+                    } catch (error) {
+                        this.outputChannel.appendLine(`[Data Bridge] Error getting reports: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            error: error instanceof Error ? error.message : 'Failed to get reports'
+                        }));
+                    }
+                }
+                else if (req.url === '/api/create-report' && req.method === 'POST') {
+                    // Create a new report in an owner data object
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { ownerObjectName, report, pageInitFlow } = JSON.parse(body);
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the owner object
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let ownerObject: any = null;
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    ownerObject = ns.object.find((obj: any) => obj.name === ownerObjectName);
+                                    if (ownerObject) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!ownerObject) {
+                                throw new Error(`Owner object "${ownerObjectName}" not found`);
+                            }
+                            
+                            // Ensure report array exists
+                            if (!ownerObject.report) {
+                                ownerObject.report = [];
+                            }
+                            
+                            // Ensure objectWorkflow array exists (for page init flow)
+                            if (!ownerObject.objectWorkflow) {
+                                ownerObject.objectWorkflow = [];
+                            }
+                            
+                            // Add report and page init flow
+                            ownerObject.report.push(report);
+                            ownerObject.objectWorkflow.push(pageInitFlow);
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Created report "${report.name}" and page init flow "${pageInitFlow.name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                report: report,
+                                pageInitFlow: pageInitFlow,
+                                ownerObjectName: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error creating report: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                error: error instanceof Error ? error.message : 'Failed to create report'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/update-report' && req.method === 'POST') {
+                    // Update an existing report
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { report_name, updates } = JSON.parse(body);
+                            
+                            if (!report_name) {
+                                throw new Error('report_name is required');
+                            }
+                            
+                            if (!updates || Object.keys(updates).length === 0) {
+                                throw new Error('At least one property to update is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the report across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundReport: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.report && Array.isArray(obj.report)) {
+                                            const report = obj.report.find((rpt: any) => rpt.name === report_name);
+                                            if (report) {
+                                                foundReport = report;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundReport) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundReport) {
+                                throw new Error(`Report "${report_name}" not found in any data object`);
+                            }
+                            
+                            // Update the report properties
+                            for (const [key, value] of Object.entries(updates)) {
+                                foundReport[key] = value;
+                            }
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated report "${report_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                report: foundReport,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating report: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to update report'
+                            }));
+                        }
+                    });
+                }
                 else if (req.url?.startsWith('/api/lookup-values?')) {
                     // Get all lookup values from a specific lookup data object
                     // Extract lookupObjectName from query string
