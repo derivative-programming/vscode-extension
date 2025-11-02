@@ -7,13 +7,12 @@ function getSettingsTabTemplate(flow, flowSchemaProps) {
     console.log('[DEBUG] flowForSettings object:', flow);
     
     // Only show the following settings, in this exact order (case-insensitive match to schema keys)
+    // Note: isPage and isDynaFlowTask are excluded as they are not relevant for general flows
     const allowedOrder = [
-        'isPage',
         'isAuthorizationRequired',
         'roleRequired',
         'isExposedInBusinessObject',
         'isCustomLogicOverwritten',
-        'isDynaFlowTask',
         'isRequestRunViaDynaFlowAllowed',
         'pageIntroText',
         'pageTitleText'

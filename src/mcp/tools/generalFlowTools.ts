@@ -39,13 +39,6 @@ export class GeneralFlowTools {
                         description: 'Workflow ID, unique for each workflow element. Must be in PascalCase format (starts with uppercase letter, no spaces, can contain letters and numbers). For general flows, should not end with "InitObjWF" or "InitReport".',
                         examples: ['ProcessOrder', 'CalculateDiscount', 'SendNotification', 'ValidateInventory', 'GenerateInvoice']
                     },
-                    isPage: {
-                        type: 'string',
-                        required: true,
-                        enum: ['false'],
-                        description: 'Must be "false" for general flows. General flows are not standalone pages.',
-                        examples: ['false']
-                    },
                     isAuthorizationRequired: {
                         type: 'string',
                         required: false,
@@ -72,32 +65,6 @@ export class GeneralFlowTools {
                         enum: ['true', 'false'],
                         description: 'Has the auto-generated logic been overwritten with custom code? String "true" or "false".',
                         examples: ['true', 'false']
-                    },
-                    isDynaFlowTask: {
-                        type: 'string',
-                        required: false,
-                        enum: ['false'],
-                        description: 'Must be "false" or not set for general flows. General flows are not DynaFlow tasks.',
-                        examples: ['false']
-                    },
-                    isRequestRunViaDynaFlowAllowed: {
-                        type: 'string',
-                        required: false,
-                        enum: ['true', 'false'],
-                        description: 'Can this general flow be executed via DynaFlow? String "true" or "false".',
-                        examples: ['true', 'false']
-                    },
-                    pageIntroText: {
-                        type: 'string',
-                        required: false,
-                        description: 'Introduction text for the general flow (if displayed in UI context).',
-                        examples: ['This workflow processes customer orders', 'Calculate discount based on customer tier']
-                    },
-                    pageTitleText: {
-                        type: 'string',
-                        required: false,
-                        description: 'Title text for the general flow (if displayed in UI context).',
-                        examples: ['Process Order', 'Calculate Discount', 'Send Notification']
                     }
                 },
                 childArrays: {
@@ -244,40 +211,6 @@ export class GeneralFlowTools {
                                     description: 'Default value for the output variable.',
                                     examples: ['0', '', 'false', 'N/A']
                                 },
-                                labelText: {
-                                    type: 'string',
-                                    required: false,
-                                    description: 'Display label for the output variable (if shown in UI).',
-                                    examples: ['Total Amount', 'Discount Applied', 'Order Status']
-                                },
-                                isVisible: {
-                                    type: 'string',
-                                    required: false,
-                                    enum: ['true', 'false'],
-                                    description: 'Is this output variable visible in UI? String "true" or "false".',
-                                    examples: ['true', 'false']
-                                },
-                                isLabelVisible: {
-                                    type: 'string',
-                                    required: false,
-                                    enum: ['true', 'false'],
-                                    description: 'Is the label visible for this output variable? String "true" or "false".',
-                                    examples: ['true', 'false']
-                                },
-                                isHeaderText: {
-                                    type: 'string',
-                                    required: false,
-                                    enum: ['true', 'false'],
-                                    description: 'Is this output variable used as header text? String "true" or "false".',
-                                    examples: ['true', 'false']
-                                },
-                                isLink: {
-                                    type: 'string',
-                                    required: false,
-                                    enum: ['true', 'false'],
-                                    description: 'Should this output variable render as a link? String "true" or "false".',
-                                    examples: ['true', 'false']
-                                },
                                 isFK: {
                                     type: 'string',
                                     required: false,
@@ -310,12 +243,6 @@ export class GeneralFlowTools {
                                     description: 'Size specification for the SQL Server data type.',
                                     examples: ['50', '100', '18,2', 'MAX']
                                 },
-                                conditionalVisiblePropertyName: {
-                                    type: 'string',
-                                    required: false,
-                                    description: 'Name of the property that controls conditional visibility of this output variable.',
-                                    examples: ['IsOrderComplete', 'HasDiscount', 'IsActive']
-                                },
                                 isIgnored: {
                                     type: 'string',
                                     required: false,
@@ -331,14 +258,12 @@ export class GeneralFlowTools {
                                 sourceObjectName: 'Order',
                                 sourcePropertyName: 'TotalAmount',
                                 sqlServerDBDataType: 'Decimal',
-                                sqlServerDBDataTypeSize: '18,2',
-                                isVisible: 'true'
+                                sqlServerDBDataTypeSize: '18,2'
                             },
                             {
                                 name: 'IsSuccess',
                                 sqlServerDBDataType: 'Bit',
-                                defaultValue: 'false',
-                                isVisible: 'true'
+                                defaultValue: 'false'
                             }
                         ]
                     }
@@ -358,12 +283,9 @@ export class GeneralFlowTools {
                 },
                 completeExample: {
                     name: 'CalculateOrderDiscount',
-                    isPage: 'false',
                     isAuthorizationRequired: 'true',
                     roleRequired: 'Manager',
                     isExposedInBusinessObject: 'true',
-                    pageIntroText: 'Calculate discount based on customer tier and order amount',
-                    pageTitleText: 'Calculate Order Discount',
                     objectWorkflowParam: [
                         {
                             name: 'CustomerId',
@@ -383,23 +305,17 @@ export class GeneralFlowTools {
                         {
                             name: 'DiscountPercent',
                             sqlServerDBDataType: 'Decimal',
-                            sqlServerDBDataTypeSize: '5,2',
-                            isVisible: 'true',
-                            labelText: 'Discount %'
+                            sqlServerDBDataTypeSize: '5,2'
                         },
                         {
                             name: 'DiscountAmount',
                             sqlServerDBDataType: 'Decimal',
-                            sqlServerDBDataTypeSize: '18,2',
-                            isVisible: 'true',
-                            labelText: 'Discount Amount'
+                            sqlServerDBDataTypeSize: '18,2'
                         },
                         {
                             name: 'FinalAmount',
                             sqlServerDBDataType: 'Decimal',
-                            sqlServerDBDataTypeSize: '18,2',
-                            isVisible: 'true',
-                            labelText: 'Final Amount'
+                            sqlServerDBDataTypeSize: '18,2'
                         }
                     ]
                 },
@@ -516,20 +432,17 @@ export class GeneralFlowTools {
      * Update properties of an existing general flow (objectWorkflow with isPage="false")
      * Tool name: update_general_flow (following MCP snake_case convention)
      * @param general_flow_name Name of the general flow to update (case-sensitive)
-     * @param updates Object containing properties to update
+     * @param updates Object containing properties to update (aligned with general flow schema)
      * @returns Object with success status, updated general flow, and owner object name
      */
     public async update_general_flow(
         general_flow_name: string,
         updates: {
-            titleText?: string;
-            isInitObjWFSubscribedToParams?: 'true' | 'false';
-            layoutName?: string;
-            introText?: string;
-            codeDescription?: string;
-            isHeaderVisible?: 'true' | 'false';
+            isAuthorizationRequired?: 'true' | 'false';
+            roleRequired?: string;
+            isExposedInBusinessObject?: 'true' | 'false';
+            isCustomLogicOverwritten?: 'true' | 'false';
             isIgnored?: 'true' | 'false';
-            sortOrder?: string;
         }
     ): Promise<{ success: boolean; general_flow?: any; owner_object_name?: string; message?: string; error?: string; note?: string }> {
         try {
@@ -771,40 +684,18 @@ export class GeneralFlowTools {
         general_flow_name: string,
         param: {
             name: string;
-            sqlServerDBDataType?: string;
-            sqlServerDBDataTypeSize?: string;
-            labelText?: string;
-            infoToolTipText?: string;
-            codeDescription?: string;
+            dataType?: string; // Maps to sqlServerDBDataType
+            dataSize?: string; // Maps to sqlServerDBDataTypeSize
             defaultValue?: string;
-            isVisible?: 'true' | 'false';
             isRequired?: 'true' | 'false';
-            requiredErrorText?: string;
             isSecured?: 'true' | 'false';
             isFK?: 'true' | 'false';
-            fKObjectName?: string;
-            fKObjectQueryName?: string;
             isFKLookup?: 'true' | 'false';
-            isFKList?: 'true' | 'false';
-            isFKListInactiveIncluded?: 'true' | 'false';
-            isFKListUnknownOptionRemoved?: 'true' | 'false';
-            fKListOrderBy?: string;
-            isFKListOptionRecommended?: 'true' | 'false';
-            isFKListSearchable?: 'true' | 'false';
-            FKListRecommendedOption?: string;
-            isRadioButtonList?: 'true' | 'false';
-            isFileUpload?: 'true' | 'false';
-            isCreditCardEntry?: 'true' | 'false';
-            isTimeZoneDetermined?: 'true' | 'false';
-            isAutoCompleteAddressSource?: 'true' | 'false';
-            autoCompleteAddressSourceName?: string;
-            autoCompleteAddressTargetType?: string;
-            detailsText?: string;
+            fKObjectName?: string;
             validationRuleRegExMatchRequired?: string;
             validationRuleRegExMatchRequiredErrorText?: string;
+            codeDescription?: string;
             isIgnored?: 'true' | 'false';
-            sourceObjectName?: string;
-            sourcePropertyName?: string;
         }
     ): Promise<{ success: boolean; param?: any; general_flow_name?: string; owner_object_name?: string; message?: string; error?: string; note?: string }> {
         try {
@@ -816,11 +707,26 @@ export class GeneralFlowTools {
                 };
             }
 
+            // Map UI property names to schema property names
+            const mappedParam: any = { ...param };
+            
+            // Map dataType to sqlServerDBDataType if provided
+            if (param.dataType) {
+                mappedParam.sqlServerDBDataType = param.dataType;
+                delete mappedParam.dataType;
+            }
+            
+            // Map dataSize to sqlServerDBDataTypeSize if provided
+            if (param.dataSize) {
+                mappedParam.sqlServerDBDataTypeSize = param.dataSize;
+                delete mappedParam.dataSize;
+            }
+
             // Call bridge API to add general flow param
             const http = await import('http');
             const postData = {
                 general_flow_name,
-                param: param
+                param: mappedParam
             };
 
             const postDataString = JSON.stringify(postData);
@@ -898,40 +804,18 @@ export class GeneralFlowTools {
         param_name: string,
         updates: {
             name?: string;
-            sqlServerDBDataType?: string;
-            sqlServerDBDataTypeSize?: string;
-            labelText?: string;
-            infoToolTipText?: string;
-            codeDescription?: string;
+            dataType?: string; // Maps to sqlServerDBDataType
+            dataSize?: string; // Maps to sqlServerDBDataTypeSize
             defaultValue?: string;
-            isVisible?: 'true' | 'false';
             isRequired?: 'true' | 'false';
-            requiredErrorText?: string;
             isSecured?: 'true' | 'false';
             isFK?: 'true' | 'false';
-            fKObjectName?: string;
-            fKObjectQueryName?: string;
             isFKLookup?: 'true' | 'false';
-            isFKList?: 'true' | 'false';
-            isFKListInactiveIncluded?: 'true' | 'false';
-            isFKListUnknownOptionRemoved?: 'true' | 'false';
-            fKListOrderBy?: string;
-            isFKListOptionRecommended?: 'true' | 'false';
-            isFKListSearchable?: 'true' | 'false';
-            FKListRecommendedOption?: string;
-            isRadioButtonList?: 'true' | 'false';
-            isFileUpload?: 'true' | 'false';
-            isCreditCardEntry?: 'true' | 'false';
-            isTimeZoneDetermined?: 'true' | 'false';
-            isAutoCompleteAddressSource?: 'true' | 'false';
-            autoCompleteAddressSourceName?: string;
-            autoCompleteAddressTargetType?: string;
-            detailsText?: string;
+            fKObjectName?: string;
             validationRuleRegExMatchRequired?: string;
             validationRuleRegExMatchRequiredErrorText?: string;
+            codeDescription?: string;
             isIgnored?: 'true' | 'false';
-            sourceObjectName?: string;
-            sourcePropertyName?: string;
         }
     ): Promise<{ success: boolean; param?: any; general_flow_name?: string; owner_object_name?: string; message?: string; error?: string; note?: string }> {
         if (Object.keys(updates).length === 0) {
@@ -942,10 +826,25 @@ export class GeneralFlowTools {
         }
 
         try {
+            // Map UI property names to schema property names
+            const mappedUpdates: any = { ...updates };
+            
+            // Map dataType to sqlServerDBDataType if provided
+            if (updates.dataType) {
+                mappedUpdates.sqlServerDBDataType = updates.dataType;
+                delete mappedUpdates.dataType;
+            }
+            
+            // Map dataSize to sqlServerDBDataTypeSize if provided
+            if (updates.dataSize) {
+                mappedUpdates.sqlServerDBDataTypeSize = updates.dataSize;
+                delete mappedUpdates.dataSize;
+            }
+
             const postData = {
                 general_flow_name,
                 param_name,
-                updates: updates
+                updates: mappedUpdates
             };
 
             const http = await import('http');
@@ -1106,23 +1005,13 @@ export class GeneralFlowTools {
         general_flow_name: string,
         output_var: {
             name: string;
-            buttonNavURL?: string;
-            buttonObjectWFName?: string;
-            buttonText?: string;
-            conditionalVisiblePropertyName?: string;
             dataSize?: string; // Maps to sqlServerDBDataTypeSize
             dataType?: string; // Maps to sqlServerDBDataType
             defaultValue?: string;
             fKObjectName?: string;
-            labelText?: string;
-            isAutoRedirectURL?: 'true' | 'false';
             isFK?: 'true' | 'false';
             isFKLookup?: 'true' | 'false';
-            isLabelVisible?: 'true' | 'false';
-            isHeaderText?: 'true' | 'false';
             isIgnored?: 'true' | 'false';
-            isLink?: 'true' | 'false';
-            isVisible?: 'true' | 'false';
             sourceObjectName?: string;
             sourcePropertyName?: string;
         }
@@ -1227,23 +1116,13 @@ export class GeneralFlowTools {
         output_var_name: string,
         updates: {
             name?: string;
-            buttonNavURL?: string;
-            buttonObjectWFName?: string;
-            buttonText?: string;
-            conditionalVisiblePropertyName?: string;
             dataSize?: string;
             dataType?: string;
             defaultValue?: string;
             fKObjectName?: string;
-            labelText?: string;
-            isAutoRedirectURL?: 'true' | 'false';
             isFK?: 'true' | 'false';
             isFKLookup?: 'true' | 'false';
-            isLabelVisible?: 'true' | 'false';
-            isHeaderText?: 'true' | 'false';
             isIgnored?: 'true' | 'false';
-            isLink?: 'true' | 'false';
-            isVisible?: 'true' | 'false';
             sourceObjectName?: string;
             sourcePropertyName?: string;
         }

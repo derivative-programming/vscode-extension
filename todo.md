@@ -9,27 +9,9 @@ common types of graphs...
 
 ---------------------
 
-
+general flow params have bad params (fk ones)
 
 hide...view, get tool, update tool, add tool, schema tool
-- page init flow
-  - settings
-    - Is Exposed In Business Object:
-  - output vars
-    - Button Nav URL:
-    - Button Object WF Name:
-    - Button Text:
-- general flow
-  - settings
-    - Is Page:
-    - Is Dyna Flow Task:
-  - output var
-    - Conditional Visible Property Name:
-    - Is Header Text:
-    - Is Label Visible:
-    - Is Link:
-    - Is Visible:
-    - Label Text:
 - workflows
   - settings
     - Is Authorization Required:

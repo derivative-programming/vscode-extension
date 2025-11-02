@@ -11,19 +11,14 @@ function getOutputVarPropertiesToHide() {
 
 function getOutputVarsListTemplate(outputVarsSchema) {
     // Properties for General Flow output variables based on objectWorkflowOutputVar schema
-    // Removed UI-specific properties that are not relevant for general workflow output variables
+    // Excluded UI-specific properties that are not relevant for general workflow output variables:
+    // conditionalVisiblePropertyName, isHeaderText, isLabelVisible, isLink, isVisible, labelText
     const allowedOrder = [
-        "conditionalVisiblePropertyName",
         "defaultValue",
         "fKObjectName",
         "isFK",
         "isFKLookup",
-        "isHeaderText",
         "isIgnored",
-        "isLabelVisible",
-        "isLink",
-        "isVisible",
-        "labelText",
         "sourceObjectName",
         "sourcePropertyName",
         "sqlServerDBDataType",
