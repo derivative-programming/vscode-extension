@@ -389,6 +389,122 @@ export class McpBridge {
                         }
                     });
                 }
+                else if (req.url === '/api/update-full-data-object' && req.method === 'POST') {
+                    // Update a data object with provided schema (merge/patch operation - does not remove properties)
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { data_object_name, data_object } = JSON.parse(body);
+                            
+                            if (!data_object_name) {
+                                throw new Error('data_object_name is required');
+                            }
+                            
+                            if (!data_object || typeof data_object !== 'object') {
+                                throw new Error('data_object object is required');
+                            }
+                            
+                            const model = modelService.getCurrentModel();
+                            if (!model || !model.namespace) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            let foundDataObject: any = null;
+                            
+                            // Find the data object in all namespaces
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    const obj = ns.object.find((o: any) => o.name === data_object_name);
+                                    
+                                    if (obj) {
+                                        foundDataObject = obj;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundDataObject) {
+                                throw new Error(`Data object "${data_object_name}" not found`);
+                            }
+                            
+                            // Update object-level properties (only the ones provided, don't remove others)
+                            // Never update 'name' to prevent accidental renaming
+                            const objectLevelProps = ['parentObjectName', 'isLookup', 'codeDescription'];
+                            objectLevelProps.forEach(prop => {
+                                if (data_object[prop] !== undefined) {
+                                    foundDataObject[prop] = data_object[prop];
+                                }
+                            });
+                            
+                            // Update/add properties in the prop array (if provided)
+                            if (data_object.prop && Array.isArray(data_object.prop)) {
+                                // Initialize prop array if it doesn't exist
+                                if (!foundDataObject.prop || !Array.isArray(foundDataObject.prop)) {
+                                    foundDataObject.prop = [];
+                                }
+                                
+                                // Process each property from the provided data_object
+                                data_object.prop.forEach((newProp: any) => {
+                                    if (!newProp.name) {
+                                        return; // Skip properties without names
+                                    }
+                                    
+                                    // Find existing property by name (case-sensitive)
+                                    const existingPropIndex = foundDataObject.prop.findIndex(
+                                        (p: any) => p.name === newProp.name
+                                    );
+                                    
+                                    if (existingPropIndex !== -1) {
+                                        // Update existing property - merge fields (don't remove existing fields)
+                                        const existingProp = foundDataObject.prop[existingPropIndex];
+                                        Object.keys(newProp).forEach(key => {
+                                            // Never change the property name
+                                            if (key !== 'name') {
+                                                existingProp[key] = newProp[key];
+                                            }
+                                        });
+                                    } else {
+                                        // Add new property
+                                        foundDataObject.prop.push(newProp);
+                                    }
+                                });
+                            }
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            // Refresh the tree view
+                            setTimeout(() => {
+                                try {
+                                    require('vscode').commands.executeCommand("appdna.refresh");
+                                } catch (e) {
+                                    // Ignore errors if vscode commands not available
+                                }
+                            }, 100);
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated data object "${data_object_name}" (merge operation)`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                data_object: foundDataObject
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating full data object: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to update full data object'
+                            }));
+                        }
+                    });
+                }
                 else if (req.url === '/api/data-objects/add-props' && req.method === 'POST') {
                     // Add properties to an existing data object
                     let body = '';
@@ -778,6 +894,1427 @@ export class McpBridge {
                         }));
                     }
                 }
+                else if (req.url && req.url.startsWith('/api/general-flows')) {
+                    // Get general flows (objectWorkflow with isPage="false", not DynaFlow tasks, not ending with initreport/initobjwf)
+                    // with optional filtering by general_flow_name or owner_object_name (case-insensitive)
+                    try {
+                        const url = new URL(req.url, `http://${req.headers.host}`);
+                        const generalFlowName = url.searchParams.get('general_flow_name');
+                        const ownerObjectName = url.searchParams.get('owner_object_name');
+                        
+                        const allObjects = modelService.getAllObjects();
+                        const generalFlows: any[] = [];
+                        
+                        for (const obj of allObjects) {
+                            // Skip if owner_object_name filter specified and doesn't match (case-insensitive)
+                            if (ownerObjectName && obj.name.toLowerCase() !== ownerObjectName.toLowerCase()) {
+                                continue;
+                            }
+                            
+                            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                for (const workflow of obj.objectWorkflow) {
+                                    // Apply general flow filtering criteria
+                                    const isDynaFlowOk = !workflow.isDynaFlow || workflow.isDynaFlow === "false";
+                                    const isDynaFlowTaskOk = !workflow.isDynaFlowTask || workflow.isDynaFlowTask === "false";
+                                    const isPageOk = workflow.isPage === "false";
+                                    const workflowName = (workflow.name || '').toLowerCase();
+                                    const notInitObjWf = !workflowName.endsWith('initobjwf');
+                                    const notInitReport = !workflowName.endsWith('initreport');
+                                    
+                                    // Skip if doesn't meet general flow criteria
+                                    if (!isDynaFlowOk || !isDynaFlowTaskOk || !isPageOk || !notInitObjWf || !notInitReport) {
+                                        continue;
+                                    }
+                                    
+                                    // Skip if general_flow_name filter specified and doesn't match (case-insensitive)
+                                    if (generalFlowName && workflow.name.toLowerCase() !== generalFlowName.toLowerCase()) {
+                                        continue;
+                                    }
+                                    
+                                    // Add owner object name to each general flow for context
+                                    generalFlows.push({
+                                        ...workflow,
+                                        _ownerObjectName: obj.name
+                                    });
+                                    
+                                    // If searching for specific general flow name, we can stop after finding it
+                                    if (generalFlowName && workflow.name.toLowerCase() === generalFlowName.toLowerCase()) {
+                                        this.outputChannel.appendLine(`[Data Bridge] Found general flow "${workflow.name}" in owner object "${obj.name}"`);
+                                        res.writeHead(200);
+                                        res.end(JSON.stringify(generalFlows));
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        this.outputChannel.appendLine(`[Data Bridge] Returning ${generalFlows.length} general flows`);
+                        res.writeHead(200);
+                        res.end(JSON.stringify(generalFlows));
+                    } catch (error) {
+                        this.outputChannel.appendLine(`[Data Bridge] Error getting general flows: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            error: error instanceof Error ? error.message : 'Failed to get general flows'
+                        }));
+                    }
+                }
+                else if (req.url === '/api/update-general-flow' && req.method === 'POST') {
+                    // Update an existing general flow (objectWorkflow with isPage="false")
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { general_flow_name, updates } = JSON.parse(body);
+                            
+                            if (!general_flow_name) {
+                                throw new Error('general_flow_name is required');
+                            }
+                            
+                            if (!updates || Object.keys(updates).length === 0) {
+                                throw new Error('At least one property to update is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the general flow across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundGeneralFlow: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                            // Find general flow: isPage="false", not DynaFlow tasks, not init flows
+                                            const generalFlow = obj.objectWorkflow.find((wf: any) => {
+                                                if (wf.name !== general_flow_name) {
+                                                    return false;
+                                                }
+                                                
+                                                const isDynaFlowOk = !wf.isDynaFlow || wf.isDynaFlow === "false";
+                                                const isDynaFlowTaskOk = !wf.isDynaFlowTask || wf.isDynaFlowTask === "false";
+                                                const isPageOk = wf.isPage === "false";
+                                                const workflowName = (wf.name || '').toLowerCase();
+                                                const notInitObjWf = !workflowName.endsWith('initobjwf');
+                                                const notInitReport = !workflowName.endsWith('initreport');
+                                                
+                                                return isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport;
+                                            });
+                                            
+                                            if (generalFlow) {
+                                                foundGeneralFlow = generalFlow;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundGeneralFlow) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundGeneralFlow) {
+                                throw new Error(`General flow "${general_flow_name}" not found in any data object`);
+                            }
+                            
+                            // Update the general flow properties
+                            for (const [key, value] of Object.entries(updates)) {
+                                foundGeneralFlow[key] = value;
+                            }
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated general flow "${general_flow_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                general_flow: foundGeneralFlow,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating general flow: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to update general flow'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/update-full-general-flow' && req.method === 'POST') {
+                    // Update a general flow with its complete schema (bulk replacement)
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { general_flow_name, general_flow } = JSON.parse(body);
+                            
+                            if (!general_flow_name) {
+                                throw new Error('general_flow_name is required');
+                            }
+                            
+                            if (!general_flow || typeof general_flow !== 'object') {
+                                throw new Error('general_flow object is required');
+                            }
+                            
+                            const allObjects = modelService.getAllObjects();
+                            let foundGeneralFlow: any = null;
+                            let ownerObjectName = '';
+                            
+                            // Find the general flow in all objects
+                            for (const obj of allObjects) {
+                                if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                    const gf = obj.objectWorkflow.find((wf: any) => {
+                                        // General flow filtering: isPage="false" AND not DynaFlow AND not init flows
+                                        const isGeneralFlow = wf.isPage === "false" &&
+                                            (!wf.isDynaFlow || wf.isDynaFlow === "false") &&
+                                            (!wf.isDynaFlowTask || wf.isDynaFlowTask === "false") &&
+                                            !wf.name.endsWith("initobjwf") &&
+                                            !wf.name.endsWith("initreport");
+                                        return isGeneralFlow && wf.name === general_flow_name;
+                                    });
+                                    
+                                    if (gf) {
+                                        foundGeneralFlow = gf;
+                                        ownerObjectName = obj.name;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundGeneralFlow) {
+                                throw new Error(`General flow "${general_flow_name}" not found`);
+                            }
+                            
+                            // Preserve the name to prevent accidental renaming via full update
+                            const originalName = foundGeneralFlow.name;
+                            
+                            // Replace all properties with the provided general flow object
+                            // Clear existing properties
+                            Object.keys(foundGeneralFlow).forEach(key => {
+                                delete foundGeneralFlow[key];
+                            });
+                            
+                            // Copy all properties from the provided general flow
+                            Object.keys(general_flow).forEach(key => {
+                                foundGeneralFlow[key] = general_flow[key];
+                            });
+                            
+                            // Ensure name is preserved
+                            foundGeneralFlow.name = originalName;
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Fully updated general flow "${general_flow_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                general_flow: foundGeneralFlow,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating full general flow: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to update full general flow'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/add-general-flow-output-var' && req.method === 'POST') {
+                    // Add a new output variable to an existing general flow
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { general_flow_name, output_var } = JSON.parse(body);
+                            
+                            if (!general_flow_name) {
+                                throw new Error('general_flow_name is required');
+                            }
+                            
+                            if (!output_var || !output_var.name) {
+                                throw new Error('output_var with name property is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the general flow across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundGeneralFlow: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                            const generalFlow = obj.objectWorkflow.find((wf: any) => {
+                                                if (wf.name !== general_flow_name) {
+                                                    return false;
+                                                }
+                                                
+                                                // Verify it's a general flow
+                                                const isDynaFlowOk = !wf.isDynaFlow || wf.isDynaFlow === "false";
+                                                const isDynaFlowTaskOk = !wf.isDynaFlowTask || wf.isDynaFlowTask === "false";
+                                                const isPageOk = wf.isPage === "false";
+                                                const workflowName = (wf.name || '').toLowerCase();
+                                                const notInitObjWf = !workflowName.endsWith('initobjwf');
+                                                const notInitReport = !workflowName.endsWith('initreport');
+                                                
+                                                return isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport;
+                                            });
+                                            if (generalFlow) {
+                                                foundGeneralFlow = generalFlow;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundGeneralFlow) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundGeneralFlow) {
+                                throw new Error(`General flow "${general_flow_name}" not found in any data object`);
+                            }
+                            
+                            // Ensure objectWorkflowOutputVar array exists
+                            if (!foundGeneralFlow.objectWorkflowOutputVar) {
+                                foundGeneralFlow.objectWorkflowOutputVar = [];
+                            }
+                            
+                            // Check for duplicate output variable name
+                            const existingOutputVar = foundGeneralFlow.objectWorkflowOutputVar.find((ov: any) => ov.name === output_var.name);
+                            if (existingOutputVar) {
+                                throw new Error(`Output variable "${output_var.name}" already exists in general flow "${general_flow_name}"`);
+                            }
+                            
+                            // Add the output variable
+                            foundGeneralFlow.objectWorkflowOutputVar.push(output_var);
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Added output variable "${output_var.name}" to general flow "${general_flow_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                output_var: output_var,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error adding general flow output variable: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to add general flow output variable'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/update-general-flow-output-var' && req.method === 'POST') {
+                    // Update an existing output variable in a general flow
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { general_flow_name, output_var_name, updates } = JSON.parse(body);
+                            
+                            if (!general_flow_name) {
+                                throw new Error('general_flow_name is required');
+                            }
+                            
+                            if (!output_var_name) {
+                                throw new Error('output_var_name is required');
+                            }
+                            
+                            if (!updates || Object.keys(updates).length === 0) {
+                                throw new Error('At least one property to update is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the general flow across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundGeneralFlow: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                            const generalFlow = obj.objectWorkflow.find((wf: any) => {
+                                                if (wf.name !== general_flow_name) {
+                                                    return false;
+                                                }
+                                                
+                                                // Verify it's a general flow
+                                                const isDynaFlowOk = !wf.isDynaFlow || wf.isDynaFlow === "false";
+                                                const isDynaFlowTaskOk = !wf.isDynaFlowTask || wf.isDynaFlowTask === "false";
+                                                const isPageOk = wf.isPage === "false";
+                                                const workflowName = (wf.name || '').toLowerCase();
+                                                const notInitObjWf = !workflowName.endsWith('initobjwf');
+                                                const notInitReport = !workflowName.endsWith('initreport');
+                                                
+                                                return isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport;
+                                            });
+                                            if (generalFlow) {
+                                                foundGeneralFlow = generalFlow;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundGeneralFlow) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundGeneralFlow) {
+                                throw new Error(`General flow "${general_flow_name}" not found in any data object`);
+                            }
+                            
+                            // Find the output variable
+                            if (!foundGeneralFlow.objectWorkflowOutputVar || !Array.isArray(foundGeneralFlow.objectWorkflowOutputVar)) {
+                                throw new Error(`General flow "${general_flow_name}" has no output variables`);
+                            }
+                            
+                            const outputVar = foundGeneralFlow.objectWorkflowOutputVar.find((ov: any) => ov.name === output_var_name);
+                            if (!outputVar) {
+                                throw new Error(`Output variable "${output_var_name}" not found in general flow "${general_flow_name}"`);
+                            }
+                            
+                            // Update the output variable properties
+                            for (const [key, value] of Object.entries(updates)) {
+                                outputVar[key] = value;
+                            }
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated output variable "${output_var_name}" in general flow "${general_flow_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                output_var: outputVar,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating general flow output variable: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to update general flow output variable'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/move-general-flow-output-var' && req.method === 'POST') {
+                    // Move an output variable to a new position in a general flow
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { general_flow_name, output_var_name, new_position } = JSON.parse(body);
+                            
+                            if (!general_flow_name) {
+                                throw new Error('general_flow_name is required');
+                            }
+                            
+                            if (!output_var_name) {
+                                throw new Error('output_var_name is required');
+                            }
+                            
+                            if (typeof new_position !== 'number' || new_position < 0) {
+                                throw new Error('new_position must be a non-negative number');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the general flow across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundGeneralFlow: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                            const generalFlow = obj.objectWorkflow.find((wf: any) => {
+                                                if (wf.name !== general_flow_name) {
+                                                    return false;
+                                                }
+                                                
+                                                // Verify it's a general flow
+                                                const isDynaFlowOk = !wf.isDynaFlow || wf.isDynaFlow === "false";
+                                                const isDynaFlowTaskOk = !wf.isDynaFlowTask || wf.isDynaFlowTask === "false";
+                                                const isPageOk = wf.isPage === "false";
+                                                const workflowName = (wf.name || '').toLowerCase();
+                                                const notInitObjWf = !workflowName.endsWith('initobjwf');
+                                                const notInitReport = !workflowName.endsWith('initreport');
+                                                
+                                                return isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport;
+                                            });
+                                            if (generalFlow) {
+                                                foundGeneralFlow = generalFlow;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundGeneralFlow) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundGeneralFlow) {
+                                throw new Error(`General flow "${general_flow_name}" not found in any data object`);
+                            }
+                            
+                            // Find and move the output variable
+                            if (!foundGeneralFlow.objectWorkflowOutputVar || !Array.isArray(foundGeneralFlow.objectWorkflowOutputVar)) {
+                                throw new Error(`General flow "${general_flow_name}" has no output variables`);
+                            }
+                            
+                            const oldPosition = foundGeneralFlow.objectWorkflowOutputVar.findIndex((ov: any) => ov.name === output_var_name);
+                            if (oldPosition === -1) {
+                                throw new Error(`Output variable "${output_var_name}" not found in general flow "${general_flow_name}"`);
+                            }
+                            
+                            if (new_position >= foundGeneralFlow.objectWorkflowOutputVar.length) {
+                                throw new Error(`new_position (${new_position}) must be less than total output variable count (${foundGeneralFlow.objectWorkflowOutputVar.length})`);
+                            }
+                            
+                            // Move the output variable
+                            const [outputVar] = foundGeneralFlow.objectWorkflowOutputVar.splice(oldPosition, 1);
+                            foundGeneralFlow.objectWorkflowOutputVar.splice(new_position, 0, outputVar);
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Moved output variable "${output_var_name}" from position ${oldPosition} to ${new_position} in general flow "${general_flow_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                old_position: oldPosition,
+                                new_position: new_position,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error moving general flow output variable: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to move general flow output variable'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/add-general-flow-param' && req.method === 'POST') {
+                    // Add a new parameter to a general flow
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { general_flow_name, param } = JSON.parse(body);
+                            
+                            if (!general_flow_name) {
+                                throw new Error('general_flow_name is required');
+                            }
+                            
+                            if (!param || !param.name) {
+                                throw new Error('param object with name property is required');
+                            }
+                            
+                            const allObjects = modelService.getAllObjects();
+                            let foundGeneralFlow: any = null;
+                            let ownerObjectName = '';
+                            
+                            // Find the general flow in all objects
+                            for (const obj of allObjects) {
+                                if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                    const gf = obj.objectWorkflow.find((wf: any) => {
+                                        // General flow filtering: isPage="false" AND not DynaFlow AND not init flows
+                                        const isGeneralFlow = wf.isPage === "false" &&
+                                            (!wf.isDynaFlow || wf.isDynaFlow === "false") &&
+                                            (!wf.isDynaFlowTask || wf.isDynaFlowTask === "false") &&
+                                            !wf.name.endsWith("initobjwf") &&
+                                            !wf.name.endsWith("initreport");
+                                        return isGeneralFlow && wf.name === general_flow_name;
+                                    });
+                                    
+                                    if (gf) {
+                                        foundGeneralFlow = gf;
+                                        ownerObjectName = obj.name;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundGeneralFlow) {
+                                throw new Error(`General flow "${general_flow_name}" not found`);
+                            }
+                            
+                            // Initialize objectWorkflowParam array if it doesn't exist
+                            if (!foundGeneralFlow.objectWorkflowParam) {
+                                foundGeneralFlow.objectWorkflowParam = [];
+                            }
+                            
+                            // Check if parameter with this name already exists
+                            const existingParam = foundGeneralFlow.objectWorkflowParam.find((p: any) => p.name === param.name);
+                            if (existingParam) {
+                                throw new Error(`Parameter "${param.name}" already exists in general flow "${general_flow_name}"`);
+                            }
+                            
+                            // Add the parameter
+                            foundGeneralFlow.objectWorkflowParam.push(param);
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Added parameter "${param.name}" to general flow "${general_flow_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                param: param,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error adding general flow parameter: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to add general flow parameter'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/update-general-flow-param' && req.method === 'POST') {
+                    // Update an existing parameter in a general flow
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { general_flow_name, param_name, updates } = JSON.parse(body);
+                            
+                            if (!general_flow_name) {
+                                throw new Error('general_flow_name is required');
+                            }
+                            
+                            if (!param_name) {
+                                throw new Error('param_name is required');
+                            }
+                            
+                            if (!updates || Object.keys(updates).length === 0) {
+                                throw new Error('updates object with at least one property is required');
+                            }
+                            
+                            const allObjects = modelService.getAllObjects();
+                            let foundGeneralFlow: any = null;
+                            let ownerObjectName = '';
+                            
+                            // Find the general flow in all objects
+                            for (const obj of allObjects) {
+                                if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                    const gf = obj.objectWorkflow.find((wf: any) => {
+                                        // General flow filtering: isPage="false" AND not DynaFlow AND not init flows
+                                        const isGeneralFlow = wf.isPage === "false" &&
+                                            (!wf.isDynaFlow || wf.isDynaFlow === "false") &&
+                                            (!wf.isDynaFlowTask || wf.isDynaFlowTask === "false") &&
+                                            !wf.name.endsWith("initobjwf") &&
+                                            !wf.name.endsWith("initreport");
+                                        return isGeneralFlow && wf.name === general_flow_name;
+                                    });
+                                    
+                                    if (gf) {
+                                        foundGeneralFlow = gf;
+                                        ownerObjectName = obj.name;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundGeneralFlow) {
+                                throw new Error(`General flow "${general_flow_name}" not found`);
+                            }
+                            
+                            // Find the parameter
+                            if (!foundGeneralFlow.objectWorkflowParam || !Array.isArray(foundGeneralFlow.objectWorkflowParam)) {
+                                throw new Error(`General flow "${general_flow_name}" has no parameters`);
+                            }
+                            
+                            const param = foundGeneralFlow.objectWorkflowParam.find((p: any) => p.name === param_name);
+                            if (!param) {
+                                throw new Error(`Parameter "${param_name}" not found in general flow "${general_flow_name}"`);
+                            }
+                            
+                            // If renaming, check for duplicates
+                            if (updates.name && updates.name !== param_name) {
+                                const duplicateParam = foundGeneralFlow.objectWorkflowParam.find((p: any) => p.name === updates.name);
+                                if (duplicateParam) {
+                                    throw new Error(`Parameter "${updates.name}" already exists in general flow "${general_flow_name}"`);
+                                }
+                            }
+                            
+                            // Apply updates
+                            Object.keys(updates).forEach(key => {
+                                param[key] = updates[key];
+                            });
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated parameter "${param_name}" in general flow "${general_flow_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                param: param,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating general flow parameter: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to update general flow parameter'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/move-general-flow-param' && req.method === 'POST') {
+                    // Move a parameter to a new position in a general flow
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { general_flow_name, param_name, new_position } = JSON.parse(body);
+                            
+                            if (!general_flow_name) {
+                                throw new Error('general_flow_name is required');
+                            }
+                            
+                            if (!param_name) {
+                                throw new Error('param_name is required');
+                            }
+                            
+                            if (typeof new_position !== 'number' || new_position < 0) {
+                                throw new Error('new_position must be a non-negative number');
+                            }
+                            
+                            const allObjects = modelService.getAllObjects();
+                            let foundGeneralFlow: any = null;
+                            let ownerObjectName = '';
+                            
+                            // Find the general flow in all objects
+                            for (const obj of allObjects) {
+                                if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                    const gf = obj.objectWorkflow.find((wf: any) => {
+                                        // General flow filtering: isPage="false" AND not DynaFlow AND not init flows
+                                        const isGeneralFlow = wf.isPage === "false" &&
+                                            (!wf.isDynaFlow || wf.isDynaFlow === "false") &&
+                                            (!wf.isDynaFlowTask || wf.isDynaFlowTask === "false") &&
+                                            !wf.name.endsWith("initobjwf") &&
+                                            !wf.name.endsWith("initreport");
+                                        return isGeneralFlow && wf.name === general_flow_name;
+                                    });
+                                    
+                                    if (gf) {
+                                        foundGeneralFlow = gf;
+                                        ownerObjectName = obj.name;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundGeneralFlow) {
+                                throw new Error(`General flow "${general_flow_name}" not found`);
+                            }
+                            
+                            // Find the parameter
+                            if (!foundGeneralFlow.objectWorkflowParam || !Array.isArray(foundGeneralFlow.objectWorkflowParam)) {
+                                throw new Error(`General flow "${general_flow_name}" has no parameters`);
+                            }
+                            
+                            const paramIndex = foundGeneralFlow.objectWorkflowParam.findIndex((p: any) => p.name === param_name);
+                            if (paramIndex === -1) {
+                                throw new Error(`Parameter "${param_name}" not found in general flow "${general_flow_name}"`);
+                            }
+                            
+                            // Validate new position
+                            if (new_position >= foundGeneralFlow.objectWorkflowParam.length) {
+                                throw new Error(`new_position (${new_position}) must be less than total parameter count (${foundGeneralFlow.objectWorkflowParam.length})`);
+                            }
+                            
+                            const oldPosition = paramIndex;
+                            
+                            // Move the parameter
+                            const [param] = foundGeneralFlow.objectWorkflowParam.splice(oldPosition, 1);
+                            foundGeneralFlow.objectWorkflowParam.splice(new_position, 0, param);
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Moved parameter "${param_name}" from position ${oldPosition} to ${new_position} in general flow "${general_flow_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                old_position: oldPosition,
+                                new_position: new_position,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error moving general flow parameter: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to move general flow parameter'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url && req.url.startsWith('/api/page-init-flows')) {
+                    // Get page init flows (objectWorkflow with name ending in 'initreport' or 'initobjwf') with optional filtering (case-insensitive)
+                    try {
+                        const url = new URL(req.url, `http://${req.headers.host}`);
+                        const pageInitFlowName = url.searchParams.get('page_init_flow_name');
+                        const ownerObjectName = url.searchParams.get('owner_object_name');
+                        
+                        const allObjects = modelService.getAllObjects();
+                        const pageInitFlows: any[] = [];
+                        
+                        for (const obj of allObjects) {
+                            // Skip if owner_object_name filter specified and doesn't match (case-insensitive)
+                            if (ownerObjectName && obj.name.toLowerCase() !== ownerObjectName.toLowerCase()) {
+                                continue;
+                            }
+                            
+                            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                for (const workflow of obj.objectWorkflow) {
+                                    // Check if workflow name ends with 'initreport' or 'initobjwf' (case-insensitive)
+                                    const workflowName = workflow.name ? workflow.name.toLowerCase() : '';
+                                    if (!workflowName.endsWith('initreport') && !workflowName.endsWith('initobjwf')) {
+                                        continue;
+                                    }
+                                    
+                                    // Skip if page_init_flow_name filter specified and doesn't match (case-insensitive)
+                                    if (pageInitFlowName && workflow.name.toLowerCase() !== pageInitFlowName.toLowerCase()) {
+                                        continue;
+                                    }
+                                    
+                                    // Add owner object name to each page init flow for context
+                                    pageInitFlows.push({
+                                        ...workflow,
+                                        _ownerObjectName: obj.name
+                                    });
+                                    
+                                    // If searching for specific flow name, we can stop after finding it
+                                    if (pageInitFlowName && workflow.name.toLowerCase() === pageInitFlowName.toLowerCase()) {
+                                        this.outputChannel.appendLine(`[Data Bridge] Found page init flow "${workflow.name}" in owner object "${obj.name}"`);
+                                        res.writeHead(200);
+                                        res.end(JSON.stringify(pageInitFlows));
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        this.outputChannel.appendLine(`[Data Bridge] Returning ${pageInitFlows.length} page init flows`);
+                        res.writeHead(200);
+                        res.end(JSON.stringify(pageInitFlows));
+                    } catch (error) {
+                        this.outputChannel.appendLine(`[Data Bridge] Error getting page init flows: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            error: error instanceof Error ? error.message : 'Failed to get page init flows'
+                        }));
+                    }
+                }
+                else if (req.url === '/api/update-page-init-flow' && req.method === 'POST') {
+                    // Update an existing page init flow (objectWorkflow ending in InitObjWF or InitReport)
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { page_init_flow_name, updates } = JSON.parse(body);
+                            
+                            if (!page_init_flow_name) {
+                                throw new Error('page_init_flow_name is required');
+                            }
+                            
+                            if (!updates || Object.keys(updates).length === 0) {
+                                throw new Error('At least one property to update is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the page init flow across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundPageInitFlow: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                            const pageInitFlow = obj.objectWorkflow.find((wf: any) => {
+                                                if (wf.name === page_init_flow_name) {
+                                                    // Verify it's a page init flow (ends with InitObjWF or InitReport)
+                                                    const workflowName = wf.name.toLowerCase();
+                                                    return workflowName.endsWith('initobjwf') || workflowName.endsWith('initreport');
+                                                }
+                                                return false;
+                                            });
+                                            if (pageInitFlow) {
+                                                foundPageInitFlow = pageInitFlow;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundPageInitFlow) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundPageInitFlow) {
+                                throw new Error(`Page init flow "${page_init_flow_name}" not found in any data object. Page init flows must end with "InitObjWF" or "InitReport".`);
+                            }
+                            
+                            // Update the page init flow properties
+                            for (const [key, value] of Object.entries(updates)) {
+                                foundPageInitFlow[key] = value;
+                            }
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated page init flow "${page_init_flow_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                page_init_flow: foundPageInitFlow,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating page init flow: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to update page init flow'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/update-full-page-init-flow' && req.method === 'POST') {
+                    // Update a page init flow with its complete schema (bulk replacement)
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { page_init_flow_name, page_init_flow } = JSON.parse(body);
+                            
+                            if (!page_init_flow_name) {
+                                throw new Error('page_init_flow_name is required');
+                            }
+                            
+                            if (!page_init_flow || typeof page_init_flow !== 'object') {
+                                throw new Error('page_init_flow object is required');
+                            }
+                            
+                            const allObjects = modelService.getAllObjects();
+                            let foundPageInitFlow: any = null;
+                            let ownerObjectName = '';
+                            
+                            // Find the page init flow in all objects
+                            for (const obj of allObjects) {
+                                if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                    const pif = obj.objectWorkflow.find((wf: any) => {
+                                        // Page init flow filtering: name ends with 'initreport' or 'initobjwf'
+                                        const isPageInitFlow = wf.name.endsWith('initreport') || wf.name.endsWith('initobjwf');
+                                        return isPageInitFlow && wf.name === page_init_flow_name;
+                                    });
+                                    
+                                    if (pif) {
+                                        foundPageInitFlow = pif;
+                                        ownerObjectName = obj.name;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundPageInitFlow) {
+                                throw new Error(`Page init flow "${page_init_flow_name}" not found`);
+                            }
+                            
+                            // Preserve the name to prevent accidental renaming via full update
+                            const originalName = foundPageInitFlow.name;
+                            
+                            // Replace all properties with the provided page init flow object
+                            // Clear existing properties
+                            Object.keys(foundPageInitFlow).forEach(key => {
+                                delete foundPageInitFlow[key];
+                            });
+                            
+                            // Copy all properties from the provided page init flow
+                            Object.keys(page_init_flow).forEach(key => {
+                                foundPageInitFlow[key] = page_init_flow[key];
+                            });
+                            
+                            // Ensure name is preserved
+                            foundPageInitFlow.name = originalName;
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Fully updated page init flow "${page_init_flow_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                page_init_flow: foundPageInitFlow,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating full page init flow: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to update full page init flow'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/add-page-init-flow-output-var' && req.method === 'POST') {
+                    // Add a new output variable to an existing page init flow
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { page_init_flow_name, output_var } = JSON.parse(body);
+                            
+                            if (!page_init_flow_name) {
+                                throw new Error('page_init_flow_name is required');
+                            }
+                            
+                            if (!output_var || !output_var.name) {
+                                throw new Error('output_var with name property is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the page init flow across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundPageInitFlow: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                            const pageInitFlow = obj.objectWorkflow.find((wf: any) => {
+                                                if (wf.name === page_init_flow_name) {
+                                                    // Verify it's a page init flow (ends with InitObjWF or InitReport)
+                                                    const workflowName = wf.name.toLowerCase();
+                                                    return workflowName.endsWith('initobjwf') || workflowName.endsWith('initreport');
+                                                }
+                                                return false;
+                                            });
+                                            if (pageInitFlow) {
+                                                foundPageInitFlow = pageInitFlow;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundPageInitFlow) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundPageInitFlow) {
+                                throw new Error(`Page init flow "${page_init_flow_name}" not found in any data object. Page init flows must end with "InitObjWF" or "InitReport".`);
+                            }
+                            
+                            // Ensure objectWorkflowOutputVar array exists
+                            if (!foundPageInitFlow.objectWorkflowOutputVar) {
+                                foundPageInitFlow.objectWorkflowOutputVar = [];
+                            }
+                            
+                            // Add the output variable
+                            foundPageInitFlow.objectWorkflowOutputVar.push(output_var);
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Added output variable "${output_var.name}" to page init flow "${page_init_flow_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                output_var: output_var,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error adding page init flow output variable: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to add page init flow output variable'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/update-page-init-flow-output-var' && req.method === 'POST') {
+                    // Update an existing output variable in a page init flow
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { page_init_flow_name, output_var_name, updates } = JSON.parse(body);
+                            
+                            if (!page_init_flow_name) {
+                                throw new Error('page_init_flow_name is required');
+                            }
+                            
+                            if (!output_var_name) {
+                                throw new Error('output_var_name is required');
+                            }
+                            
+                            if (!updates || Object.keys(updates).length === 0) {
+                                throw new Error('At least one property to update is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the page init flow across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundPageInitFlow: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                            const pageInitFlow = obj.objectWorkflow.find((wf: any) => {
+                                                if (wf.name === page_init_flow_name) {
+                                                    // Verify it's a page init flow (ends with InitObjWF or InitReport)
+                                                    const workflowName = wf.name.toLowerCase();
+                                                    return workflowName.endsWith('initobjwf') || workflowName.endsWith('initreport');
+                                                }
+                                                return false;
+                                            });
+                                            if (pageInitFlow) {
+                                                foundPageInitFlow = pageInitFlow;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundPageInitFlow) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundPageInitFlow) {
+                                throw new Error(`Page init flow "${page_init_flow_name}" not found in any data object. Page init flows must end with "InitObjWF" or "InitReport".`);
+                            }
+                            
+                            // Find the output variable
+                            if (!foundPageInitFlow.objectWorkflowOutputVar || !Array.isArray(foundPageInitFlow.objectWorkflowOutputVar)) {
+                                throw new Error(`Page init flow "${page_init_flow_name}" has no output variables`);
+                            }
+                            
+                            const foundOutputVar = foundPageInitFlow.objectWorkflowOutputVar.find((v: any) => v.name === output_var_name);
+                            if (!foundOutputVar) {
+                                throw new Error(`Output variable "${output_var_name}" not found in page init flow "${page_init_flow_name}"`);
+                            }
+                            
+                            // Update the output variable properties
+                            for (const [key, value] of Object.entries(updates)) {
+                                foundOutputVar[key] = value;
+                            }
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated output variable "${output_var_name}" in page init flow "${page_init_flow_name}" in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                output_var: foundOutputVar,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating page init flow output variable: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to update page init flow output variable'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/move-page-init-flow-output-var' && req.method === 'POST') {
+                    // Move a page init flow output variable to a new position
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { page_init_flow_name, output_var_name, new_position } = JSON.parse(body);
+                            
+                            if (!page_init_flow_name) {
+                                throw new Error('page_init_flow_name is required');
+                            }
+                            
+                            if (!output_var_name) {
+                                throw new Error('output_var_name is required');
+                            }
+                            
+                            if (new_position === undefined || new_position === null) {
+                                throw new Error('new_position is required');
+                            }
+                            
+                            if (typeof new_position !== 'number' || new_position < 0) {
+                                throw new Error('new_position must be a non-negative number');
+                            }
+                            
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundPageInitFlow: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (!ns.object || !Array.isArray(ns.object)) {
+                                    continue;
+                                }
+                                
+                                for (const obj of ns.object) {
+                                    if (!obj.objectWorkflow || !Array.isArray(obj.objectWorkflow)) {
+                                        continue;
+                                    }
+                                    
+                                    const pageInitFlow = obj.objectWorkflow.find((wf: any) => {
+                                        if (wf.name === page_init_flow_name) {
+                                            // Verify it's a page init flow (ends with InitObjWF or InitReport)
+                                            const workflowName = wf.name.toLowerCase();
+                                            return workflowName.endsWith('initobjwf') || workflowName.endsWith('initreport');
+                                        }
+                                        return false;
+                                    });
+                                    if (pageInitFlow) {
+                                        foundPageInitFlow = pageInitFlow;
+                                        ownerObjectName = obj.name;
+                                        break;
+                                    }
+                                }
+                                
+                                if (foundPageInitFlow) {
+                                    break;
+                                }
+                            }
+                            
+                            if (!foundPageInitFlow) {
+                                throw new Error(`Page init flow "${page_init_flow_name}" not found in any data object. Page init flows must end with "InitObjWF" or "InitReport".`);
+                            }
+                            
+                            if (!foundPageInitFlow.objectWorkflowOutputVar || !Array.isArray(foundPageInitFlow.objectWorkflowOutputVar)) {
+                                throw new Error(`Page init flow "${page_init_flow_name}" has no output variables`);
+                            }
+                            
+                            const outputVarIndex = foundPageInitFlow.objectWorkflowOutputVar.findIndex((v: any) => v.name === output_var_name);
+                            
+                            if (outputVarIndex === -1) {
+                                throw new Error(`Output variable "${output_var_name}" not found in page init flow "${page_init_flow_name}"`);
+                            }
+                            
+                            const outputVarCount = foundPageInitFlow.objectWorkflowOutputVar.length;
+                            if (new_position >= outputVarCount) {
+                                throw new Error(`new_position (${new_position}) must be less than output variable count (${outputVarCount}). Valid range: 0 to ${outputVarCount - 1}`);
+                            }
+                            
+                            const old_position = outputVarIndex;
+                            
+                            if (old_position === new_position) {
+                                res.writeHead(200);
+                                res.end(JSON.stringify({
+                                    success: true,
+                                    owner_object_name: ownerObjectName,
+                                    old_position: old_position,
+                                    new_position: new_position,
+                                    output_var_count: outputVarCount,
+                                    message: `Output variable "${output_var_name}" is already at position ${new_position}`
+                                }));
+                                return;
+                            }
+                            
+                            const [movedVar] = foundPageInitFlow.objectWorkflowOutputVar.splice(outputVarIndex, 1);
+                            foundPageInitFlow.objectWorkflowOutputVar.splice(new_position, 0, movedVar);
+                            
+                            modelService.markUnsavedChanges();
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Moved output variable "${output_var_name}" in page init flow "${page_init_flow_name}" from position ${old_position} to ${new_position}`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                owner_object_name: ownerObjectName,
+                                old_position: old_position,
+                                new_position: new_position,
+                                output_var_count: outputVarCount
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error moving page init flow output variable: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to move page init flow output variable'
+                            }));
+                        }
+                    });
+                }
                 else if (req.url === '/api/create-form' && req.method === 'POST') {
                     // Create a new form (objectWorkflow) in an owner data object
                     let body = '';
@@ -925,6 +2462,183 @@ export class McpBridge {
                             res.end(JSON.stringify({
                                 success: false,
                                 error: error instanceof Error ? error.message : 'Failed to update form'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/update-full-form' && req.method === 'POST') {
+                    // Update an existing form with merge/patch operation
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { form_name, form } = JSON.parse(body);
+                            
+                            if (!form_name) {
+                                throw new Error('form_name is required');
+                            }
+                            
+                            if (!form || typeof form !== 'object') {
+                                throw new Error('form object is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the form across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundForm: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                            const wf = obj.objectWorkflow.find((w: any) => w.name === form_name);
+                                            if (wf) {
+                                                foundForm = wf;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundForm) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundForm) {
+                                throw new Error(`Form "${form_name}" not found in any data object`);
+                            }
+                            
+                            // Merge/patch operation: update only provided form-level properties
+                            const formLevelProps = [
+                                'titleText', 'initObjectWorkflowName', 'isInitObjWFSubscribedToParams',
+                                'isExposedInBusinessObject', 'isObjectDelete', 'layoutName',
+                                'introText', 'formTitleText', 'formIntroText', 'formFooterText',
+                                'formFooterImageURL', 'codeDescription', 'isAutoSubmit',
+                                'isHeaderVisible', 'isPage', 'isAuthorizationRequired',
+                                'isLoginPage', 'isLogoutPage', 'isImpersonationPage',
+                                'roleRequired', 'isCaptchaVisible', 'isCreditCardEntryUsed',
+                                'headerImageURL', 'footerImageURL', 'isDynaFlow',
+                                'isDynaFlowTask', 'isCustomPageViewUsed', 'isIgnoredInDocumentation',
+                                'targetChildObject', 'isCustomLogicOverwritten'
+                            ];
+                            
+                            formLevelProps.forEach(prop => {
+                                if (form[prop] !== undefined) {
+                                    foundForm[prop] = form[prop];
+                                }
+                            });
+                            
+                            // Handle objectWorkflowParam array (merge by name)
+                            if (form.objectWorkflowParam && Array.isArray(form.objectWorkflowParam)) {
+                                if (!foundForm.objectWorkflowParam) {
+                                    foundForm.objectWorkflowParam = [];
+                                }
+                                
+                                form.objectWorkflowParam.forEach((newParam: any) => {
+                                    const existingParamIndex = foundForm.objectWorkflowParam.findIndex(
+                                        (p: any) => p.name === newParam.name
+                                    );
+                                    
+                                    if (existingParamIndex !== -1) {
+                                        // Update existing - merge fields
+                                        const existingParam = foundForm.objectWorkflowParam[existingParamIndex];
+                                        Object.keys(newParam).forEach(key => {
+                                            if (key !== 'name') {
+                                                existingParam[key] = newParam[key];
+                                            }
+                                        });
+                                    } else {
+                                        // Add new param
+                                        foundForm.objectWorkflowParam.push(newParam);
+                                    }
+                                });
+                            }
+                            
+                            // Handle objectWorkflowOutputVar array (merge by name)
+                            if (form.objectWorkflowOutputVar && Array.isArray(form.objectWorkflowOutputVar)) {
+                                if (!foundForm.objectWorkflowOutputVar) {
+                                    foundForm.objectWorkflowOutputVar = [];
+                                }
+                                
+                                form.objectWorkflowOutputVar.forEach((newOutputVar: any) => {
+                                    const existingOutputVarIndex = foundForm.objectWorkflowOutputVar.findIndex(
+                                        (o: any) => o.name === newOutputVar.name
+                                    );
+                                    
+                                    if (existingOutputVarIndex !== -1) {
+                                        // Update existing - merge fields
+                                        const existingOutputVar = foundForm.objectWorkflowOutputVar[existingOutputVarIndex];
+                                        Object.keys(newOutputVar).forEach(key => {
+                                            if (key !== 'name') {
+                                                existingOutputVar[key] = newOutputVar[key];
+                                            }
+                                        });
+                                    } else {
+                                        // Add new output var
+                                        foundForm.objectWorkflowOutputVar.push(newOutputVar);
+                                    }
+                                });
+                            }
+                            
+                            // Handle objectWorkflowButton array (merge by buttonText)
+                            if (form.objectWorkflowButton && Array.isArray(form.objectWorkflowButton)) {
+                                if (!foundForm.objectWorkflowButton) {
+                                    foundForm.objectWorkflowButton = [];
+                                }
+                                
+                                form.objectWorkflowButton.forEach((newButton: any) => {
+                                    const existingButtonIndex = foundForm.objectWorkflowButton.findIndex(
+                                        (b: any) => b.buttonText === newButton.buttonText
+                                    );
+                                    
+                                    if (existingButtonIndex !== -1) {
+                                        // Update existing - merge fields
+                                        const existingButton = foundForm.objectWorkflowButton[existingButtonIndex];
+                                        Object.keys(newButton).forEach(key => {
+                                            existingButton[key] = newButton[key];
+                                        });
+                                    } else {
+                                        // Add new button
+                                        foundForm.objectWorkflowButton.push(newButton);
+                                    }
+                                });
+                            }
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            // Refresh the tree view
+                            vscode.commands.executeCommand('appDNAExtension.refreshTreeView');
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated full form "${form_name}" with merge/patch operation in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                form: foundForm,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating full form: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to update full form'
                             }));
                         }
                     });
@@ -1862,6 +3576,173 @@ export class McpBridge {
                             res.end(JSON.stringify({
                                 success: false,
                                 error: error instanceof Error ? error.message : 'Failed to update form output variable'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/update-full-report' && req.method === 'POST') {
+                    // Update an existing report with merge/patch operation
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { report_name, report } = JSON.parse(body);
+                            
+                            if (!report_name) {
+                                throw new Error('report_name is required');
+                            }
+                            
+                            if (!report || typeof report !== 'object') {
+                                throw new Error('report object is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the report across all objects (case-sensitive exact match)
+                            if (!model.namespace || !Array.isArray(model.namespace)) {
+                                throw new Error("Invalid model structure");
+                            }
+                            
+                            let foundReport: any = null;
+                            let ownerObjectName: string = '';
+                            
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    for (const obj of ns.object) {
+                                        if (obj.report && Array.isArray(obj.report)) {
+                                            const rep = obj.report.find((r: any) => r.name === report_name);
+                                            if (rep) {
+                                                foundReport = rep;
+                                                ownerObjectName = obj.name;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (foundReport) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundReport) {
+                                throw new Error(`Report "${report_name}" not found in any data object`);
+                            }
+                            
+                            // Merge/patch operation: update only provided report-level properties
+                            const reportLevelProps = [
+                                'titleText', 'introText', 'visualizationType', 'isCustomSqlUsed',
+                                'isIgnoredInDocumentation'
+                            ];
+                            
+                            reportLevelProps.forEach(prop => {
+                                if (report[prop] !== undefined) {
+                                    foundReport[prop] = report[prop];
+                                }
+                            });
+                            
+                            // Handle reportParam array (merge by name)
+                            if (report.reportParam && Array.isArray(report.reportParam)) {
+                                if (!foundReport.reportParam) {
+                                    foundReport.reportParam = [];
+                                }
+                                
+                                report.reportParam.forEach((newParam: any) => {
+                                    const existingParamIndex = foundReport.reportParam.findIndex(
+                                        (p: any) => p.name === newParam.name
+                                    );
+                                    
+                                    if (existingParamIndex !== -1) {
+                                        // Update existing - merge fields
+                                        const existingParam = foundReport.reportParam[existingParamIndex];
+                                        Object.keys(newParam).forEach(key => {
+                                            if (key !== 'name') {
+                                                existingParam[key] = newParam[key];
+                                            }
+                                        });
+                                    } else {
+                                        // Add new param
+                                        foundReport.reportParam.push(newParam);
+                                    }
+                                });
+                            }
+                            
+                            // Handle reportColumn array (merge by columnName)
+                            if (report.reportColumn && Array.isArray(report.reportColumn)) {
+                                if (!foundReport.reportColumn) {
+                                    foundReport.reportColumn = [];
+                                }
+                                
+                                report.reportColumn.forEach((newColumn: any) => {
+                                    const existingColumnIndex = foundReport.reportColumn.findIndex(
+                                        (c: any) => c.columnName === newColumn.columnName
+                                    );
+                                    
+                                    if (existingColumnIndex !== -1) {
+                                        // Update existing - merge fields
+                                        const existingColumn = foundReport.reportColumn[existingColumnIndex];
+                                        Object.keys(newColumn).forEach(key => {
+                                            existingColumn[key] = newColumn[key];
+                                        });
+                                    } else {
+                                        // Add new column
+                                        foundReport.reportColumn.push(newColumn);
+                                    }
+                                });
+                            }
+                            
+                            // Handle reportButton array (merge by buttonText)
+                            if (report.reportButton && Array.isArray(report.reportButton)) {
+                                if (!foundReport.reportButton) {
+                                    foundReport.reportButton = [];
+                                }
+                                
+                                report.reportButton.forEach((newButton: any) => {
+                                    const existingButtonIndex = foundReport.reportButton.findIndex(
+                                        (b: any) => b.buttonText === newButton.buttonText
+                                    );
+                                    
+                                    if (existingButtonIndex !== -1) {
+                                        // Update existing - merge fields
+                                        const existingButton = foundReport.reportButton[existingButtonIndex];
+                                        Object.keys(newButton).forEach(key => {
+                                            existingButton[key] = newButton[key];
+                                        });
+                                    } else {
+                                        // Add new button
+                                        foundReport.reportButton.push(newButton);
+                                    }
+                                });
+                            }
+                            
+                            // Mark model as having unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            // Refresh the tree view
+                            vscode.commands.executeCommand('appDNAExtension.refreshTreeView');
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated full report "${report_name}" with merge/patch operation in owner object "${ownerObjectName}"`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({
+                                success: true,
+                                report: foundReport,
+                                owner_object_name: ownerObjectName
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating full report: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Failed to update full report'
                             }));
                         }
                     });

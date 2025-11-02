@@ -17,6 +17,16 @@ get_data_object
 get_data_object_schema
 get_form_schema
 get_form
+get_general_flow_schema
+get_general_flow
+update_general_flow
+update_full_general_flow
+add_general_flow_param
+update_general_flow_param
+move_general_flow_param
+add_general_flow_output_var
+update_general_flow_output_var
+move_general_flow_output_var
 suggest_form_name_and_title
 create_form
 update_form

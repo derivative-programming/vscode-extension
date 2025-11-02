@@ -8,6 +8,7 @@ import { ModelService } from '../services/modelService';
 import { UserStoryTools } from './tools/userStoryTools';
 import { DataObjectTools } from './tools/dataObjectTools';
 import { FormTools } from './tools/formTools';
+import { GeneralFlowTools } from './tools/generalFlowTools';
 import { ReportTools } from './tools/reportTools';
 
 /**
@@ -146,6 +147,7 @@ export class AppDNAMcpProvider {
     private userStoryTools: UserStoryTools;
     private dataObjectTools: DataObjectTools;
     private formTools: FormTools;
+    private generalFlowTools: GeneralFlowTools;
     private reportTools: ReportTools;
     private disposables: vscode.Disposable[] = [];
 
@@ -154,6 +156,7 @@ export class AppDNAMcpProvider {
         this.userStoryTools = new UserStoryTools(this.modelService);
         this.dataObjectTools = new DataObjectTools(this.modelService);
         this.formTools = new FormTools(this.modelService);
+        this.generalFlowTools = new GeneralFlowTools(this.modelService);
         this.reportTools = new ReportTools(this.modelService);
         this.registerTools();
     }
@@ -805,6 +808,270 @@ export class AppDNAMcpProvider {
         });
         console.log('[MCP Provider] ✓ get_form_schema registered');
 
+        // Register get_general_flow_schema tool
+        console.log('[MCP Provider] Registering get_general_flow_schema...');
+        const getGeneralFlowSchemaTool = vscode.lm.registerTool('get_general_flow_schema', {
+            prepareInvocation: async (options, token) => {
+                return {
+                    invocationMessage: 'Getting schema definition for complete general flow structure (objectWorkflow with isPage="false")',
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const result = await this.generalFlowTools.get_general_flow_schema();
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ get_general_flow_schema registered');
+
+        // Register get_general_flow tool
+        console.log('[MCP Provider] Registering get_general_flow...');
+        const getGeneralFlowTool = vscode.lm.registerTool('get_general_flow', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { owner_object_name?: string; general_flow_name: string };
+                const message = input.owner_object_name 
+                    ? `Getting general flow "${input.general_flow_name}" from owner object "${input.owner_object_name}"`
+                    : `Getting general flow "${input.general_flow_name}" (searching all objects)`;
+                return {
+                    invocationMessage: message,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as { owner_object_name?: string; general_flow_name: string };
+                    const result = await this.generalFlowTools.get_general_flow(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ get_general_flow registered');
+
+        // Register update_general_flow tool
+        console.log('[MCP Provider] Registering update_general_flow...');
+        const updateGeneralFlowTool = vscode.lm.registerTool('update_general_flow', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { general_flow_name: string; updates: any };
+                const updateProps = Object.keys(input.updates || {}).join(', ');
+                return {
+                    invocationMessage: `Updating general flow "${input.general_flow_name}" (properties: ${updateProps})`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as { general_flow_name: string; updates: any };
+                    const result = await this.generalFlowTools.update_general_flow(input.general_flow_name, input.updates);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ update_general_flow registered');
+
+        // Register add_general_flow_output_var tool
+        console.log('[MCP Provider] Registering add_general_flow_output_var...');
+        const addGeneralFlowOutputVarTool = vscode.lm.registerTool('add_general_flow_output_var', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { general_flow_name: string; output_var: any };
+                return {
+                    invocationMessage: `Adding output variable "${input.output_var.name}" to general flow "${input.general_flow_name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as { general_flow_name: string; output_var: any };
+                    const result = await this.generalFlowTools.add_general_flow_output_var(input.general_flow_name, input.output_var);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ add_general_flow_output_var registered');
+
+        // Register update_general_flow_output_var tool
+        console.log('[MCP Provider] Registering update_general_flow_output_var...');
+        const updateGeneralFlowOutputVarTool = vscode.lm.registerTool('update_general_flow_output_var', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { general_flow_name: string; output_var_name: string; updates: any };
+                const updateProps = Object.keys(input.updates || {}).join(', ');
+                return {
+                    invocationMessage: `Updating output variable "${input.output_var_name}" in general flow "${input.general_flow_name}" (properties: ${updateProps})`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as { general_flow_name: string; output_var_name: string; updates: any };
+                    const result = await this.generalFlowTools.update_general_flow_output_var(input.general_flow_name, input.output_var_name, input.updates);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ update_general_flow_output_var registered');
+
+        // Register move_general_flow_output_var tool
+        console.log('[MCP Provider] Registering move_general_flow_output_var...');
+        const moveGeneralFlowOutputVarTool = vscode.lm.registerTool('move_general_flow_output_var', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { general_flow_name: string; output_var_name: string; new_position: number };
+                return {
+                    invocationMessage: `Moving output variable "${input.output_var_name}" to position ${input.new_position} in general flow "${input.general_flow_name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as { general_flow_name: string; output_var_name: string; new_position: number };
+                    const result = await this.generalFlowTools.move_general_flow_output_var(input.general_flow_name, input.output_var_name, input.new_position);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ move_general_flow_output_var registered');
+
+        // Register add_general_flow_param tool
+        console.log('[MCP Provider] Registering add_general_flow_param...');
+        const addGeneralFlowParamTool = vscode.lm.registerTool('add_general_flow_param', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { general_flow_name: string; param: any };
+                return {
+                    invocationMessage: `Adding parameter "${input.param?.name || 'unnamed'}" to general flow "${input.general_flow_name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as { general_flow_name: string; param: any };
+                    const result = await this.generalFlowTools.add_general_flow_param(input.general_flow_name, input.param);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ add_general_flow_param registered');
+
+        // Register update_general_flow_param tool
+        console.log('[MCP Provider] Registering update_general_flow_param...');
+        const updateGeneralFlowParamTool = vscode.lm.registerTool('update_general_flow_param', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { general_flow_name: string; param_name: string; updates: any };
+                return {
+                    invocationMessage: `Updating parameter "${input.param_name}" in general flow "${input.general_flow_name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as { general_flow_name: string; param_name: string; updates: any };
+                    const result = await this.generalFlowTools.update_general_flow_param(input.general_flow_name, input.param_name, input.updates);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ update_general_flow_param registered');
+
+        // Register move_general_flow_param tool
+        console.log('[MCP Provider] Registering move_general_flow_param...');
+        const moveGeneralFlowParamTool = vscode.lm.registerTool('move_general_flow_param', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { general_flow_name: string; param_name: string; new_position: number };
+                return {
+                    invocationMessage: `Moving parameter "${input.param_name}" to position ${input.new_position} in general flow "${input.general_flow_name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as { general_flow_name: string; param_name: string; new_position: number };
+                    const result = await this.generalFlowTools.move_general_flow_param(input.general_flow_name, input.param_name, input.new_position);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ move_general_flow_param registered');
+
         // Register get_form tool
         console.log('[MCP Provider] Registering get_form...');
         const getFormTool = vscode.lm.registerTool('get_form', {
@@ -1262,14 +1529,16 @@ export class AppDNAMcpProvider {
 
         // Register open_add_data_object_wizard tool
         const openAddDataObjectWizardTool = vscode.lm.registerTool('open_add_data_object_wizard', {
-            description: 'Opens the Add Data Object Wizard for creating a new data object. The wizard guides you through creating a data object with options for lookup objects, child objects, and parent-child relationships.',
-            inputSchema: {},
             invoke: async (options, token) => {
                 try {
                     await vscode.commands.executeCommand('appdna.mcp.openAddDataObjectWizard');
-                    return { content: [{ type: 'text', text: JSON.stringify({ success: true, message: 'Add Data Object Wizard opened successfully' }, null, 2) }] };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: 'Add Data Object Wizard opened successfully' }, null, 2))
+                    ]);
                 } catch (error) {
-                    return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: error.message }, null, 2) }] };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Unknown error' }, null, 2))
+                    ]);
                 }
             }
         });
@@ -1277,14 +1546,16 @@ export class AppDNAMcpProvider {
 
         // Register open_add_report_wizard tool
         const openAddReportWizardTool = vscode.lm.registerTool('open_add_report_wizard', {
-            description: 'Opens the Add Report Wizard for creating a new report. The wizard guides you through creating a report with options for selecting the report type, configuring columns, parameters, and filters.',
-            inputSchema: {},
             invoke: async (options, token) => {
                 try {
                     await vscode.commands.executeCommand('appdna.mcp.openAddReportWizard');
-                    return { content: [{ type: 'text', text: JSON.stringify({ success: true, message: 'Add Report Wizard opened successfully' }, null, 2) }] };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: 'Add Report Wizard opened successfully' }, null, 2))
+                    ]);
                 } catch (error) {
-                    return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: error.message }, null, 2) }] };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Unknown error' }, null, 2))
+                    ]);
                 }
             }
         });

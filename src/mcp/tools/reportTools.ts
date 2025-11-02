@@ -2122,4 +2122,160 @@ export class ReportTools {
             };
         }
     }
+
+    /**
+     * Updates a report with its complete schema (merge/patch operation)
+     * Tool name: update_full_report (following MCP snake_case convention)
+     * @param report_name - Name of the report to update (case-sensitive, exact match required)
+     * @param report - Report object with properties to update/add (does not remove existing properties)
+     * @returns Result object with success status and updated report
+     */
+    async update_full_report(
+        report_name: string,
+        report: any
+    ): Promise<{ success: boolean; report?: any; owner_object_name?: string; message?: string; error?: string; note?: string; validationErrors?: string[] }> {
+        // Validate required parameters
+        const validationErrors: string[] = [];
+        
+        if (!report_name) {
+            validationErrors.push('report_name is required');
+        }
+        
+        if (!report || typeof report !== 'object') {
+            validationErrors.push('report is required and must be an object');
+        }
+        
+        if (validationErrors.length > 0) {
+            return {
+                success: false,
+                error: 'Validation failed',
+                validationErrors: validationErrors,
+                note: 'report_name is required (case-sensitive). report object must be provided with at least one property to update.'
+            };
+        }
+        
+        // Get actual schema for validation
+        const schemaResult = await this.get_report_schema();
+        const schema = schemaResult.schema;
+        
+        // Use JSON Schema validation with ajv
+        if (schema) {
+            try {
+                const Ajv = require('ajv');
+                const ajv = new Ajv({ allErrors: true, strict: false });
+                
+                const validate = ajv.compile(schema);
+                const valid = validate(report);
+                
+                if (!valid && validate.errors) {
+                    validate.errors.forEach((error: any) => {
+                        const path = error.instancePath || error.dataPath || '';
+                        const field = path.replace(/^\//, '').replace(/\//g, '.') || 'root';
+                        
+                        if (error.keyword === 'enum') {
+                            validationErrors.push(`${field}: must be one of ${JSON.stringify(error.params.allowedValues)}`);
+                        } else if (error.keyword === 'pattern') {
+                            validationErrors.push(`${field}: ${error.message} (expected pattern: ${error.params.pattern})`);
+                        } else if (error.keyword === 'type') {
+                            validationErrors.push(`${field}: must be ${error.params.type}`);
+                        } else if (error.keyword === 'required') {
+                            validationErrors.push(`${error.params.missingProperty} is required`);
+                        } else {
+                            validationErrors.push(`${field}: ${error.message}`);
+                        }
+                    });
+                }
+            } catch (error) {
+                // If schema validation fails, fall back to basic validation
+                console.error('Schema validation error:', error);
+            }
+        }
+        
+        // Additional business rule validation
+        if (report.reportParam && Array.isArray(report.reportParam)) {
+            report.reportParam.forEach((param: any, index: number) => {
+                // Validate FK requires fKObjectName
+                if (param.isFK === 'true' && !param.fKObjectName) {
+                    validationErrors.push(`Parameter ${index} (${param.name || index}): fKObjectName is required when isFK is "true"`);
+                }
+            });
+        }
+        
+        if (validationErrors.length > 0) {
+            return {
+                success: false,
+                error: 'Validation failed',
+                validationErrors: validationErrors,
+                note: 'Please check the validation errors and ensure all values match the schema requirements from get_report_schema.'
+            };
+        }
+        
+        try {
+            // Call bridge API to update full report
+            const http = await import('http');
+            const postData = {
+                report_name,
+                report: report
+            };
+
+            const postDataString = JSON.stringify(postData);
+
+            const result: any = await new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/update-full-report',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => {
+                            data += chunk;
+                        });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+
+                req.on('error', (error) => {
+                    reject(error);
+                });
+
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error || 'Failed to update full report'
+                };
+            }
+
+            return {
+                success: true,
+                report: result.report,
+                owner_object_name: result.owner_object_name,
+                message: `Report "${report_name}" updated with provided properties`,
+                note: 'Report properties have been updated/added (existing properties not removed). Properties in reportParam, reportColumn, and reportButton arrays are matched by name/buttonText and updated, new items are added. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not update full report: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to update reports. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
 }

@@ -1960,6 +1960,161 @@ export class DataObjectTools {
     }
 
     /**
+     * Updates a data object with its complete schema (merge/patch operation)
+     * Tool name: update_full_data_object (following MCP snake_case convention)
+     * @param data_object_name - Name of the data object to update (case-sensitive, exact match required)
+     * @param data_object - Data object with properties to update/add (does not remove existing properties)
+     * @returns Result object with success status and updated data object
+     */
+    public async update_full_data_object(
+        data_object_name: string,
+        data_object: any
+    ): Promise<{ success: boolean; data_object?: any; message?: string; error?: string; note?: string; validationErrors?: string[] }> {
+        // Validate required parameters
+        const validationErrors: string[] = [];
+        
+        if (!data_object_name) {
+            validationErrors.push('data_object_name is required');
+        }
+        
+        if (!data_object || typeof data_object !== 'object') {
+            validationErrors.push('data_object is required and must be an object');
+        }
+        
+        if (validationErrors.length > 0) {
+            return {
+                success: false,
+                error: 'Validation failed',
+                validationErrors: validationErrors,
+                note: 'data_object_name is required (case-sensitive). data_object must be provided with at least one property to update.'
+            };
+        }
+        
+        // Get actual schema for validation
+        const schemaResult = await this.get_data_object_schema();
+        const schema = schemaResult.schema;
+        
+        // Use JSON Schema validation with ajv
+        if (schema) {
+            try {
+                const Ajv = require('ajv');
+                const ajv = new Ajv({ allErrors: true, strict: false });
+                
+                const validate = ajv.compile(schema);
+                const valid = validate(data_object);
+                
+                if (!valid && validate.errors) {
+                    validate.errors.forEach((error: any) => {
+                        const path = error.instancePath || error.dataPath || '';
+                        const field = path.replace(/^\//, '').replace(/\//g, '.') || 'root';
+                        
+                        if (error.keyword === 'enum') {
+                            validationErrors.push(`${field}: must be one of ${JSON.stringify(error.params.allowedValues)}`);
+                        } else if (error.keyword === 'pattern') {
+                            validationErrors.push(`${field}: ${error.message} (expected pattern: ${error.params.pattern})`);
+                        } else if (error.keyword === 'type') {
+                            validationErrors.push(`${field}: must be ${error.params.type}`);
+                        } else if (error.keyword === 'required') {
+                            validationErrors.push(`${error.params.missingProperty} is required`);
+                        } else {
+                            validationErrors.push(`${field}: ${error.message}`);
+                        }
+                    });
+                }
+            } catch (error) {
+                // If schema validation fails, fall back to basic validation
+                console.error('Schema validation error:', error);
+            }
+        }
+        
+        // Additional business rule validation
+        if (data_object.prop && Array.isArray(data_object.prop)) {
+            data_object.prop.forEach((prop: any, index: number) => {
+                // Validate FK requires fkObjectName
+                if (prop.isFK === 'true' && !prop.fkObjectName) {
+                    validationErrors.push(`Property ${index} (${prop.name || index}): fkObjectName is required when isFK is "true"`);
+                }
+            });
+        }
+        
+        if (validationErrors.length > 0) {
+            return {
+                success: false,
+                error: 'Validation failed',
+                validationErrors: validationErrors,
+                note: 'Please check the validation errors and ensure all values match the schema requirements from get_data_object_schema.'
+            };
+        }
+        
+        try {
+            // Call bridge API to update full data object
+            const postData = {
+                data_object_name,
+                data_object: data_object
+            };
+
+            const postDataString = JSON.stringify(postData);
+
+            const result: any = await new Promise((resolve, reject) => {
+                const http = require('http');
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/update-full-data-object',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res: any) => {
+                        let data = '';
+                        res.on('data', (chunk: any) => {
+                            data += chunk;
+                        });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+
+                req.on('error', (error: any) => {
+                    reject(error);
+                });
+
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error || 'Failed to update full data object'
+                };
+            }
+
+            return {
+                success: true,
+                data_object: result.data_object,
+                message: `Data object "${data_object_name}" updated with provided properties`,
+                note: 'Data object properties have been updated/added (existing properties not removed). Properties in prop array are matched by name and updated, new properties are added. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not update full data object: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to update data objects. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
      * Lists all pages (forms and reports) from the AppDNA model with optional filtering
      * Tool name: list_pages (following MCP snake_case convention)
      * @param parameters Optional filter parameters

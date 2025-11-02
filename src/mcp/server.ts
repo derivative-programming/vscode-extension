@@ -11,9 +11,11 @@ import { UserStoryTools } from './tools/userStoryTools';
 import { ViewTools } from './tools/viewTools';
 import { DataObjectTools } from './tools/dataObjectTools';
 import { FormTools } from './tools/formTools';
+import { GeneralFlowTools } from './tools/generalFlowTools';
 import { ReportTools } from './tools/reportTools';
 import { ModelTools } from './tools/modelTools';
 import { ModelServiceTools } from './tools/modelServiceTools';
+import { PageInitTools } from './tools/pageInitTools';
 
 /**
  * Main MCP Server class
@@ -25,9 +27,11 @@ export class MCPServer {
     private viewTools: ViewTools;
     private dataObjectTools: DataObjectTools;
     private formTools: FormTools;
+    private generalFlowTools: GeneralFlowTools;
     private reportTools: ReportTools;
     private modelTools: ModelTools;
     private modelServiceTools: ModelServiceTools;
+    private pageInitTools: PageInitTools;
     private transport: StdioServerTransport;
 
     private constructor() {
@@ -36,9 +40,11 @@ export class MCPServer {
         this.viewTools = new ViewTools();
         this.dataObjectTools = new DataObjectTools(null);
         this.formTools = new FormTools(null);
+        this.generalFlowTools = new GeneralFlowTools(null);
         this.reportTools = new ReportTools(null);
         this.modelTools = new ModelTools();
         this.modelServiceTools = new ModelServiceTools();
+        this.pageInitTools = new PageInitTools(null);
 
         // Create MCP server
         this.server = new McpServer({
@@ -744,6 +750,33 @@ export class MCPServer {
             }
         });
 
+        // Register get_general_flow_schema tool
+        this.server.registerTool('get_general_flow_schema', {
+            title: 'Get General Flow Schema',
+            description: 'Get the schema definition for complete general flow structure (objectWorkflow with isPage="false"). General flows are reusable business logic workflows that can be called from multiple places. Includes all general flow properties (name, isPage, roleRequired, isExposedInBusinessObject, etc.), input parameter structure (objectWorkflowParam), output variable structure (objectWorkflowOutputVar), validation rules, SQL data types, and examples of complete general flows with all components.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                schema: z.any(),
+                note: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.generalFlowTools.get_general_flow_schema();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register get_form tool
         this.server.registerTool('get_form', {
             title: 'Get Form',
@@ -769,6 +802,419 @@ export class MCPServer {
         }, async ({ owner_object_name, form_name }) => {
             try {
                 const result = await this.formTools.get_form({ owner_object_name, form_name });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register get_general_flow tool
+        this.server.registerTool('get_general_flow', {
+            title: 'Get General Flow',
+            description: 'Get complete details of a specific general flow by name. If owner_object_name is provided, searches only that object; otherwise searches all objects. Returns the full general flow structure including all input parameters (objectWorkflowParam), output variables (objectWorkflowOutputVar), and element counts. General flows are reusable business logic workflows with isPage="false". General flow name matching is case-insensitive.',
+            inputSchema: {
+                general_flow_name: z.string().describe('The name of the general flow to retrieve (case-insensitive matching)'),
+                owner_object_name: z.string().optional().describe('Optional: The name of the owner data object that contains the general flow (case-insensitive matching). If not provided, all objects will be searched.')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                general_flow: z.any().optional().describe('Complete general flow object with all properties and arrays'),
+                owner_object_name: z.string().optional(),
+                element_counts: z.object({
+                    paramCount: z.number(),
+                    outputVarCount: z.number(),
+                    totalElements: z.number()
+                }).optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async ({ owner_object_name, general_flow_name }) => {
+            try {
+                const result = await this.generalFlowTools.get_general_flow({ owner_object_name, general_flow_name });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register update_general_flow tool
+        this.server.registerTool('update_general_flow', {
+            title: 'Update General Flow',
+            description: 'Update properties of an existing general flow. Requires exact case-sensitive general flow name. Updates are made in-memory and model will have unsaved changes after update. General flows are reusable business logic workflows with isPage="false". At least one property to update must be provided.',
+            inputSchema: {
+                general_flow_name: z.string().describe('The name of the general flow to update (case-sensitive, exact match required)'),
+                updates: z.object({
+                    titleText: z.string().optional().describe('The title text displayed for the general flow'),
+                    isInitObjWFSubscribedToParams: z.enum(['true', 'false']).optional().describe('Whether the init workflow subscribes to parameters'),
+                    layoutName: z.string().optional().describe('The layout to use for the general flow'),
+                    introText: z.string().optional().describe('Introduction text for the general flow'),
+                    codeDescription: z.string().optional().describe('Code description/documentation'),
+                    isHeaderVisible: z.enum(['true', 'false']).optional().describe('Whether the header is visible'),
+                    isIgnored: z.enum(['true', 'false']).optional().describe('Whether the general flow is ignored (soft delete)'),
+                    sortOrder: z.string().optional().describe('Sort order for the general flow')
+                }).describe('Object containing properties to update. At least one property must be provided.')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                general_flow: z.any().optional().describe('Updated general flow object with all properties'),
+                owner_object_name: z.string().optional().describe('Name of the data object that owns the general flow'),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ general_flow_name, updates }) => {
+            try {
+                const result = await this.generalFlowTools.update_general_flow(general_flow_name as string, updates);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register list_general_flows tool
+        this.server.registerTool('list_general_flows', {
+            title: 'List General Flows',
+            description: 'List all general flows from the model with optional filtering. General flows are reusable business logic workflows (objectWorkflow with isPage="false", not DynaFlow tasks, not init flows). Each flow includes name, owner object, parameters, output variables, and steps. Supports filtering by general flow name (exact match) or owner object name (exact match). All name matching is case-insensitive.',
+            inputSchema: {
+                general_flow_name: z.string().optional().describe('Optional: Filter by general flow name (case-insensitive, exact match)'),
+                owner_object: z.string().optional().describe('Optional: Filter by owner data object name (case-insensitive, exact match)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                general_flows: z.array(z.any()).optional().describe('Array of general flow objects with all properties'),
+                count: z.number().optional().describe('Total number of general flows returned'),
+                filters: z.object({
+                    general_flow_name: z.string().nullable(),
+                    owner_object: z.string().nullable()
+                }).optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ general_flow_name, owner_object }) => {
+            try {
+                const result = await this.generalFlowTools.list_general_flows({ general_flow_name, owner_object });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register add_general_flow_output_var tool
+        this.server.registerTool('add_general_flow_output_var', {
+            title: 'Add General Flow Output Variable',
+            description: 'Add a new output variable to an existing general flow. Output variables display results/data after general flow execution. Requires exact case-sensitive general flow name. Updates are made in-memory and model will have unsaved changes after adding.',
+            inputSchema: {
+                general_flow_name: z.string().describe('The name of the general flow to add the output variable to (case-sensitive, exact match required)'),
+                output_var: z.object({
+                    name: z.string().describe('The name of the output variable (required, typically PascalCase without spaces)'),
+                    buttonNavURL: z.string().optional().describe('Navigation URL when output variable is clicked as a link'),
+                    buttonObjectWFName: z.string().optional().describe('Workflow to execute when output variable button is clicked'),
+                    buttonText: z.string().optional().describe('Button text if output variable is rendered as a button'),
+                    conditionalVisiblePropertyName: z.string().optional().describe('Property name that controls conditional visibility'),
+                    dataSize: z.string().optional().describe('Data size for the output variable (e.g., "50", "MAX"). Maps to sqlServerDBDataTypeSize.'),
+                    dataType: z.string().optional().describe('SQL Server data type for the output variable (e.g., "nvarchar", "int", "datetime"). Maps to sqlServerDBDataType.'),
+                    defaultValue: z.string().optional().describe('Default value for the output variable'),
+                    fKObjectName: z.string().optional().describe('Foreign key object name if isFK="true"'),
+                    labelText: z.string().optional().describe('Label text displayed for the output variable'),
+                    isAutoRedirectURL: z.enum(['true', 'false']).optional().describe('Whether to auto-redirect to buttonNavURL'),
+                    isFK: z.enum(['true', 'false']).optional().describe('Whether this is a foreign key reference'),
+                    isFKLookup: z.enum(['true', 'false']).optional().describe('Whether this is a lookup from foreign key'),
+                    isLabelVisible: z.enum(['true', 'false']).optional().describe('Whether the label is visible'),
+                    isHeaderText: z.enum(['true', 'false']).optional().describe('Whether this is header text'),
+                    isIgnored: z.enum(['true', 'false']).optional().describe('Whether the output variable is ignored (soft delete)'),
+                    isLink: z.enum(['true', 'false']).optional().describe('Whether the output variable is rendered as a link'),
+                    isVisible: z.enum(['true', 'false']).optional().describe('Whether the output variable is visible'),
+                    sourceObjectName: z.string().optional().describe('Source object name for the output variable value'),
+                    sourcePropertyName: z.string().optional().describe('Source property name for the output variable value')
+                }).describe('The output variable object to add')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                output_var: z.any().optional().describe('The added output variable object'),
+                general_flow_name: z.string().optional(),
+                owner_object_name: z.string().optional().describe('Name of the data object that owns the general flow'),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ general_flow_name, output_var }) => {
+            try {
+                const result = await this.generalFlowTools.add_general_flow_output_var(general_flow_name as string, output_var as any);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register update_general_flow_output_var tool
+        this.server.registerTool('update_general_flow_output_var', {
+            title: 'Update General Flow Output Variable',
+            description: 'Update properties of an existing output variable in a general flow. Requires exact case-sensitive general flow name and output variable name. At least one property to update must be provided. Updates are made in-memory and model will have unsaved changes after update.',
+            inputSchema: {
+                general_flow_name: z.string().describe('The name of the general flow containing the output variable (case-sensitive, exact match required)'),
+                output_var_name: z.string().describe('The current name of the output variable to update (case-sensitive, exact match required, used to identify the output variable)'),
+                updates: z.object({
+                    name: z.string().optional().describe('New name for the output variable (PascalCase without spaces)'),
+                    buttonNavURL: z.string().optional().describe('Navigation URL when output variable is clicked as a link'),
+                    buttonObjectWFName: z.string().optional().describe('Workflow to execute when output variable button is clicked'),
+                    buttonText: z.string().optional().describe('Button text if output variable is rendered as a button'),
+                    conditionalVisiblePropertyName: z.string().optional().describe('Property name that controls conditional visibility'),
+                    dataSize: z.string().optional().describe('Data size for the output variable (e.g., "50", "MAX"). Maps to sqlServerDBDataTypeSize.'),
+                    dataType: z.string().optional().describe('SQL Server data type for the output variable (e.g., "nvarchar", "int", "datetime"). Maps to sqlServerDBDataType.'),
+                    defaultValue: z.string().optional().describe('Default value for the output variable'),
+                    fKObjectName: z.string().optional().describe('Foreign key object name if isFK="true"'),
+                    labelText: z.string().optional().describe('Label text displayed for the output variable'),
+                    isAutoRedirectURL: z.enum(['true', 'false']).optional().describe('Whether to auto-redirect to buttonNavURL'),
+                    isFK: z.enum(['true', 'false']).optional().describe('Whether this is a foreign key reference'),
+                    isFKLookup: z.enum(['true', 'false']).optional().describe('Whether this is a lookup from foreign key'),
+                    isLabelVisible: z.enum(['true', 'false']).optional().describe('Whether the label is visible'),
+                    isHeaderText: z.enum(['true', 'false']).optional().describe('Whether this is header text'),
+                    isIgnored: z.enum(['true', 'false']).optional().describe('Whether the output variable is ignored (soft delete)'),
+                    isLink: z.enum(['true', 'false']).optional().describe('Whether the output variable is rendered as a link'),
+                    isVisible: z.enum(['true', 'false']).optional().describe('Whether the output variable is visible'),
+                    sourceObjectName: z.string().optional().describe('Source object name for the output variable value'),
+                    sourcePropertyName: z.string().optional().describe('Source property name for the output variable value')
+                }).describe('Object containing properties to update. At least one property must be provided.')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                output_var: z.any().optional().describe('The updated output variable object'),
+                general_flow_name: z.string().optional(),
+                owner_object_name: z.string().optional().describe('Name of the data object that owns the general flow'),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ general_flow_name, output_var_name, updates }) => {
+            try {
+                const result = await this.generalFlowTools.update_general_flow_output_var(general_flow_name as string, output_var_name as string, updates);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register move_general_flow_output_var tool
+        this.server.registerTool('move_general_flow_output_var', {
+            title: 'Move General Flow Output Variable',
+            description: 'Move an output variable to a new position in a general flow to change the display order. Position is 0-based index (0 = first position). Must be less than total output variable count. Updates are made in-memory and model will have unsaved changes after move.',
+            inputSchema: {
+                general_flow_name: z.string().describe('The name of the general flow containing the output variable (case-sensitive, exact match required)'),
+                output_var_name: z.string().describe('The name of the output variable to move (case-sensitive, exact match required)'),
+                new_position: z.number().describe('The new 0-based index position for the output variable (must be less than total output variable count)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                general_flow_name: z.string().optional(),
+                owner_object_name: z.string().optional().describe('Name of the data object that owns the general flow'),
+                output_var_name: z.string().optional(),
+                old_position: z.number().optional().describe('The previous position of the output variable'),
+                new_position: z.number().optional().describe('The new position of the output variable'),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ general_flow_name, output_var_name, new_position }) => {
+            try {
+                const result = await this.generalFlowTools.move_general_flow_output_var(general_flow_name as string, output_var_name as string, new_position as number);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register add_general_flow_param tool
+        this.server.registerTool('add_general_flow_param', {
+            title: 'Add General Flow Parameter',
+            description: 'Add a new parameter (input parameter) to an existing general flow with optional properties (sqlServerDBDataType, labelText, isRequired, isFK, etc.). General flows are reusable workflows with isPage="false", excluding DynaFlows and init flows. Returns success status with parameter details.',
+            inputSchema: {
+                general_flow_name: z.string().describe('Name of the general flow to add the parameter to (case-sensitive, exact match required)'),
+                param: z.object({
+                    name: z.string().describe('Name of the parameter to add (required, case-sensitive). Must be unique within the general flow.'),
+                    sqlServerDBDataType: z.string().optional().describe('SQL Server data type for the parameter (e.g., "varchar", "int", "bit", "datetime")'),
+                    sqlServerDBDataTypeSize: z.string().optional().describe('Size specification for the SQL Server data type (e.g., "50", "MAX")'),
+                    labelText: z.string().optional().describe('Human-readable label text displayed for the parameter in UI'),
+                    infoToolTipText: z.string().optional().describe('Tooltip text providing additional information about the parameter'),
+                    codeDescription: z.string().optional().describe('Technical description or comments about the parameter for developers'),
+                    defaultValue: z.string().optional().describe('Default value for the parameter'),
+                    isVisible: z.enum(['true', 'false']).optional().describe('Whether the parameter is visible in the UI ("true" or "false")'),
+                    isRequired: z.enum(['true', 'false']).optional().describe('Whether the parameter is required ("true" or "false")'),
+                    requiredErrorText: z.string().optional().describe('Error message displayed when required parameter is not provided'),
+                    isSecured: z.enum(['true', 'false']).optional().describe('Whether the parameter contains secured/sensitive data ("true" or "false")'),
+                    isFK: z.enum(['true', 'false']).optional().describe('Whether the parameter is a foreign key reference ("true" or "false")'),
+                    fKObjectName: z.string().optional().describe('Name of the referenced data object if isFK is "true"'),
+                    fKObjectQueryName: z.string().optional().describe('Name of the query used to populate FK options'),
+                    isFKLookup: z.enum(['true', 'false']).optional().describe('Whether the FK uses a lookup table ("true" or "false")'),
+                    isFKList: z.enum(['true', 'false']).optional().describe('Whether the FK displays as a list/dropdown ("true" or "false")'),
+                    isFKListInactiveIncluded: z.enum(['true', 'false']).optional().describe('Whether to include inactive items in FK list ("true" or "false")'),
+                    isFKListUnknownOptionRemoved: z.enum(['true', 'false']).optional().describe('Whether to remove unknown option from FK list ("true" or "false")'),
+                    fKListOrderBy: z.string().optional().describe('Order by clause for FK list items'),
+                    isFKListOptionRecommended: z.enum(['true', 'false']).optional().describe('Whether the FK list has a recommended option ("true" or "false")'),
+                    isFKListSearchable: z.enum(['true', 'false']).optional().describe('Whether the FK list is searchable ("true" or "false")'),
+                    FKListRecommendedOption: z.string().optional().describe('The recommended option value for FK list'),
+                    isRadioButtonList: z.enum(['true', 'false']).optional().describe('Whether the parameter displays as radio buttons ("true" or "false")'),
+                    isFileUpload: z.enum(['true', 'false']).optional().describe('Whether the parameter is for file upload ("true" or "false")'),
+                    isCreditCardEntry: z.enum(['true', 'false']).optional().describe('Whether the parameter is for credit card entry ("true" or "false")'),
+                    isTimeZoneDetermined: z.enum(['true', 'false']).optional().describe('Whether the parameter includes timezone determination ("true" or "false")'),
+                    isAutoCompleteAddressSource: z.enum(['true', 'false']).optional().describe('Whether the parameter is an autocomplete address source ("true" or "false")'),
+                    autoCompleteAddressSourceName: z.string().optional().describe('Name of the autocomplete address source if isAutoCompleteAddressSource is "true"'),
+                    autoCompleteAddressTargetType: z.string().optional().describe('Target type for autocomplete address'),
+                    detailsText: z.string().optional().describe('Detailed description text for the parameter'),
+                    validationRuleRegExMatchRequired: z.string().optional().describe('Regular expression pattern that the parameter value must match'),
+                    validationRuleRegExMatchRequiredErrorText: z.string().optional().describe('Error message displayed when regex validation fails'),
+                    isIgnored: z.enum(['true', 'false']).optional().describe('Whether the parameter is ignored/inactive ("true" or "false")'),
+                    sourceObjectName: z.string().optional().describe('Name of the source data object for the parameter value'),
+                    sourcePropertyName: z.string().optional().describe('Name of the source property within the source object')
+                }).describe('The parameter object to add. Only name is required; all other properties are optional.')
+            }
+        }, async ({ general_flow_name, param }: { general_flow_name: string; param: any }) => {
+            try {
+                const result = await this.generalFlowTools.add_general_flow_param(general_flow_name, param);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register update_general_flow_param tool
+        this.server.registerTool('update_general_flow_param', {
+            title: 'Update General Flow Parameter',
+            description: 'Update properties of an existing parameter in a general flow. Can update any of 34 parameter properties including name, data type, labels, FK settings, validation rules, etc. General flows are reusable workflows with isPage="false", excluding DynaFlows and init flows. Returns success status with updated parameter details.',
+            inputSchema: {
+                general_flow_name: z.string().describe('Name of the general flow containing the parameter (case-sensitive, exact match required)'),
+                param_name: z.string().describe('Name of the parameter to update (case-sensitive, exact match required)'),
+                updates: z.object({
+                    name: z.string().optional().describe('New name for the parameter (must be unique within the general flow)'),
+                    sqlServerDBDataType: z.string().optional().describe('SQL Server data type for the parameter (e.g., "varchar", "int", "bit", "datetime")'),
+                    sqlServerDBDataTypeSize: z.string().optional().describe('Size specification for the SQL Server data type (e.g., "50", "MAX")'),
+                    labelText: z.string().optional().describe('Human-readable label text displayed for the parameter in UI'),
+                    infoToolTipText: z.string().optional().describe('Tooltip text providing additional information about the parameter'),
+                    codeDescription: z.string().optional().describe('Technical description or comments about the parameter for developers'),
+                    defaultValue: z.string().optional().describe('Default value for the parameter'),
+                    isVisible: z.enum(['true', 'false']).optional().describe('Whether the parameter is visible in the UI ("true" or "false")'),
+                    isRequired: z.enum(['true', 'false']).optional().describe('Whether the parameter is required ("true" or "false")'),
+                    requiredErrorText: z.string().optional().describe('Error message displayed when required parameter is not provided'),
+                    isSecured: z.enum(['true', 'false']).optional().describe('Whether the parameter contains secured/sensitive data ("true" or "false")'),
+                    isFK: z.enum(['true', 'false']).optional().describe('Whether the parameter is a foreign key reference ("true" or "false")'),
+                    fKObjectName: z.string().optional().describe('Name of the referenced data object if isFK is "true"'),
+                    fKObjectQueryName: z.string().optional().describe('Name of the query used to populate FK options'),
+                    isFKLookup: z.enum(['true', 'false']).optional().describe('Whether the FK uses a lookup table ("true" or "false")'),
+                    isFKList: z.enum(['true', 'false']).optional().describe('Whether the FK displays as a list/dropdown ("true" or "false")'),
+                    isFKListInactiveIncluded: z.enum(['true', 'false']).optional().describe('Whether to include inactive items in FK list ("true" or "false")'),
+                    isFKListUnknownOptionRemoved: z.enum(['true', 'false']).optional().describe('Whether to remove unknown option from FK list ("true" or "false")'),
+                    fKListOrderBy: z.string().optional().describe('Order by clause for FK list items'),
+                    isFKListOptionRecommended: z.enum(['true', 'false']).optional().describe('Whether the FK list has a recommended option ("true" or "false")'),
+                    isFKListSearchable: z.enum(['true', 'false']).optional().describe('Whether the FK list is searchable ("true" or "false")'),
+                    FKListRecommendedOption: z.string().optional().describe('The recommended option value for FK list'),
+                    isRadioButtonList: z.enum(['true', 'false']).optional().describe('Whether the parameter displays as radio buttons ("true" or "false")'),
+                    isFileUpload: z.enum(['true', 'false']).optional().describe('Whether the parameter is for file upload ("true" or "false")'),
+                    isCreditCardEntry: z.enum(['true', 'false']).optional().describe('Whether the parameter is for credit card entry ("true" or "false")'),
+                    isTimeZoneDetermined: z.enum(['true', 'false']).optional().describe('Whether the parameter includes timezone determination ("true" or "false")'),
+                    isAutoCompleteAddressSource: z.enum(['true', 'false']).optional().describe('Whether the parameter is an autocomplete address source ("true" or "false")'),
+                    autoCompleteAddressSourceName: z.string().optional().describe('Name of the autocomplete address source if isAutoCompleteAddressSource is "true"'),
+                    autoCompleteAddressTargetType: z.string().optional().describe('Target type for autocomplete address'),
+                    detailsText: z.string().optional().describe('Detailed description text for the parameter'),
+                    validationRuleRegExMatchRequired: z.string().optional().describe('Regular expression pattern that the parameter value must match'),
+                    validationRuleRegExMatchRequiredErrorText: z.string().optional().describe('Error message displayed when regex validation fails'),
+                    isIgnored: z.enum(['true', 'false']).optional().describe('Whether the parameter is ignored/inactive ("true" or "false")'),
+                    sourceObjectName: z.string().optional().describe('Name of the source data object for the parameter value'),
+                    sourcePropertyName: z.string().optional().describe('Name of the source property within the source object')
+                }).describe('Object containing the properties to update. At least one property must be provided.')
+            }
+        }, async ({ general_flow_name, param_name, updates }: { general_flow_name: string; param_name: string; updates: any }) => {
+            try {
+                const result = await this.generalFlowTools.update_general_flow_param(general_flow_name, param_name, updates);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register move_general_flow_param tool
+        this.server.registerTool('move_general_flow_param', {
+            title: 'Move General Flow Parameter',
+            description: 'Move a parameter to a new position within a general flow. The position is 0-based (0 is first position). Useful for reordering parameters to match desired display order. General flows are reusable workflows with isPage="false", excluding DynaFlows and init flows. Returns success status with old and new positions.',
+            inputSchema: {
+                general_flow_name: z.string().describe('Name of the general flow containing the parameter (case-sensitive, exact match required)'),
+                param_name: z.string().describe('Name of the parameter to move (case-sensitive, exact match required)'),
+                new_position: z.number().describe('New 0-based index position for the parameter. Must be less than the total parameter count. 0 = first position.')
+            }
+        }, async ({ general_flow_name, param_name, new_position }: { general_flow_name: string; param_name: string; new_position: number }) => {
+            try {
+                const result = await this.generalFlowTools.move_general_flow_param(general_flow_name, param_name, new_position);
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result
@@ -1632,6 +2078,52 @@ export class MCPServer {
             }
         });
 
+        // Register update_full_report tool
+        this.server.registerTool('update_full_report', {
+            title: 'Update Full Report',
+            description: 'Update an existing report with provided properties (merge/patch operation). This tool updates or adds the specified properties without removing existing ones. For reportParam, reportColumn, and reportButton arrays, items are matched by name/columnName/buttonText - existing items are updated with provided fields, new items are added, but items not included in the update are preserved. The report name is never changed. Report name must match exactly (case-sensitive).',
+            inputSchema: {
+                report_name: z.string().describe('Name of the report to update (required, case-sensitive exact match)'),
+                report: z.object({
+                    titleText: z.string().optional().describe('Report title text'),
+                    introText: z.string().optional().describe('Report intro text'),
+                    visualizationType: z.enum(['Grid', 'PieChart', 'LineChart', 'FlowChart', 'CardView', 'FolderView']).optional().describe('Visualization type'),
+                    isCustomSqlUsed: z.enum(['true', 'false']).optional().describe('Whether custom SQL is used'),
+                    isIgnoredInDocumentation: z.enum(['true', 'false']).optional().describe('Ignored in documentation'),
+                    reportParam: z.array(z.any()).optional().describe('Array of report parameters (matched by name for merge)'),
+                    reportColumn: z.array(z.any()).optional().describe('Array of report columns (matched by columnName for merge)'),
+                    reportButton: z.array(z.any()).optional().describe('Array of report buttons (matched by buttonText for merge)')
+                }).describe('Partial report object containing properties to update/add (all fields optional)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                report: z.any().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async (args: Record<string, unknown>) => {
+            try {
+                const { report_name, report } = args;
+                
+                const result = await this.reportTools.update_full_report(report_name as string, report as any);
+                
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register add_report_param tool
         this.server.registerTool('add_report_param', {
             title: 'Add Report Parameter',
@@ -2322,6 +2814,298 @@ export class MCPServer {
                     count: 0,
                     error: error.message 
                 };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // ========================================
+        // Page Init Flow Tools
+        // ========================================
+
+        // Register get_page_init_flow_schema tool
+        this.server.registerTool('get_page_init_flow_schema', {
+            title: 'Get Page Init Flow Schema',
+            description: 'Get the schema definition for page init flow structure (objectWorkflow for page initialization). Includes all page init flow properties (name, isAuthorizationRequired, roleRequired, pageTitleText, etc.), output variable structure (objectWorkflowOutputVar), validation rules, SQL data types, and examples of complete page init flows. Page init flows prepare data before page display and typically have output variables but no parameters or buttons.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                schema: z.any(),
+                note: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.pageInitTools.get_page_init_flow_schema();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register get_page_init_flow tool
+        this.server.registerTool('get_page_init_flow', {
+            title: 'Get Page Init Flow',
+            description: 'Get complete details of a specific page init flow by name. If owner_object_name is provided, searches only that object; otherwise searches all objects. Returns the full page init flow structure including all output variables (objectWorkflowOutputVar) and element counts. Page init flow name matching is case-insensitive. Page init flows are identified by names ending in "InitObjWF" or "InitReport".',
+            inputSchema: {
+                page_init_flow_name: z.string().describe('The name of the page init flow to retrieve (case-insensitive matching, must end with "InitObjWF" or "InitReport")'),
+                owner_object_name: z.string().optional().describe('Optional: The name of the owner data object that contains the page init flow (case-insensitive matching). If not provided, all objects will be searched.')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                page_init_flow: z.any().optional().describe('Complete page init flow object with all properties and output variables'),
+                owner_object_name: z.string().optional().describe('Name of the owner data object containing the page init flow'),
+                element_counts: z.object({
+                    outputVarCount: z.number()
+                }).optional().describe('Count of output variables in the page init flow'),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async ({ page_init_flow_name, owner_object_name }) => {
+            try {
+                const result = await this.pageInitTools.get_page_init_flow({
+                    page_init_flow_name,
+                    owner_object_name
+                });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register update_page_init_flow tool
+        this.server.registerTool('update_page_init_flow', {
+            title: 'Update Page Init Flow',
+            description: 'Update properties of an existing page init flow (objectWorkflow ending in InitObjWF or InitReport) in the AppDNA model. Page init flow name must match exactly (case-sensitive). At least one property to update is required. Updates only the specified properties shown in the Page Init Details View Settings tab, leaving others unchanged. Searches all data objects to find the page init flow.',
+            inputSchema: {
+                page_init_flow_name: z.string().describe('The name of the page init flow to update (required, case-sensitive exact match, must end with "InitObjWF" or "InitReport")'),
+                isAuthorizationRequired: z.enum(['true', 'false']).optional().describe('Whether authorization is required to run this page init flow'),
+                isCustomLogicOverwritten: z.enum(['true', 'false']).optional().describe('Whether custom logic overwrites default behavior'),
+                isExposedInBusinessObject: z.enum(['true', 'false']).optional().describe('Whether this flow is exposed in the business object'),
+                isRequestRunViaDynaFlowAllowed: z.enum(['true', 'false']).optional().describe('Whether the flow can be run via DynaFlow'),
+                pageIntroText: z.string().optional().describe('Introduction text displayed on the page'),
+                pageTitleText: z.string().optional().describe('Title text displayed on the page'),
+                roleRequired: z.string().optional().describe('Role name required to access this page init flow (must be a valid role in the model)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                page_init_flow: z.any().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ page_init_flow_name, isAuthorizationRequired, isCustomLogicOverwritten, isExposedInBusinessObject, isRequestRunViaDynaFlowAllowed, pageIntroText, pageTitleText, roleRequired }) => {
+            try {
+                // Build updates object with only provided properties
+                const updates: any = {};
+                if (isAuthorizationRequired !== undefined) { updates.isAuthorizationRequired = isAuthorizationRequired; }
+                if (isCustomLogicOverwritten !== undefined) { updates.isCustomLogicOverwritten = isCustomLogicOverwritten; }
+                if (isExposedInBusinessObject !== undefined) { updates.isExposedInBusinessObject = isExposedInBusinessObject; }
+                if (isRequestRunViaDynaFlowAllowed !== undefined) { updates.isRequestRunViaDynaFlowAllowed = isRequestRunViaDynaFlowAllowed; }
+                if (pageIntroText !== undefined) { updates.pageIntroText = pageIntroText; }
+                if (pageTitleText !== undefined) { updates.pageTitleText = pageTitleText; }
+                if (roleRequired !== undefined) { updates.roleRequired = roleRequired; }
+
+                const result = await this.pageInitTools.update_page_init_flow(page_init_flow_name, updates);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register add_page_init_flow_output_var tool
+        this.server.registerTool('add_page_init_flow_output_var', {
+            title: 'Add Page Init Flow Output Variable',
+            description: 'Add a new output variable to an existing page init flow (objectWorkflow ending in InitObjWF or InitReport) in the AppDNA model. Page init flow name must match exactly (case-sensitive). The output variable name is required. All other properties are optional and will only be included if provided. Searches all data objects to find the page init flow. After adding, the model will have unsaved changes.',
+            inputSchema: {
+                page_init_flow_name: z.string().describe('The name of the page init flow to add the output variable to (required, case-sensitive exact match, must end with "InitObjWF" or "InitReport")'),
+                name: z.string().describe('The name of the output variable (required)'),
+                sqlServerDBDataType: z.string().optional().describe('SQL Server data type for the output variable (e.g., "nvarchar", "int", "bit", "datetime")'),
+                sqlServerDBDataTypeSize: z.string().optional().describe('Size of the SQL Server data type (e.g., "50", "MAX")'),
+                labelText: z.string().optional().describe('Label text to display for this output variable'),
+                buttonText: z.string().optional().describe('Text to display on a button associated with this output variable'),
+                buttonNavURL: z.string().optional().describe('Navigation URL for the button'),
+                isLabelVisible: z.enum(['true', 'false']).optional().describe('Whether the label should be visible'),
+                defaultValue: z.string().optional().describe('Default value for the output variable'),
+                isLink: z.enum(['true', 'false']).optional().describe('Whether this output variable is a link'),
+                isAutoRedirectURL: z.enum(['true', 'false']).optional().describe('Whether to auto-redirect to the URL'),
+                buttonObjectWFName: z.string().optional().describe('Name of the workflow to execute when the button is clicked'),
+                conditionalVisiblePropertyName: z.string().optional().describe('Property name that controls conditional visibility'),
+                isVisible: z.enum(['true', 'false']).optional().describe('Whether the output variable is visible'),
+                isFK: z.enum(['true', 'false']).optional().describe('Whether this is a foreign key'),
+                fKObjectName: z.string().optional().describe('Name of the foreign key object'),
+                isFKLookup: z.enum(['true', 'false']).optional().describe('Whether this is a foreign key lookup'),
+                isHeaderText: z.enum(['true', 'false']).optional().describe('Whether this is header text'),
+                isIgnored: z.enum(['true', 'false']).optional().describe('Whether this output variable should be ignored'),
+                sourceObjectName: z.string().optional().describe('Source object name for this output variable'),
+                sourcePropertyName: z.string().optional().describe('Source property name for this output variable')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                output_var: z.any().optional(),
+                page_init_flow_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ page_init_flow_name, name, sqlServerDBDataType, sqlServerDBDataTypeSize, labelText, buttonText, buttonNavURL, isLabelVisible, defaultValue, isLink, isAutoRedirectURL, buttonObjectWFName, conditionalVisiblePropertyName, isVisible, isFK, fKObjectName, isFKLookup, isHeaderText, isIgnored, sourceObjectName, sourcePropertyName }) => {
+            try {
+                // Build output_var object with only provided properties
+                const output_var: any = { name };
+                if (sqlServerDBDataType !== undefined) { output_var.sqlServerDBDataType = sqlServerDBDataType; }
+                if (sqlServerDBDataTypeSize !== undefined) { output_var.sqlServerDBDataTypeSize = sqlServerDBDataTypeSize; }
+                if (labelText !== undefined) { output_var.labelText = labelText; }
+                if (buttonText !== undefined) { output_var.buttonText = buttonText; }
+                if (buttonNavURL !== undefined) { output_var.buttonNavURL = buttonNavURL; }
+                if (isLabelVisible !== undefined) { output_var.isLabelVisible = isLabelVisible; }
+                if (defaultValue !== undefined) { output_var.defaultValue = defaultValue; }
+                if (isLink !== undefined) { output_var.isLink = isLink; }
+                if (isAutoRedirectURL !== undefined) { output_var.isAutoRedirectURL = isAutoRedirectURL; }
+                if (buttonObjectWFName !== undefined) { output_var.buttonObjectWFName = buttonObjectWFName; }
+                if (conditionalVisiblePropertyName !== undefined) { output_var.conditionalVisiblePropertyName = conditionalVisiblePropertyName; }
+                if (isVisible !== undefined) { output_var.isVisible = isVisible; }
+                if (isFK !== undefined) { output_var.isFK = isFK; }
+                if (fKObjectName !== undefined) { output_var.fKObjectName = fKObjectName; }
+                if (isFKLookup !== undefined) { output_var.isFKLookup = isFKLookup; }
+                if (isHeaderText !== undefined) { output_var.isHeaderText = isHeaderText; }
+                if (isIgnored !== undefined) { output_var.isIgnored = isIgnored; }
+                if (sourceObjectName !== undefined) { output_var.sourceObjectName = sourceObjectName; }
+                if (sourcePropertyName !== undefined) { output_var.sourcePropertyName = sourcePropertyName; }
+
+                const result = await this.pageInitTools.add_page_init_flow_output_var(page_init_flow_name, output_var);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register update_page_init_flow_output_var tool
+        this.server.registerTool('update_page_init_flow_output_var', {
+            title: 'Update Page Init Flow Output Variable',
+            description: 'Update properties of an existing output variable in a page init flow (objectWorkflow ending in InitObjWF or InitReport). Page init flow name and output variable name are case-sensitive exact matches. At least one property to update is required. Updates only the specified properties, leaving others unchanged.',
+            inputSchema: {
+                page_init_flow_name: z.string().describe('Name of the page init flow containing the output variable (required, case-sensitive exact match, must end with "InitObjWF" or "InitReport")'),
+                output_var_name: z.string().describe('Current name of the output variable to update (required, case-sensitive exact match, used to identify the output variable)'),
+                name: z.string().optional().describe('New name for the output variable (optional, allows renaming)'),
+                sqlServerDBDataType: z.string().optional().describe('New SQL Server data type (e.g., "nvarchar", "int", "bit", "datetime")'),
+                sqlServerDBDataTypeSize: z.string().optional().describe('New size of the SQL Server data type (e.g., "50", "MAX")'),
+                labelText: z.string().optional().describe('New label text to display'),
+                buttonText: z.string().optional().describe('New text to display on button'),
+                buttonNavURL: z.string().optional().describe('New navigation URL for the button'),
+                isLabelVisible: z.enum(['true', 'false']).optional().describe('New label visibility setting'),
+                defaultValue: z.string().optional().describe('New default value'),
+                isLink: z.enum(['true', 'false']).optional().describe('New link setting'),
+                isAutoRedirectURL: z.enum(['true', 'false']).optional().describe('New auto-redirect setting'),
+                buttonObjectWFName: z.string().optional().describe('New workflow name to execute when button is clicked'),
+                conditionalVisiblePropertyName: z.string().optional().describe('New property name that controls conditional visibility'),
+                isVisible: z.enum(['true', 'false']).optional().describe('New visibility setting'),
+                isFK: z.enum(['true', 'false']).optional().describe('New foreign key setting'),
+                fKObjectName: z.string().optional().describe('New foreign key object name'),
+                isFKLookup: z.enum(['true', 'false']).optional().describe('New foreign key lookup setting'),
+                isHeaderText: z.enum(['true', 'false']).optional().describe('New header text setting'),
+                isIgnored: z.enum(['true', 'false']).optional().describe('New ignored setting'),
+                sourceObjectName: z.string().optional().describe('New source object name'),
+                sourcePropertyName: z.string().optional().describe('New source property name')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                output_var: z.any().optional(),
+                page_init_flow_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async (args: Record<string, unknown>) => {
+            try {
+                const { page_init_flow_name, output_var_name, ...updates } = args;
+                
+                const result = await this.pageInitTools.update_page_init_flow_output_var(
+                    page_init_flow_name as string, 
+                    output_var_name as string, 
+                    updates
+                );
+                
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register move_page_init_flow_output_var tool
+        this.server.registerTool('move_page_init_flow_output_var', {
+            title: 'Move Page Init Flow Output Variable',
+            description: 'Move a page init flow output variable to a new position in the output variable list. Changes the display order of output variables on the page init flow. Page init flow name and output variable name must match exactly (case-sensitive). Position is 0-based index (0 = first position). Page init flow must end with "InitObjWF" or "InitReport".',
+            inputSchema: {
+                page_init_flow_name: z.string().describe('The name of the page init flow containing the output variable (required, case-sensitive exact match, must end with "InitObjWF" or "InitReport")'),
+                output_var_name: z.string().describe('The name of the output variable to move (required, case-sensitive exact match)'),
+                new_position: z.number().min(0).describe('The new 0-based index position for the output variable (0 = first position). Must be less than the total output variable count.')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                page_init_flow_name: z.string().optional(),
+                owner_object_name: z.string().optional(),
+                output_var_name: z.string().optional(),
+                old_position: z.number().optional(),
+                new_position: z.number().optional(),
+                output_var_count: z.number().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ page_init_flow_name, output_var_name, new_position }) => {
+            try {
+                const result = await this.pageInitTools.move_page_init_flow_output_var(page_init_flow_name, output_var_name, new_position);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error: any) {
+                const errorResult = { success: false, error: error.message };
                 return {
                     content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
                     structuredContent: errorResult,

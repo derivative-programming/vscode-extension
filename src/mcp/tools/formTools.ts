@@ -2237,6 +2237,202 @@ export class FormTools {
     }
 
     /**
+     * Update an existing form with provided properties (merge/patch operation)
+     * This tool updates or adds the specified properties without removing existing ones.
+     * For param, outputVar, and button arrays, items are matched by name/buttonText - existing items are updated with provided fields,
+     * new items are added, but items not included in the update are preserved.
+     * The form name is never changed.
+     * @param form_name - Name of the form to update (case-sensitive exact match)
+     * @param form - Partial form object containing properties to update/add
+     * @returns Result with success status and updated form details
+     */
+    async update_full_form(
+        form_name: string,
+        form: {
+            titleText?: string;
+            initObjectWorkflowName?: string;
+            isInitObjWFSubscribedToParams?: 'true' | 'false';
+            isExposedInBusinessObject?: 'true' | 'false';
+            isObjectDelete?: 'true' | 'false';
+            layoutName?: string;
+            introText?: string;
+            formTitleText?: string;
+            formIntroText?: string;
+            formFooterText?: string;
+            formFooterImageURL?: string;
+            codeDescription?: string;
+            isAutoSubmit?: 'true' | 'false';
+            isHeaderVisible?: 'true' | 'false';
+            isPage?: '' | 'true' | 'false';
+            isAuthorizationRequired?: 'true' | 'false';
+            isLoginPage?: 'true' | 'false';
+            isLogoutPage?: 'true' | 'false';
+            isImpersonationPage?: 'true' | 'false';
+            roleRequired?: string;
+            isCaptchaVisible?: 'true' | 'false';
+            isCreditCardEntryUsed?: 'true' | 'false';
+            headerImageURL?: string;
+            footerImageURL?: string;
+            isDynaFlow?: 'true' | 'false';
+            isDynaFlowTask?: 'true' | 'false';
+            isCustomPageViewUsed?: 'true' | 'false';
+            isIgnoredInDocumentation?: 'true' | 'false';
+            targetChildObject?: string;
+            isCustomLogicOverwritten?: 'true' | 'false';
+            objectWorkflowParam?: Array<any>;
+            objectWorkflowOutputVar?: Array<any>;
+            objectWorkflowButton?: Array<any>;
+        }
+    ): Promise<{ success: boolean; form?: any; owner_object_name?: string; message?: string; error?: string; note?: string; validationErrors?: string[] }> {
+        // Validate required parameters
+        const validationErrors: string[] = [];
+        
+        if (!form_name) {
+            validationErrors.push('form_name is required');
+        }
+        
+        if (!form || typeof form !== 'object') {
+            validationErrors.push('form object is required');
+        }
+        
+        if (validationErrors.length > 0) {
+            return {
+                success: false,
+                error: 'Validation failed',
+                validationErrors: validationErrors,
+                note: 'form_name is required (case-sensitive). form object must be provided with at least one property to update.'
+            };
+        }
+        
+        // Get actual schema for validation
+        const schemaResult = await this.get_form_schema();
+        const schema = schemaResult.schema;
+        
+        // Use JSON Schema validation with ajv
+        if (schema) {
+            try {
+                const Ajv = require('ajv');
+                const ajv = new Ajv({ allErrors: true, strict: false });
+                
+                const validate = ajv.compile(schema);
+                const valid = validate(form);
+                
+                if (!valid && validate.errors) {
+                    validate.errors.forEach((error: any) => {
+                        const path = error.instancePath || error.dataPath || '';
+                        const field = path.replace(/^\//, '').replace(/\//g, '.') || 'root';
+                        
+                        if (error.keyword === 'enum') {
+                            validationErrors.push(`${field}: must be one of ${JSON.stringify(error.params.allowedValues)}`);
+                        } else if (error.keyword === 'pattern') {
+                            validationErrors.push(`${field}: ${error.message} (expected pattern: ${error.params.pattern})`);
+                        } else if (error.keyword === 'type') {
+                            validationErrors.push(`${field}: must be ${error.params.type}`);
+                        } else if (error.keyword === 'required') {
+                            validationErrors.push(`${error.params.missingProperty} is required`);
+                        } else {
+                            validationErrors.push(`${field}: ${error.message}`);
+                        }
+                    });
+                }
+            } catch (error) {
+                // If schema validation fails, fall back to basic validation
+                console.error('Schema validation error:', error);
+            }
+        }
+        
+        // Additional business rule validation
+        if (form.objectWorkflowParam && Array.isArray(form.objectWorkflowParam)) {
+            form.objectWorkflowParam.forEach((param: any, index: number) => {
+                // Validate FK requires fKObjectName
+                if (param.isFK === 'true' && !param.fKObjectName) {
+                    validationErrors.push(`Parameter ${index} (${param.name || index}): fKObjectName is required when isFK is "true"`);
+                }
+            });
+        }
+        
+        if (validationErrors.length > 0) {
+            return {
+                success: false,
+                error: 'Validation failed',
+                validationErrors: validationErrors,
+                note: 'Please check the validation errors and ensure all values match the schema requirements from get_form_schema.'
+            };
+        }
+        
+        try {
+            // Call bridge API to update full form
+            const http = await import('http');
+            const postData = {
+                form_name,
+                form: form
+            };
+
+            const postDataString = JSON.stringify(postData);
+
+            const result: any = await new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: '/api/update-full-form',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postDataString)
+                        }
+                    },
+                    (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => {
+                            data += chunk;
+                        });
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                resolve(JSON.parse(data));
+                            } else {
+                                reject(new Error(data || `HTTP ${res.statusCode}`));
+                            }
+                        });
+                    }
+                );
+
+                req.on('error', (error) => {
+                    reject(error);
+                });
+
+                req.write(postDataString);
+                req.end();
+            });
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error || 'Failed to update full form'
+                };
+            }
+
+            // Filter hidden properties from returned form
+            const filteredForm = this.filterHiddenFormProperties(result.form);
+
+            return {
+                success: true,
+                form: filteredForm,
+                owner_object_name: result.owner_object_name,
+                message: `Form "${form_name}" updated successfully with merge/patch operation`,
+                note: 'Form properties have been updated or added. Existing properties not in the update were preserved. The model has unsaved changes.'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not update full form: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to update forms. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
+
+    /**
      * Move a form parameter to a new position in the objectWorkflowParam array
      * @param form_name - Name of the form (case-sensitive exact match)
      * @param param_name - Name of the parameter to move (case-sensitive exact match)

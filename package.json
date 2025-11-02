@@ -713,6 +713,24 @@
           "type": "object",
           "properties": {}
         }
+      },
+      {
+        "name": "open_add_data_object_wizard",
+        "displayName": "Open Add Data Object Wizard",
+        "modelDescription": "Opens the Add Data Object Wizard for creating a new data object. The wizard guides you through creating a data object with options for lookup objects, child objects, and parent-child relationships.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {}
+        }
+      },
+      {
+        "name": "open_add_report_wizard",
+        "displayName": "Open Add Report Wizard",
+        "modelDescription": "Opens the Add Report Wizard for creating a new report. The wizard guides you through creating a report with options for selecting the report type, configuring columns, parameters, and filters.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {}
+        }
       }
     ],
     "keybindings": [
@@ -789,7 +807,7 @@
   "scripts": {
     "vscode:prepublish": "npm run package",
     "compile": "webpack && npm run compile-mcp",
-    "compile-mcp": "tsc src/mcp/server.ts src/mcp/tools/userStoryTools.ts src/mcp/tools/viewTools.ts src/mcp/tools/dataObjectTools.ts src/mcp/tools/formTools.ts src/mcp/tools/modelTools.ts src/mcp/tools/modelServiceTools.ts --outDir dist/mcp --rootDir src/mcp --target es2020 --module commonjs --esModuleInterop --skipLibCheck",
+    "compile-mcp": "tsc src/mcp/server.ts src/mcp/tools/userStoryTools.ts src/mcp/tools/viewTools.ts src/mcp/tools/dataObjectTools.ts src/mcp/tools/formTools.ts src/mcp/tools/reportTools.ts src/mcp/tools/pageInitTools.ts src/mcp/tools/modelTools.ts src/mcp/tools/modelServiceTools.ts --outDir dist/mcp --rootDir src/mcp --target es2020 --module commonjs --esModuleInterop --skipLibCheck",
     "watch": "webpack --watch",
     "watch-mcp": "tsc src/mcp/server.ts src/mcp/tools/userStoryTools.ts src/mcp/tools/viewTools.ts src/mcp/tools/dataObjectTools.ts src/mcp/tools/formTools.ts src/mcp/tools/modelTools.ts src/mcp/tools/modelServiceTools.ts --outDir dist/mcp --rootDir src/mcp --target es2020 --module commonjs --esModuleInterop --skipLibCheck --watch",
     "watch-all": "npm-run-all --parallel watch watch-mcp",

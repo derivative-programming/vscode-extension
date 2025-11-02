@@ -9,19 +9,32 @@ common types of graphs...
 
 ---------------------
 
+list_general_flows should not return detail of each flow. just the names and owner object, which are the search options
+
+get_page_init_flow_schema...displayedInUI?editableInUI?uiNote?hiddenProperties?usage?
+
+
 form output var has unnecessary properties shown
 
 if item has role required then auth is required
 
 _ownerdataobject prop added for mcp forms and reports tools?
 
+remove from pageinit...
+            isAuthorizationRequired?: 'true' | 'false';
+            isExposedInBusinessObject?: 'true' | 'false';
+            isRequestRunViaDynaFlowAllowed?: 'true' | 'false';
+            pageIntroText?: string;
+            pageTitleText?: string;
+            roleRequired?: string;
+
 tools...  
-  - move_form_param
-  - move_form_button
-  - move_form_output_var
-  - move_report_param
-  - move_report_column
-  - move_report_button
+  - get_page_init_flow_schema
+  - get_page_init_flow
+  - update_page_init_flow
+  - add_page_init_flow_output_var
+  - update_page_init_flow_output_var
+  - move_page_init_flow_output_var
 
   
 Describe data object model restrictions

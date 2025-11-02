@@ -8,11 +8,11 @@
 
 # AppDNA VS Code Extension - MCP Server
 
-This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **110 tools** for interacting with the AppDNA model.
+This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **131 tools** for interacting with the AppDNA model.
 
 ## Features
 
-### **110 Comprehensive Tools** ✅ Verified with GitHub Copilot
+### **131 Comprehensive Tools** ✅ Verified with GitHub Copilot
 
 #### **User Story Management** (5 tools)
 1. **create_user_story** - Create a new user story with format validation
@@ -69,24 +69,29 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
    - All select/unselect tools modify the model in memory and mark it as having unsaved changes
    - All create tools automatically read, zip, and upload the current model file
 
-#### **Data Object Management** (11 tools)
+#### **Data Object Management** (12 tools)
 1. **list_data_object_summary** - List data objects with summary info (name, isLookup, parent)
 2. **list_data_objects** - List all data objects with full details including properties
 3. **get_data_object** - Get a specific data object by name
 4. **get_data_object_schema** - Get JSON schema for data object structure
 5. **get_data_object_summary_schema** - Get JSON schema for data object summary
 6. **create_data_object** - Create new data objects programmatically
-7. **update_data_object** - Update existing data object properties
-8. **add_data_object_props** - Add properties to existing data objects
-9. **update_data_object_prop** - Update specific property in a data object
-10. **get_data_object_usage** - Get detailed usage information for data objects
+7. **update_data_object** - Update existing data object properties (currently only codeDescription)
+8. **update_full_data_object** - Update data object with provided properties (merge/patch operation)
+    - Updates or adds specified object-level properties (parentObjectName, isLookup, codeDescription)
+    - For prop array: matches properties by name, updates existing, adds new, preserves others
+    - Does NOT remove existing properties or prop array items not included in update
+    - Object name is never changed
+9. **add_data_object_props** - Add properties to existing data objects
+10. **update_data_object_prop** - Update specific property in a data object
+11. **get_data_object_usage** - Get detailed usage information for data objects
     - Shows where data objects are referenced (forms, reports, flows, user stories)
     - Reference types: owner objects, target objects, input controls, output variables, columns
-11. **list_pages** - List all pages (forms and reports) with optional filtering
+12. **list_pages** - List all pages (forms and reports) with optional filtering
     - Filter by page name (partial match), page type (Form/Report), owner object, target child object, or role required
     - Returns page details including type, owner, role, total element count
 
-#### **Form Management** (14 tools)
+#### **Form Management** (15 tools)
 1. **get_form_schema** - Get JSON schema for complete form structure (objectWorkflow)
     - Returns all form properties including name, isPage, titleText, ownerObject, targetChildObject, roleRequired
     - Includes input parameter structure (objectWorkflowParam array with 35 properties)
@@ -118,7 +123,13 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
     - Searches all data objects to find the form
     - At least one property to update required
     - Marks model with unsaved changes
-6. **add_form_param** - Add new input parameter (form field/control) to a form
+6. **update_full_form** - Update form with merge/patch operation
+    - Updates or adds form properties, params, buttons, and output variables without removing existing ones
+    - For arrays: matches items by name/buttonText, updates fields in existing items, adds new items, preserves others
+    - Form name never changes
+    - All fields optional - update only what you need
+    - Safe for incremental updates and AI modifications
+7. **add_form_param** - Add new input parameter (form field/control) to a form
     - Add new parameter with unique PascalCase name
     - Configure 34 optional properties including data type, validation, foreign keys, display settings
     - Supports all input types: text, dropdown, FK lookup, radio buttons, file upload, address autocomplete
@@ -169,7 +180,128 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
     - Validates position is within valid range (0 to count-1)
     - Marks model with unsaved changes
 
-#### **Report Management** (7 tools)
+#### **Page Init Flow Management** (7 tools)
+1. **get_page_init_flow_schema** - Get JSON schema for page init flow structure (objectWorkflow for page initialization)
+    - Returns all page init flow properties including name, isAuthorizationRequired, roleRequired, pageTitleText, pageIntroText
+    - Includes output variable structure (objectWorkflowOutputVar array with 19 properties)
+    - Provides validation rules, SQL data types, and complete usage examples
+    - Page init flows prepare data before page display and typically have output variables but no parameters or buttons
+    - Distinguished from forms by not having isPage property set to 'true'
+    - Naming convention is typically 'SomethingInitObjWF' to indicate it's an initialization workflow
+2. **get_page_init_flow** - Retrieve complete page init flow details including all output variables
+    - Get specific page init flow by owner object name and flow name (case-insensitive matching)
+    - Returns all page init flow properties with element counts (output vars)
+    - Enables detailed page init flow inspection and modification
+    - Page init flows are identified by names ending in "InitObjWF" or "InitReport"
+3. **update_page_init_flow** - Update properties of an existing page init flow
+    - Updates 7 page init flow properties (isAuthorizationRequired, roleRequired, pageTitleText, pageIntroText, etc.)
+    - Page init flow name must match exactly (case-sensitive)
+    - Searches all data objects to find the page init flow
+    - At least one property to update required
+    - Marks model with unsaved changes
+    - Only updates properties shown in the Page Init Details View Settings tab
+4. **update_full_page_init_flow** - Update a page init flow with its complete schema (bulk replacement)
+    - Replaces entire page init flow object with provided schema (all properties)
+    - Useful for major updates or complete reconfiguration
+    - Name is preserved (cannot be changed via this tool)
+    - Supports all page init flow properties including objectWorkflowOutputVar array
+    - Updates are made in-memory (model will have unsaved changes)
+    - Returns fully updated page init flow with owner object name
+5. **add_page_init_flow_output_var** - Add a new output variable to a page init flow
+    - Adds output variable to existing page init flow (must end with "InitObjWF" or "InitReport")
+    - Requires page init flow name (case-sensitive exact match) and output variable name
+    - 19 optional properties available (sqlServerDBDataType, labelText, buttonText, isVisible, etc.)
+    - Only includes properties that are explicitly provided
+    - Searches all data objects to find the page init flow
+    - Marks model with unsaved changes
+6. **update_page_init_flow_output_var** - Update an existing output variable in a page init flow
+    - Updates properties of an output variable in page init flow (must end with "InitObjWF" or "InitReport")
+    - Requires page init flow name and output variable name (both case-sensitive exact matches)
+    - 20 updatable properties including name (allows renaming), sqlServerDBDataType, labelText, isVisible, etc.
+    - At least one property to update required
+    - Only updates properties that are explicitly provided
+    - Marks model with unsaved changes
+7. **move_page_init_flow_output_var** - Move an output variable to a new position in a page init flow
+    - Moves output variable to new position in page init flow (must end with "InitObjWF" or "InitReport")
+    - Requires page init flow name and output variable name (both case-sensitive exact matches)
+    - Position is 0-based index (0 = first position)
+    - Must be less than total output variable count
+    - Changes display order of output variables
+    - Marks model with unsaved changes
+
+#### **General Flow Management** (11 tools)
+1. **get_general_flow_schema** - Get JSON schema for complete general flow structure
+    - Returns all general flow properties including name, isPage, roleRequired, isExposedInBusinessObject
+    - Includes input parameter structure (objectWorkflowParam array with 12 properties)
+    - Includes output variable structure (objectWorkflowOutputVar array with 15 properties)
+    - General flows are reusable business logic workflows (isPage="false")
+    - Provides filtering criteria, validation rules, SQL data types, and complete usage examples
+    - Includes common usage scenarios (calculations, validations, notifications, integrations)
+2. **list_general_flows** - List all general flows with optional filtering
+    - Filter by general flow name (exact match) or owner object name (exact match)
+    - All name matching is case-insensitive
+    - Returns array of general flow objects with all properties including parameters, output variables, and steps
+    - General flows are reusable business logic workflows (isPage="false", not DynaFlow tasks, not init flows)
+    - Includes owner object name for each flow
+3. **get_general_flow** - Retrieve complete general flow details including all parameters and output variables
+    - Get specific general flow by owner object name and flow name (case-insensitive matching)
+    - Returns all general flow properties with array element counts (params, output vars)
+    - Enables detailed general flow inspection and modification
+    - General flows are reusable business logic workflows with isPage="false"
+4. **update_general_flow** - Update properties of an existing general flow
+    - Requires exact case-sensitive general flow name
+    - Supports updating 8 properties: titleText, isInitObjWFSubscribedToParams, layoutName, introText, codeDescription, isHeaderVisible, isIgnored, sortOrder
+    - At least one property to update must be provided
+    - Updates are made in-memory (model will have unsaved changes)
+    - Returns updated general flow with owner object name
+5. **update_full_general_flow** - Update a general flow with its complete schema (bulk replacement)
+    - Replaces entire general flow object with provided schema (all properties)
+    - Useful for major updates or complete reconfiguration
+    - Name is preserved (cannot be changed via this tool)
+    - Supports all general flow properties including objectWorkflowParam and objectWorkflowOutputVar arrays
+    - Updates are made in-memory (model will have unsaved changes)
+    - Returns fully updated general flow with owner object name
+6. **add_general_flow_param** - Add a new parameter (input parameter) to a general flow
+    - Adds parameter (objectWorkflowParam) to collect input data for general flow execution
+    - Supports 34 optional properties (sqlServerDBDataType, labelText, isRequired, isFK, isFKList, validationRuleRegExMatchRequired, etc.)
+    - Requires exact case-sensitive general flow name and parameter name
+    - Validates no duplicate parameter names
+    - Marks model with unsaved changes
+7. **update_general_flow_param** - Update properties of an existing general flow parameter
+    - Updates parameter in general flow (objectWorkflow with isPage="false")
+    - Requires exact case-sensitive general flow name and parameter name (used to identify the parameter)
+    - Supports updating 34 properties including name itself (sqlServerDBDataType, labelText, isRequired, isFK, etc.)
+    - At least one property to update must be provided
+    - Validates no duplicate parameter names if renaming
+    - Marks model with unsaved changes
+8. **move_general_flow_param** - Move a parameter to a new position in a general flow
+    - Moves parameter to new position in general flow (reusable business logic workflows)
+    - Requires exact case-sensitive general flow name and parameter name
+    - Position is 0-based index (0 = first position)
+    - Must be less than total parameter count
+    - Changes display order of parameters
+    - Marks model with unsaved changes
+9. **add_general_flow_output_var** - Add a new output variable to a general flow
+    - Adds output variable (objectWorkflowOutputVar) to display results/data after general flow execution
+    - Supports 19 optional properties (buttonNavURL, dataType, dataSize, labelText, isVisible, etc.)
+    - Requires exact case-sensitive general flow name and output variable name
+    - Validates no duplicate output variable names
+    - Marks model with unsaved changes
+10. **update_general_flow_output_var** - Update properties of an existing general flow output variable
+    - Updates output variable in general flow (objectWorkflow with isPage="false")
+    - Requires exact case-sensitive general flow name and output variable name (used to identify the output variable)
+    - Supports updating 20 properties including name itself (buttonNavURL, dataType, dataSize, labelText, isVisible, etc.)
+    - At least one property to update must be provided
+    - Marks model with unsaved changes
+11. **move_general_flow_output_var** - Move an output variable to a new position in a general flow
+    - Moves output variable to new position in general flow (reusable business logic workflows)
+    - Requires exact case-sensitive general flow name and output variable name
+    - Position is 0-based index (0 = first position)
+    - Must be less than total output variable count
+    - Changes display order of output variables
+    - Marks model with unsaved changes
+
+#### **Report Management** (8 tools)
 1. **get_report_schema** - Get JSON schema for complete report structure
     - Returns all report properties with validation rules and examples
     - Includes filter parameter (reportParam) structure with 20+ properties
@@ -192,19 +324,26 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
     - Adds default buttons based on report type
     - Validates PascalCase naming and uniqueness (case-insensitive check)
     - Supports role-based authorization and various visualization types
-5. **move_report_param** - Move a report parameter to a new position
+5. **update_full_report** - Update report with merge/patch operation
+    - Updates/adds report-level properties without removing existing ones
+    - For reportParam, reportColumn, reportButton arrays, matches by name/columnName/buttonText
+    - Updates existing items with provided fields, adds new items, preserves unmentioned items
+    - Uses AJV JSON schema validation for all properties
+    - Validates business rules (e.g., isFK="true" requires fKObjectName for params)
+    - Report name is never changed (preserved automatically)
+6. **move_report_param** - Move a report parameter to a new position
     - Reorder filter controls on the report
     - Specify report name, parameter name, and new 0-based position
     - Position 0 = first position
     - Validates position is within valid range (0 to count-1)
     - Marks model with unsaved changes
-6. **move_report_column** - Move a report column to a new position
+7. **move_report_column** - Move a report column to a new position
     - Reorder columns in the report grid/table
     - Specify report name, column name, and new 0-based position
     - Position 0 = first/leftmost position
     - Validates position is within valid range (0 to count-1)
     - Marks model with unsaved changes
-7. **move_report_button** - Move a report button to a new position
+8. **move_report_button** - Move a report button to a new position
     - Reorder buttons on the report
     - Specify report name, button name, and new 0-based position
     - Position 0 = first position

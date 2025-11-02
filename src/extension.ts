@@ -53,9 +53,28 @@ tools:
   - get_role_schema
   - get_form_schema
   - get_form
+  - get_general_flow_schema
+  - list_general_flows
+  - get_general_flow
+  - update_general_flow
+  - update_full_general_flow
+  - add_general_flow_param
+  - update_general_flow_param
+  - move_general_flow_param
+  - add_general_flow_output_var
+  - update_general_flow_output_var
+  - move_general_flow_output_var
+  - get_page_init_flow_schema
+  - get_page_init_flow
+  - update_page_init_flow
+  - update_full_page_init_flow
+  - add_page_init_flow_output_var
+  - update_page_init_flow_output_var
+  - move_page_init_flow_output_var
   - suggest_form_name_and_title
   - create_form
   - update_form
+  - update_full_form
   - add_form_param
   - update_form_param
   - move_form_param
@@ -85,6 +104,7 @@ tools:
   - get_data_object_schema
   - create_data_object
   - update_data_object
+  - update_full_data_object
   - add_data_object_props
   - update_data_object_prop
   - get_data_object_usage
@@ -312,7 +332,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
   - Auto-expand tree nodes
   - Custom model file name
 
-## Comprehensive MCP Tool Suite (105 Tools)
+## Comprehensive MCP Tool Suite (106 Tools)
 
 ### User Story Management (5 Tools)
 **CRUD Operations:**
@@ -330,12 +350,13 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`open_user_stories_role_requirements_view\` - View role-based access requirements
 - \`open_requirements_fulfillment_view\` - View role requirements fulfillment status
 
-### Data Object Management (11 Tools)
+### Data Object Management (12 Tools)
 **CRUD Operations:**
 - \`list_data_objects\` - View all data objects in your model
 - \`get_data_object\` - Get details for a specific data object
 - \`create_data_object\` - Create new business entities
-- \`update_data_object\` - Modify existing data objects
+- \`update_data_object\` - Modify existing data objects (currently only codeDescription)
+- \`update_full_data_object\` - Update data object with provided properties (merge/patch - updates/adds without removing existing)
 - \`add_data_object_props\` - Add properties to data objects
 - \`update_data_object_prop\` - Modify data object properties
 - \`get_data_object_usage\` - Analyze where data objects are referenced
@@ -348,7 +369,6 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`open_data_object_size_analysis_view\` - Storage and capacity planning
 - \`open_database_size_forecast_view\` - Database growth projections
 - \`list_data_object_summary\` - Get overview of all data objects
-
 ### Role Management (4 Tools)
 - \`add_role\` - Create new user roles
 - \`update_role\` - Modify existing roles
@@ -420,7 +440,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`open_register_view\` - Model services registration
 - \`open_login_view\` - Model services login
 
-### Schema Tools (9 Tools)
+### Schema Tools (12 Tools)
 - \`get_user_story_schema\` - View user story structure
 - \`get_data_object_schema\` - View detailed data object schema
 - \`get_data_object_summary_schema\` - View data object summary structure
@@ -428,15 +448,29 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`get_lookup_value_schema\` - View lookup value structure
 - \`get_form_schema\` - View complete form structure (objectWorkflow) with all properties, input parameters, buttons, and output variables
 - \`get_form\` - Retrieve complete form details including all parameters, buttons, and output variables with element counts
+- \`get_general_flow_schema\` - View complete general flow structure (objectWorkflow with isPage="false") with all properties, input parameters, and output variables for reusable business logic workflows
+- \`list_general_flows\` - List all general flows with optional filtering by name or owner object (case-insensitive matching)
+- \`get_general_flow\` - Retrieve complete general flow details including all parameters and output variables with element counts (reusable business logic workflows)
+- \`update_general_flow\` - Update properties of an existing general flow (8 updatable properties: titleText, isInitObjWFSubscribedToParams, layoutName, introText, codeDescription, isHeaderVisible, isIgnored, sortOrder)
+- \`add_general_flow_output_var\` - Add a new output variable to an existing general flow (19 optional properties available)
+- \`update_general_flow_output_var\` - Update properties of an existing general flow output variable (20 updatable properties including name, case-sensitive matching)
+- \`move_general_flow_output_var\` - Move a general flow output variable to a new position (0-based index) to reorder output display
+- \`get_page_init_flow_schema\` - View page init flow structure (objectWorkflow for page initialization) with all properties and output variables
+- \`get_page_init_flow\` - Retrieve complete page init flow details including all output variables with element counts
+- \`update_page_init_flow\` - Update properties of an existing page init flow (7 updatable properties, case-sensitive name matching)
+- \`add_page_init_flow_output_var\` - Add a new output variable to an existing page init flow (19 optional properties available)
+- \`update_page_init_flow_output_var\` - Update properties of an existing page init flow output variable (20 updatable properties including name, case-sensitive matching)
+- \`move_page_init_flow_output_var\` - Move a page init flow output variable to a new position (0-based index) to reorder output display
 - \`get_report_schema\` - View complete report structure with all properties, columns, buttons, and parameters
 - \`get_report\` - Retrieve complete report details including all columns, buttons, and parameters with element counts
 
-### Form Management Tools (14 Tools)
+### Form Management Tools (15 Tools)
 - \`get_form_schema\` - View complete form structure (objectWorkflow) with all properties, input parameters, buttons, and output variables
 - \`get_form\` - Retrieve complete form details including all parameters, buttons, and output variables with element counts
 - \`suggest_form_name_and_title\` - Generate suggested form name (PascalCase) and title based on owner object, role, action, and target child object
 - \`create_form\` - Create new form with automatic page init flow creation, default buttons, and role-based authorization
 - \`update_form\` - Update properties of an existing form (16 updatable properties, requires exact case-sensitive form name match)
+- \`update_full_form\` - Update form with provided properties (merge/patch - updates/adds params, outputVars, buttons without removing existing)
 - \`add_form_param\` - Add a new input parameter (form field/control) to an existing form with 34 configurable properties
 - \`update_form_param\` - Update properties of an existing form parameter (34 updatable properties, case-sensitive name matching)
 - \`move_form_param\` - Move a form parameter to a new position (0-based index) to reorder input controls on the form
