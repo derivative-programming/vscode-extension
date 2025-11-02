@@ -10,11 +10,36 @@ common types of graphs...
 ---------------------
 
 
-✓ get_page_init_flow_schema cleaned - removed all UI-specific metadata (displayedInUI, editableInUI, uiNote, uiTab, displayOrder, hasBrowseButton, schemaVariant, schemaVariants) and hiddenProperties section. Schema now returns clean, standard JSON schema structure with only properties, usage, and notes.
 
-✓ get_report_schema cleaned - removed hiddenProperties section. Schema now returns clean JSON structure without UI-specific metadata.
-
-form output var has unnecessary properties shown
+hide...view, get tool, update tool, add tool, schema tool
+- page init flow
+  - settings
+    - Is Exposed In Business Object:
+  - output vars
+    - Button Nav URL:
+    - Button Object WF Name:
+    - Button Text:
+- general flow
+  - settings
+    - Is Page:
+    - Is Dyna Flow Task:
+  - output var
+    - Conditional Visible Property Name:
+    - Is Header Text:
+    - Is Label Visible:
+    - Is Link:
+    - Is Visible:
+    - Label Text:
+- workflows
+  - settings
+    - Is Authorization Required:
+    - Role Required:
+    - Is Exposed In Business Object:
+- workflow tasks
+  - settings
+    - Is Authorization Required:
+    - Role Required:
+    - Is Exposed In Business Object:
 
 if item has role required then auth is required
 

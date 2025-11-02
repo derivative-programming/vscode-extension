@@ -1,0 +1,7 @@
+Command: Open Workflow Details for: BuildDataFileImageCatalogRequest
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Workflow Details for: BuildDataFileImageCatalogRequest
+Command: Open Workflow Task Details for: CampaignPkgExportRequestBuild
+Command: Open Workflow Task Details for: CampaignPkgExportRequestBuild
+Command: Open Workflow Details for: BuildDataFileImageCatalogRequest
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantThreadListInitReport

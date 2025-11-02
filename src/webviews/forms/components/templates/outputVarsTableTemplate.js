@@ -8,6 +8,15 @@ const { formatLabel } = require("../../helpers/formDataHelper");
 function getOutputVarPropertiesToHide() {
     return [
         // Note: "name" is not hidden as it's the primary identifier for output variables
+        "buttonnavurl",
+        "buttonobjectwfname",
+        "buttontext",
+        "conditionalvisiblepropertyname",
+        "isheadertext",
+        "islabelvisible",
+        "islink",
+        "isvisible",
+        "labeltext"
     ];
 }
 

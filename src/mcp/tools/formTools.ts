@@ -108,13 +108,6 @@ export class FormTools {
                         description: 'Is the form header visible? String "true" or "false".',
                         examples: ['true', 'false']
                     },
-                    isPage: {
-                        type: 'string',
-                        required: false,
-                        enum: ['', 'true', 'false'],
-                        description: 'Is this a standalone page? Can be empty string, "true", or "false".',
-                        examples: ['', 'true', 'false']
-                    },
                     isAuthorizationRequired: {
                         type: 'string',
                         required: false,
@@ -552,31 +545,6 @@ export class FormTools {
                                     description: 'Size of data type (for nvarchar, varchar, decimal)',
                                     examples: ['100', '255', 'MAX']
                                 },
-                                labelText: {
-                                    type: 'string',
-                                    required: false,
-                                    description: 'Label text displayed for this output variable',
-                                    examples: ['Success Message', 'Customer ID', 'Order Number']
-                                },
-                                buttonText: {
-                                    type: 'string',
-                                    required: false,
-                                    description: 'Text displayed on button if output variable is a button',
-                                    examples: ['View Customer', 'View Order', 'Continue']
-                                },
-                                buttonNavURL: {
-                                    type: 'string',
-                                    required: false,
-                                    description: 'Navigation URL for button output variable',
-                                    examples: ['/customer/details', '/order/list']
-                                },
-                                isLabelVisible: {
-                                    type: 'string',
-                                    required: false,
-                                    enum: ['true', 'false'],
-                                    description: 'Is the label visible for this output variable? String "true" or "false".',
-                                    examples: ['true', 'false']
-                                },
                                 defaultValue: {
                                     type: 'string',
                                     required: false,
@@ -584,37 +552,11 @@ export class FormTools {
                                     description: 'Default value for this output variable. String "true" or "false".',
                                     examples: ['true', 'false']
                                 },
-                                isLink: {
-                                    type: 'string',
-                                    required: false,
-                                    enum: ['true', 'false'],
-                                    description: 'Is this output variable a link? String "true" or "false".',
-                                    examples: ['true', 'false']
-                                },
                                 isAutoRedirectURL: {
                                     type: 'string',
                                     required: false,
                                     enum: ['true', 'false'],
                                     description: 'Should the form auto-redirect to this URL? String "true" or "false".',
-                                    examples: ['true', 'false']
-                                },
-                                buttonObjectWFName: {
-                                    type: 'string',
-                                    required: false,
-                                    description: 'Name of the workflow to navigate to when button is clicked',
-                                    examples: ['ViewCustomer', 'UpdateOrder']
-                                },
-                                conditionalVisiblePropertyName: {
-                                    type: 'string',
-                                    required: false,
-                                    description: 'Name of property that controls output variable visibility conditionally',
-                                    examples: ['IsSuccess', 'HasError']
-                                },
-                                isVisible: {
-                                    type: 'string',
-                                    required: false,
-                                    enum: ['true', 'false'],
-                                    description: 'Is this output variable visible? String "true" or "false".',
                                     examples: ['true', 'false']
                                 },
                                 isFK: {
@@ -635,13 +577,6 @@ export class FormTools {
                                     required: false,
                                     enum: ['true', 'false'],
                                     description: 'Is this output variable a foreign key to a lookup object? String "true" or "false".',
-                                    examples: ['true', 'false']
-                                },
-                                isHeaderText: {
-                                    type: 'string',
-                                    required: false,
-                                    enum: ['true', 'false'],
-                                    description: 'Should this output variable be displayed as header text? String "true" or "false".',
                                     examples: ['true', 'false']
                                 },
                                 isIgnored: {
@@ -671,17 +606,14 @@ export class FormTools {
                                     name: 'SuccessMessage',
                                     sqlServerDBDataType: 'nvarchar',
                                     sqlServerDBDataTypeSize: '255',
-                                    labelText: 'Success Message',
-                                    isVisible: 'true',
-                                    isHeaderText: 'true'
+                                    defaultValue: 'false'
                                 },
                                 {
                                     name: 'CustomerID',
                                     sqlServerDBDataType: 'int',
-                                    labelText: 'Customer ID',
-                                    isVisible: 'true',
-                                    buttonText: 'View Customer',
-                                    isLink: 'true'
+                                    isFK: 'true',
+                                    fKObjectName: 'Customer',
+                                    isFKLookup: 'false'
                                 }
                             ]
                         ]
@@ -743,9 +675,7 @@ export class FormTools {
                         'Optional array - only included if form has output variables',
                         'Each output variable must have unique name within the form',
                         'Output variable names must be in PascalCase format',
-                        'Can be text displays, links, or buttons',
-                        'isLink="true" makes the output variable clickable',
-                        'isHeaderText="true" displays as prominent header text',
+                        'Can be used to display result data after form submission',
                         'All boolean-like fields use string "true"/"false" not boolean'
                     ]
                 },
@@ -1019,7 +949,7 @@ export class FormTools {
      * @returns Filtered form object without hidden properties
      */
     private filterHiddenFormProperties(form: any): any {
-        const hiddenProperties = [
+        const hiddenFormProperties = [
             'isIgnoredInDocumentation',
             'formFooterImageURL',
             'footerImageURL',
@@ -1027,16 +957,41 @@ export class FormTools {
             'isCreditCardEntryUsed',
             'isDynaFlow',
             'isDynaFlowTask',
+            'dynaFlowTask',
             'isCustomPageViewUsed',
             'isImpersonationPage',
-            'isExposedInBusinessObject'
+            'isExposedInBusinessObject',
+            'isPage'
         ];
 
-        // Create a shallow copy and remove hidden properties
+        const hiddenOutputVarProperties = [
+            'buttonNavURL',
+            'buttonObjectWFName',
+            'buttonText',
+            'conditionalVisiblePropertyName',
+            'isHeaderText',
+            'isLabelVisible',
+            'isLink',
+            'isVisible',
+            'labelText'
+        ];
+
+        // Create a shallow copy and remove hidden form properties
         const filtered = { ...form };
-        hiddenProperties.forEach(prop => {
+        hiddenFormProperties.forEach(prop => {
             delete filtered[prop];
         });
+
+        // Filter hidden properties from output variables
+        if (filtered.objectWorkflowOutputVar && Array.isArray(filtered.objectWorkflowOutputVar)) {
+            filtered.objectWorkflowOutputVar = filtered.objectWorkflowOutputVar.map((outputVar: any) => {
+                const filteredOutputVar = { ...outputVar };
+                hiddenOutputVarProperties.forEach(prop => {
+                    delete filteredOutputVar[prop];
+                });
+                return filteredOutputVar;
+            });
+        }
 
         return filtered;
     }
@@ -2047,20 +2002,11 @@ export class FormTools {
             name: string;
             sqlServerDBDataType?: string;
             sqlServerDBDataTypeSize?: string;
-            labelText?: string;
-            buttonText?: string;
-            buttonNavURL?: string;
-            isLabelVisible?: string;
             defaultValue?: string;
-            isLink?: string;
             isAutoRedirectURL?: string;
-            buttonObjectWFName?: string;
-            conditionalVisiblePropertyName?: string;
-            isVisible?: string;
             isFK?: string;
             fKObjectName?: string;
             isFKLookup?: string;
-            isHeaderText?: string;
             isIgnored?: string;
             sourceObjectName?: string;
             sourcePropertyName?: string;
@@ -2136,6 +2082,7 @@ export class FormTools {
 
     /**
      * Update an existing output variable in a form
+     * Note: Output variable names cannot be changed after creation
      * @param form_name - Name of the form (case-sensitive exact match)
      * @param output_var_name - Name of the output variable to update (case-sensitive exact match)
      * @param updates - Object containing properties to update
@@ -2145,23 +2092,13 @@ export class FormTools {
         form_name: string,
         output_var_name: string,
         updates: {
-            name?: string;
             sqlServerDBDataType?: string;
             sqlServerDBDataTypeSize?: string;
-            labelText?: string;
-            buttonText?: string;
-            buttonNavURL?: string;
-            isLabelVisible?: string;
             defaultValue?: string;
-            isLink?: string;
             isAutoRedirectURL?: string;
-            buttonObjectWFName?: string;
-            conditionalVisiblePropertyName?: string;
-            isVisible?: string;
             isFK?: string;
             fKObjectName?: string;
             isFKLookup?: string;
-            isHeaderText?: string;
             isIgnored?: string;
             sourceObjectName?: string;
             sourcePropertyName?: string;

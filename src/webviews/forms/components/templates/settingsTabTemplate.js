@@ -55,9 +55,11 @@ function getFormPropertiesToIgnore() {
         "iscreditcardentryused",
         "isdynaflow",
         "isdynaflowtask",
+        "dynaflowtask",
         "iscustompageviewused",
         "isimpersonationpage",
-        "isexposedinbusinessobject"
+        "isexposedinbusinessobject",
+        "ispage"
     ];
 }
 
