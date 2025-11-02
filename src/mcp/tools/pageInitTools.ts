@@ -21,13 +21,9 @@ export class PageInitTools {
             success: true,
             schema: {
                 type: "object",
-                description: "Page Init Flow (objectWorkflow) structure in AppDNA model - represents page initialization workflows that prepare data before page display. Note: The Page Init Details View displays a curated subset of 7 properties in the Settings tab, while the full objectWorkflow schema contains 40+ properties. This schema documents what is actually shown and editable in the UI.",
+                description: "Page Init Flow (objectWorkflow) structure in AppDNA model - represents page initialization workflows that prepare data before page display.",
                 objectType: "objectWorkflow",
                 category: "pageInitFlow",
-                displayedInUI: {
-                    settingsTab: ["name", "isAuthorizationRequired", "isCustomLogicOverwritten", "isExposedInBusinessObject", "isRequestRunViaDynaFlowAllowed", "pageIntroText", "pageTitleText", "roleRequired"],
-                    outputVariablesTab: "objectWorkflowOutputVar (all properties)"
-                },
                 properties: {
                     name: {
                         type: "string",
@@ -35,136 +31,58 @@ export class PageInitTools {
                         format: "PascalCase",
                         pattern: "^[A-Z][A-Za-z0-9]*(InitObjWF|InitReport)$",
                         description: "Page init flow ID, unique for each flow. Must be in PascalCase format and end with 'InitObjWF' or 'InitReport'. This naming convention identifies workflows as page initialization flows in the tree view.",
-                        examples: ["CustomerListInitObjWF", "UpdateFlavorInitObjWF", "ProductDetailsInitObjWF", "OrderFormInitReport", "SalesDataInitReport"],
-                        displayedInUI: true,
-                        editableInUI: false,
-                        uiNote: "Displayed in header, not editable in Settings tab"
+                        examples: ["CustomerListInitObjWF", "UpdateFlavorInitObjWF", "ProductDetailsInitObjWF", "OrderFormInitReport", "SalesDataInitReport"]
                     },
                     isAuthorizationRequired: {
                         type: "string",
                         required: false,
                         enum: ["true", "false"],
                         description: "Does this page init flow require user authorization? String \"true\" or \"false\".",
-                        examples: ["true", "false"],
-                        displayedInUI: true,
-                        editableInUI: true,
-                        uiTab: "Settings"
+                        examples: ["true", "false"]
                     },
                     isCustomLogicOverwritten: {
                         type: "string",
                         required: false,
                         enum: ["true", "false"],
                         description: "Is custom logic overwritten for this page init flow? String \"true\" or \"false\".",
-                        examples: ["true", "false"],
-                        displayedInUI: true,
-                        editableInUI: true,
-                        uiTab: "Settings"
+                        examples: ["true", "false"]
                     },
                     isExposedInBusinessObject: {
                         type: "string",
                         required: false,
                         enum: ["true", "false"],
                         description: "Is this page init flow exposed in the business object layer? String \"true\" or \"false\".",
-                        examples: ["true", "false"],
-                        displayedInUI: true,
-                        editableInUI: true,
-                        uiTab: "Settings"
+                        examples: ["true", "false"]
                     },
                     isRequestRunViaDynaFlowAllowed: {
                         type: "string",
                         required: false,
                         enum: ["true", "false"],
                         description: "Can this page init flow be run via DynaFlow? String \"true\" or \"false\".",
-                        examples: ["true", "false"],
-                        displayedInUI: true,
-                        editableInUI: true,
-                        uiTab: "Settings"
+                        examples: ["true", "false"]
                     },
                     pageIntroText: {
                         type: "string",
                         required: false,
                         description: "Introduction text displayed at the top of the page after initialization.",
-                        examples: ["Welcome to the customer list", "View and manage your orders", "Product details"],
-                        displayedInUI: true,
-                        editableInUI: true,
-                        uiTab: "Settings"
+                        examples: ["Welcome to the customer list", "View and manage your orders", "Product details"]
                     },
                     pageTitleText: {
                         type: "string",
                         required: false,
                         description: "Title text displayed on the page after initialization.",
-                        examples: ["Customer List", "Order Management", "Product Details"],
-                        displayedInUI: true,
-                        editableInUI: true,
-                        uiTab: "Settings"
+                        examples: ["Customer List", "Order Management", "Product Details"]
                     },
                     roleRequired: {
                         type: "string",
                         required: false,
                         description: "Name of the role required to run this page init flow. Should match a role name from the Role lookup object.",
-                        examples: ["Administrator", "Manager", "User", "ReadOnlyUser"],
-                        displayedInUI: true,
-                        editableInUI: true,
-                        uiTab: "Settings"
+                        examples: ["Administrator", "Manager", "User", "ReadOnlyUser"]
                     }
-                },
-                hiddenProperties: {
-                    note: "The following properties exist in the full objectWorkflow schema but are NOT displayed in the Page Init Details View UI",
-                    list: [
-                        "codeDescription",
-                        "isIgnored",
-                        "isIgnoredInDocumentation",
-                        "initObjectWorkflowName",
-                        "isCachingAllowed",
-                        "cacheExpirationInMinutes",
-                        "badgeCountPropertyName",
-                        "isHeaderLabelsVisible",
-                        "isReportDetailLabelColumnVisible",
-                        "isAzureBlobStorageUsed",
-                        "azureTableNameOverride",
-                        "isAzureTablePrimaryKeyColumnDateTime",
-                        "workflowType",
-                        "workflowSubType",
-                        "isAsync",
-                        "asyncTimeoutMinutes",
-                        "isEmailNotificationRequired",
-                        "emailNotificationTemplateName",
-                        "isAuditLogRequired",
-                        "auditLogMessage",
-                        "isCustomHandlerRequired",
-                        "customHandlerClassName",
-                        "customHandlerMethodName",
-                        "isValidationRequired",
-                        "validationRuleName",
-                        "isAuthorizationBypassAllowed",
-                        "authorizationBypassReason",
-                        "isDevelopmentOnly",
-                        "developmentDescription",
-                        "isLegacySupported",
-                        "legacyCompatibilityVersion",
-                        "isMobileOptimized",
-                        "mobileViewName",
-                        "isTabletOptimized",
-                        "tabletViewName",
-                        "formFooterImageURL",
-                        "footerImageURL",
-                        "headerImageURL",
-                        "isCreditCardEntryUsed",
-                        "isDynaFlow",
-                        "isDynaFlowTask",
-                        "isCustomPageViewUsed",
-                        "isImpersonationPage",
-                        "isPage",
-                        "visualizationType",
-                        "and 10+ more workflow-related properties"
-                    ]
                 },
                 objectWorkflowOutputVar: {
                     type: "array",
-                    description: "Output variables that are produced by the page init flow and made available to the page. The Page Init Flow Details View displays 19 properties for each output variable in a specific order.",
-                    displayedInUI: true,
-                    uiTab: "Output Variables",
-                    displayOrder: ["buttonNavURL", "buttonObjectWFName", "buttonText", "conditionalVisiblePropertyName", "dataSize", "dataType", "defaultValue", "fKObjectName", "labelText", "isAutoRedirectURL", "isFK", "isFKLookup", "isLabelVisible", "isHeaderText", "isIgnored", "isLink", "isVisible", "sourceObjectName", "sourcePropertyName"],
+                    description: "Output variables that are produced by the page init flow and made available to the page.",
                     items: {
                         type: "object",
                         properties: {
@@ -174,196 +92,130 @@ export class PageInitTools {
                                 format: "PascalCase",
                                 pattern: "^[A-Z][A-Za-z0-9]*$",
                                 description: "Output variable name. Must be in PascalCase format (starts with uppercase letter, no spaces, can contain letters and numbers).",
-                                examples: ["CustomerList", "TotalRecords", "FilteredResults", "UserPermissions"],
-                                displayedInUI: true,
-                                editableInUI: false,
-                                uiNote: "Shown in list, not editable in details form"
+                                examples: ["CustomerList", "TotalRecords", "FilteredResults", "UserPermissions"]
                             },
                             buttonNavURL: {
                                 type: "string",
                                 required: false,
                                 description: "Navigation URL when this output variable is clicked (if isLink is true).",
-                                examples: ["/customer/details", "/order/view", "/product/edit"],
-                                displayedInUI: true,
-                                editableInUI: true,
-                                displayOrder: 1
+                                examples: ["/customer/details", "/order/view", "/product/edit"]
                             },
                             buttonObjectWFName: {
                                 type: "string",
                                 required: false,
                                 description: "Workflow name to navigate to when this output variable is clicked.",
-                                examples: ["CustomerDetails", "OrderView", "ProductEdit"],
-                                displayedInUI: true,
-                                editableInUI: true,
-                                displayOrder: 2
+                                examples: ["CustomerDetails", "OrderView", "ProductEdit"]
                             },
                             buttonText: {
                                 type: "string",
                                 required: false,
                                 description: "Button text if this output variable is displayed as a button.",
-                                examples: ["View Details", "Edit", "Delete"],
-                                displayedInUI: true,
-                                editableInUI: true,
-                                displayOrder: 3
+                                examples: ["View Details", "Edit", "Delete"]
                             },
                             conditionalVisiblePropertyName: {
                                 type: "string",
                                 required: false,
                                 description: "Name of the property that controls conditional visibility of this output variable.",
-                                examples: ["IsAdministrator", "HasPermission", "IsActive"],
-                                displayedInUI: true,
-                                editableInUI: true,
-                                displayOrder: 4
+                                examples: ["IsAdministrator", "HasPermission", "IsActive"]
                             },
                             dataSize: {
                                 type: "string",
                                 required: false,
                                 description: "Size specification for the data type (e.g., '50' for varchar(50), '18,2' for decimal(18,2)). Also known as sqlServerDBDataTypeSize in schema.",
-                                examples: ["50", "100", "18,2", "MAX"],
-                                schemaVariant: "sqlServerDBDataTypeSize",
-                                displayedInUI: true,
-                                editableInUI: true,
-                                displayOrder: 5
+                                examples: ["50", "100", "18,2", "MAX"]
                             },
                             dataType: {
                                 type: "string",
                                 required: false,
                                 enum: ["varchar", "nvarchar", "int", "bigint", "decimal", "money", "datetime", "date", "time", "bit", "uniqueidentifier", "text", "ntext"],
                                 description: "SQL Server data type for this output variable. Also known as sqlServerDBDataType in schema.",
-                                examples: ["varchar", "int", "datetime", "bit", "uniqueidentifier"],
-                                schemaVariant: "sqlServerDBDataType",
-                                displayedInUI: true,
-                                editableInUI: true,
-                                displayOrder: 6
+                                examples: ["varchar", "int", "datetime", "bit", "uniqueidentifier"]
                             },
                             defaultValue: {
                                 type: "string",
                                 required: false,
                                 description: "Default value for this output variable if not set by the flow.",
-                                examples: ["0", "", "NULL", "[]"],
-                                displayedInUI: true,
-                                editableInUI: true,
-                                displayOrder: 7
+                                examples: ["0", "", "NULL", "[]"]
                             },
                             fKObjectName: {
                                 type: "string",
                                 required: false,
-                                description: "Name of the foreign key object target (data object name). Case-sensitive. Has browse button in UI.",
-                                examples: ["Customer", "Order", "Status", "Role"],
-                                displayedInUI: true,
-                                editableInUI: true,
-                                hasBrowseButton: true,
-                                displayOrder: 8
+                                description: "Name of the foreign key object target (data object name). Case-sensitive.",
+                                examples: ["Customer", "Order", "Status", "Role"]
                             },
                             labelText: {
                                 type: "string",
                                 required: false,
                                 description: "Display label for this output variable (if shown in UI).",
-                                examples: ["Customer List", "Total Records", "Filtered Results"],
-                                schemaVariants: ["headerText", "headerLabelText"],
-                                displayedInUI: true,
-                                editableInUI: true,
-                                displayOrder: 9
+                                examples: ["Customer List", "Total Records", "Filtered Results"]
                             },
                             isAutoRedirectURL: {
                                 type: "string",
                                 required: false,
                                 enum: ["true", "false"],
                                 description: "Should the page automatically redirect to this URL after initialization? String \"true\" or \"false\".",
-                                examples: ["true", "false"],
-                                displayedInUI: true,
-                                editableInUI: true,
-                                displayOrder: 10
+                                examples: ["true", "false"]
                             },
                             isFK: {
                                 type: "string",
                                 required: false,
                                 enum: ["true", "false"],
                                 description: "Is this output variable a foreign key reference? String \"true\" or \"false\".",
-                                examples: ["true", "false"],
-                                displayedInUI: true,
-                                editableInUI: true,
-                                displayOrder: 11
+                                examples: ["true", "false"]
                             },
                             isFKLookup: {
                                 type: "string",
                                 required: false,
                                 enum: ["true", "false"],
                                 description: "Is this output variable a foreign key to a lookup object? String \"true\" or \"false\".",
-                                examples: ["true", "false"],
-                                displayedInUI: true,
-                                editableInUI: true,
-                                displayOrder: 12
+                                examples: ["true", "false"]
                             },
                             isLabelVisible: {
                                 type: "string",
                                 required: false,
                                 enum: ["true", "false"],
                                 description: "Is the label for this output variable visible? String \"true\" or \"false\".",
-                                examples: ["true", "false"],
-                                schemaVariants: ["isHeaderLabelsVisible", "isHeaderLabelVisible"],
-                                displayedInUI: true,
-                                editableInUI: true,
-                                displayOrder: 13
+                                examples: ["true", "false"]
                             },
                             isHeaderText: {
                                 type: "string",
                                 required: false,
                                 enum: ["true", "false"],
                                 description: "Is this output variable displayed as header text? String \"true\" or \"false\".",
-                                examples: ["true", "false"],
-                                displayedInUI: true,
-                                editableInUI: true,
-                                displayOrder: 14
+                                examples: ["true", "false"]
                             },
                             isIgnored: {
                                 type: "string",
                                 required: false,
                                 enum: ["true", "false"],
                                 description: "Should this output variable be ignored by the code generator? String \"true\" or \"false\". Use instead of deleting.",
-                                examples: ["true", "false"],
-                                displayedInUI: true,
-                                editableInUI: true,
-                                displayOrder: 15
+                                examples: ["true", "false"]
                             },
                             isLink: {
                                 type: "string",
                                 required: false,
                                 enum: ["true", "false"],
                                 description: "Should this output variable be displayed as a clickable link? String \"true\" or \"false\".",
-                                examples: ["true", "false"],
-                                displayedInUI: true,
-                                editableInUI: true,
-                                displayOrder: 16
+                                examples: ["true", "false"]
                             },
                             isVisible: {
                                 type: "string",
                                 required: false,
                                 enum: ["true", "false"],
                                 description: "Is this output variable visible in the UI? String \"true\" or \"false\".",
-                                examples: ["true", "false"],
-                                displayedInUI: true,
-                                editableInUI: true,
-                                displayOrder: 17
+                                examples: ["true", "false"]
                             },
                             sourceObjectName: {
                                 type: "string",
                                 required: false,
-                                description: "Name of the source data object for this output variable (case-sensitive). Has browse button in UI.",
-                                examples: ["Customer", "Order", "Product", "User"],
-                                displayedInUI: true,
-                                editableInUI: true,
-                                hasBrowseButton: true,
-                                displayOrder: 18
+                                description: "Name of the source data object for this output variable (case-sensitive).",
+                                examples: ["Customer", "Order", "Product", "User"]
                             },
                             sourcePropertyName: {
                                 type: "string",
                                 required: false,
                                 description: "Name of the source property from the source object (case-sensitive, PascalCase).",
-                                examples: ["FirstName", "LastName", "EmailAddress", "TotalAmount"],
-                                displayedInUI: true,
-                                editableInUI: true,
-                                displayOrder: 19
+                                examples: ["FirstName", "LastName", "EmailAddress", "TotalAmount"]
                             }
                         }
                     }
@@ -424,11 +276,7 @@ export class PageInitTools {
                     "This naming convention is how the tree view and tools distinguish page init flows from forms and reports",
                     "Page init flows typically have output variables (objectWorkflowOutputVar) but no parameters or buttons",
                     "Page init flows run before the page is displayed to prepare data and check permissions",
-                    "Forms and reports reference page init flows via the initObjectWorkflowName property",
-                    "IMPORTANT: The Page Init Details View displays only 7 properties in the Settings tab (curated list)",
-                    "The full objectWorkflow schema contains 40+ properties, but most are hidden in the UI as they are not relevant for page init flows",
-                    "Properties like isDynaFlow, isAsync, workflowType, etc. are workflow-related and hidden from the page init UI",
-                    "The UI follows the principle of showing only what's relevant for page initialization scenarios"
+                    "Forms and reports reference page init flows via the initObjectWorkflowName property"
                 ]
             }
         };

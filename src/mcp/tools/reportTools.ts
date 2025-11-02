@@ -520,22 +520,6 @@ export class ReportTools {
                         ]
                     }
                 },
-                hiddenProperties: [
-                    'name (managed by system, not editable in settings tab)',
-                    'initObjectWorkflowName (managed via page init flow link)',
-                    'isCachingAllowed (hidden from UI)',
-                    'cacheExpirationInMinutes (hidden from UI)',
-                    'badgeCountPropertyName (hidden from UI)',
-                    'isHeaderLabelsVisible (hidden from UI)',
-                    'isReportDetailLabelColumnVisible (hidden from UI)',
-                    'formIntroText (hidden from UI)',
-                    'isIgnoredInDocumentation (hidden from UI)',
-                    'isAzureBlobStorageUsed (hidden from UI)',
-                    'azureTableNameOverride (hidden from UI)',
-                    'isAzureTablePrimaryKeyColumnDateTime (hidden from UI)',
-                    'isPage (managed by system)',
-                    'All visualization-specific column properties (Grid, PieChart, LineChart, FlowChart, CardView, FolderView column mappings are hidden from settings tab)'
-                ],
                 validationRules: {
                     name: [
                         'Required field (but not exposed in settings tab - managed at creation)',

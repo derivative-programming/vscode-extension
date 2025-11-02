@@ -899,14 +899,20 @@ export class MCPServer {
         // Register list_general_flows tool
         this.server.registerTool('list_general_flows', {
             title: 'List General Flows',
-            description: 'List all general flows from the model with optional filtering. General flows are reusable business logic workflows (objectWorkflow with isPage="false", not DynaFlow tasks, not init flows). Each flow includes name, owner object, parameters, output variables, and steps. Supports filtering by general flow name (exact match) or owner object name (exact match). All name matching is case-insensitive.',
+            description: 'List all general flows from the model with optional filtering. General flows are reusable business logic workflows (objectWorkflow with isPage="false", not DynaFlow tasks, not init flows). Returns summary data: name, ownerObject, roleRequired, paramCount, outputVarCount. Use get_general_flow for complete details. Supports filtering by general flow name (exact match) or owner object name (exact match). All name matching is case-insensitive.',
             inputSchema: {
                 general_flow_name: z.string().optional().describe('Optional: Filter by general flow name (case-insensitive, exact match)'),
                 owner_object: z.string().optional().describe('Optional: Filter by owner data object name (case-insensitive, exact match)')
             },
             outputSchema: {
                 success: z.boolean(),
-                general_flows: z.array(z.any()).optional().describe('Array of general flow objects with all properties'),
+                general_flows: z.array(z.object({
+                    name: z.string(),
+                    ownerObject: z.string(),
+                    roleRequired: z.string(),
+                    paramCount: z.number(),
+                    outputVarCount: z.number()
+                })).optional().describe('Array of general flow summary objects'),
                 count: z.number().optional().describe('Total number of general flows returned'),
                 filters: z.object({
                     general_flow_name: z.string().nullable(),

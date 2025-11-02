@@ -9,10 +9,10 @@ common types of graphs...
 
 ---------------------
 
-list_general_flows should not return detail of each flow. just the names and owner object, which are the search options
 
-get_page_init_flow_schema...displayedInUI?editableInUI?uiNote?hiddenProperties?usage?
+✓ get_page_init_flow_schema cleaned - removed all UI-specific metadata (displayedInUI, editableInUI, uiNote, uiTab, displayOrder, hasBrowseButton, schemaVariant, schemaVariants) and hiddenProperties section. Schema now returns clean, standard JSON schema structure with only properties, usage, and notes.
 
+✓ get_report_schema cleaned - removed hiddenProperties section. Schema now returns clean JSON structure without UI-specific metadata.
 
 form output var has unnecessary properties shown
 

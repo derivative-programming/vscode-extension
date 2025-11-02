@@ -931,10 +931,19 @@ export class McpBridge {
                                         continue;
                                     }
                                     
-                                    // Add owner object name to each general flow for context
+                                    // Calculate counts for summary
+                                    const paramCount = (workflow.objectWorkflowParam && Array.isArray(workflow.objectWorkflowParam)) 
+                                        ? workflow.objectWorkflowParam.length : 0;
+                                    const outputVarCount = (workflow.objectWorkflowOutputVar && Array.isArray(workflow.objectWorkflowOutputVar)) 
+                                        ? workflow.objectWorkflowOutputVar.length : 0;
+                                    
+                                    // Add only essential properties for listing (not full workflow details)
                                     generalFlows.push({
-                                        ...workflow,
-                                        _ownerObjectName: obj.name
+                                        name: workflow.name,
+                                        ownerObject: obj.name,
+                                        roleRequired: workflow.roleRequired || 'Public',
+                                        paramCount: paramCount,
+                                        outputVarCount: outputVarCount
                                     });
                                     
                                     // If searching for specific general flow name, we can stop after finding it

@@ -449,7 +449,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`get_form_schema\` - View complete form structure (objectWorkflow) with all properties, input parameters, buttons, and output variables
 - \`get_form\` - Retrieve complete form details including all parameters, buttons, and output variables with element counts
 - \`get_general_flow_schema\` - View complete general flow structure (objectWorkflow with isPage="false") with all properties, input parameters, and output variables for reusable business logic workflows
-- \`list_general_flows\` - List all general flows with optional filtering by name or owner object (case-insensitive matching)
+- \`list_general_flows\` - List all general flows with summary data (name, ownerObject, roleRequired, paramCount, outputVarCount). Supports filtering by name or owner object (case-insensitive matching). Use get_general_flow for complete details.
 - \`get_general_flow\` - Retrieve complete general flow details including all parameters and output variables with element counts (reusable business logic workflows)
 - \`update_general_flow\` - Update properties of an existing general flow (8 updatable properties: titleText, isInitObjWFSubscribedToParams, layoutName, introText, codeDescription, isHeaderVisible, isIgnored, sortOrder)
 - \`add_general_flow_output_var\` - Add a new output variable to an existing general flow (19 optional properties available)

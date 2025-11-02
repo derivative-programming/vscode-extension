@@ -1455,7 +1455,7 @@ export class GeneralFlowTools {
                     general_flow_name: general_flow_name || null,
                     owner_object: owner_object || null
                 },
-                note: 'General flows loaded from AppDNA model. General flows are reusable business logic workflows (isPage="false", not DynaFlow tasks, not init flows). Each includes name, owner object, parameters, output variables, and steps.'
+                note: 'General flows loaded from AppDNA model. General flows are reusable business logic workflows (isPage="false", not DynaFlow tasks, not init flows). Each includes name, ownerObject, roleRequired, paramCount, and outputVarCount. Use get_general_flow for complete details.'
             };
         } catch (error) {
             return {
