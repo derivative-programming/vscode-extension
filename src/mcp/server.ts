@@ -2056,52 +2056,6 @@ export class MCPServer {
             }
         });
 
-        // Register update_full_report tool
-        this.server.registerTool('update_full_report', {
-            title: 'Update Full Report',
-            description: 'Update an existing report with provided properties (merge/patch operation). This tool updates or adds the specified properties without removing existing ones. For reportParam, reportColumn, and reportButton arrays, items are matched by name/columnName/buttonText - existing items are updated with provided fields, new items are added, but items not included in the update are preserved. The report name is never changed. Report name must match exactly (case-sensitive).',
-            inputSchema: {
-                report_name: z.string().describe('Name of the report to update (required, case-sensitive exact match)'),
-                report: z.object({
-                    titleText: z.string().optional().describe('Report title text'),
-                    introText: z.string().optional().describe('Report intro text'),
-                    visualizationType: z.enum(['Grid', 'PieChart', 'LineChart', 'FlowChart', 'CardView', 'FolderView']).optional().describe('Visualization type'),
-                    isCustomSqlUsed: z.enum(['true', 'false']).optional().describe('Whether custom SQL is used'),
-                    isIgnoredInDocumentation: z.enum(['true', 'false']).optional().describe('Ignored in documentation'),
-                    reportParam: z.array(z.any()).optional().describe('Array of report parameters (matched by name for merge)'),
-                    reportColumn: z.array(z.any()).optional().describe('Array of report columns (matched by columnName for merge)'),
-                    reportButton: z.array(z.any()).optional().describe('Array of report buttons (matched by buttonText for merge)')
-                }).describe('Partial report object containing properties to update/add (all fields optional)')
-            },
-            outputSchema: {
-                success: z.boolean(),
-                report: z.any().optional(),
-                owner_object_name: z.string().optional(),
-                message: z.string().optional(),
-                note: z.string().optional(),
-                error: z.string().optional(),
-                validationErrors: z.array(z.string()).optional()
-            }
-        }, async (args: Record<string, unknown>) => {
-            try {
-                const { report_name, report } = args;
-                
-                const result = await this.reportTools.update_full_report(report_name as string, report as any);
-                
-                return {
-                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-                    structuredContent: result
-                };
-            } catch (error: any) {
-                const errorResult = { success: false, error: error.message };
-                return {
-                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
-                    structuredContent: errorResult,
-                    isError: true
-                };
-            }
-        });
-
         // Register add_report_param tool
         this.server.registerTool('add_report_param', {
             title: 'Add Report Parameter',
@@ -2878,10 +2832,6 @@ export class MCPServer {
                 page_init_flow_name: z.string().describe('The name of the page init flow to update (required, case-sensitive exact match, must end with "InitObjWF" or "InitReport")'),
                 isAuthorizationRequired: z.enum(['true', 'false']).optional().describe('Whether authorization is required to run this page init flow'),
                 isCustomLogicOverwritten: z.enum(['true', 'false']).optional().describe('Whether custom logic overwrites default behavior'),
-                isExposedInBusinessObject: z.enum(['true', 'false']).optional().describe('Whether this flow is exposed in the business object'),
-                isRequestRunViaDynaFlowAllowed: z.enum(['true', 'false']).optional().describe('Whether the flow can be run via DynaFlow'),
-                pageIntroText: z.string().optional().describe('Introduction text displayed on the page'),
-                pageTitleText: z.string().optional().describe('Title text displayed on the page'),
                 roleRequired: z.string().optional().describe('Role name required to access this page init flow (must be a valid role in the model)')
             },
             outputSchema: {
@@ -2892,16 +2842,12 @@ export class MCPServer {
                 note: z.string().optional(),
                 error: z.string().optional()
             }
-        }, async ({ page_init_flow_name, isAuthorizationRequired, isCustomLogicOverwritten, isExposedInBusinessObject, isRequestRunViaDynaFlowAllowed, pageIntroText, pageTitleText, roleRequired }) => {
+        }, async ({ page_init_flow_name, isAuthorizationRequired, isCustomLogicOverwritten, roleRequired }) => {
             try {
                 // Build updates object with only provided properties
                 const updates: any = {};
                 if (isAuthorizationRequired !== undefined) { updates.isAuthorizationRequired = isAuthorizationRequired; }
                 if (isCustomLogicOverwritten !== undefined) { updates.isCustomLogicOverwritten = isCustomLogicOverwritten; }
-                if (isExposedInBusinessObject !== undefined) { updates.isExposedInBusinessObject = isExposedInBusinessObject; }
-                if (isRequestRunViaDynaFlowAllowed !== undefined) { updates.isRequestRunViaDynaFlowAllowed = isRequestRunViaDynaFlowAllowed; }
-                if (pageIntroText !== undefined) { updates.pageIntroText = pageIntroText; }
-                if (pageTitleText !== undefined) { updates.pageTitleText = pageTitleText; }
                 if (roleRequired !== undefined) { updates.roleRequired = roleRequired; }
 
                 const result = await this.pageInitTools.update_page_init_flow(page_init_flow_name, updates);
@@ -2929,13 +2875,10 @@ export class MCPServer {
                 sqlServerDBDataType: z.string().optional().describe('SQL Server data type for the output variable (e.g., "nvarchar", "int", "bit", "datetime")'),
                 sqlServerDBDataTypeSize: z.string().optional().describe('Size of the SQL Server data type (e.g., "50", "MAX")'),
                 labelText: z.string().optional().describe('Label text to display for this output variable'),
-                buttonText: z.string().optional().describe('Text to display on a button associated with this output variable'),
-                buttonNavURL: z.string().optional().describe('Navigation URL for the button'),
                 isLabelVisible: z.enum(['true', 'false']).optional().describe('Whether the label should be visible'),
                 defaultValue: z.string().optional().describe('Default value for the output variable'),
                 isLink: z.enum(['true', 'false']).optional().describe('Whether this output variable is a link'),
                 isAutoRedirectURL: z.enum(['true', 'false']).optional().describe('Whether to auto-redirect to the URL'),
-                buttonObjectWFName: z.string().optional().describe('Name of the workflow to execute when the button is clicked'),
                 conditionalVisiblePropertyName: z.string().optional().describe('Property name that controls conditional visibility'),
                 isVisible: z.enum(['true', 'false']).optional().describe('Whether the output variable is visible'),
                 isFK: z.enum(['true', 'false']).optional().describe('Whether this is a foreign key'),
@@ -2955,20 +2898,17 @@ export class MCPServer {
                 note: z.string().optional(),
                 error: z.string().optional()
             }
-        }, async ({ page_init_flow_name, name, sqlServerDBDataType, sqlServerDBDataTypeSize, labelText, buttonText, buttonNavURL, isLabelVisible, defaultValue, isLink, isAutoRedirectURL, buttonObjectWFName, conditionalVisiblePropertyName, isVisible, isFK, fKObjectName, isFKLookup, isHeaderText, isIgnored, sourceObjectName, sourcePropertyName }) => {
+        }, async ({ page_init_flow_name, name, sqlServerDBDataType, sqlServerDBDataTypeSize, labelText, isLabelVisible, defaultValue, isLink, isAutoRedirectURL, conditionalVisiblePropertyName, isVisible, isFK, fKObjectName, isFKLookup, isHeaderText, isIgnored, sourceObjectName, sourcePropertyName }) => {
             try {
                 // Build output_var object with only provided properties
                 const output_var: any = { name };
                 if (sqlServerDBDataType !== undefined) { output_var.sqlServerDBDataType = sqlServerDBDataType; }
                 if (sqlServerDBDataTypeSize !== undefined) { output_var.sqlServerDBDataTypeSize = sqlServerDBDataTypeSize; }
                 if (labelText !== undefined) { output_var.labelText = labelText; }
-                if (buttonText !== undefined) { output_var.buttonText = buttonText; }
-                if (buttonNavURL !== undefined) { output_var.buttonNavURL = buttonNavURL; }
                 if (isLabelVisible !== undefined) { output_var.isLabelVisible = isLabelVisible; }
                 if (defaultValue !== undefined) { output_var.defaultValue = defaultValue; }
                 if (isLink !== undefined) { output_var.isLink = isLink; }
                 if (isAutoRedirectURL !== undefined) { output_var.isAutoRedirectURL = isAutoRedirectURL; }
-                if (buttonObjectWFName !== undefined) { output_var.buttonObjectWFName = buttonObjectWFName; }
                 if (conditionalVisiblePropertyName !== undefined) { output_var.conditionalVisiblePropertyName = conditionalVisiblePropertyName; }
                 if (isVisible !== undefined) { output_var.isVisible = isVisible; }
                 if (isFK !== undefined) { output_var.isFK = isFK; }
@@ -3005,13 +2945,10 @@ export class MCPServer {
                 sqlServerDBDataType: z.string().optional().describe('New SQL Server data type (e.g., "nvarchar", "int", "bit", "datetime")'),
                 sqlServerDBDataTypeSize: z.string().optional().describe('New size of the SQL Server data type (e.g., "50", "MAX")'),
                 labelText: z.string().optional().describe('New label text to display'),
-                buttonText: z.string().optional().describe('New text to display on button'),
-                buttonNavURL: z.string().optional().describe('New navigation URL for the button'),
                 isLabelVisible: z.enum(['true', 'false']).optional().describe('New label visibility setting'),
                 defaultValue: z.string().optional().describe('New default value'),
                 isLink: z.enum(['true', 'false']).optional().describe('New link setting'),
                 isAutoRedirectURL: z.enum(['true', 'false']).optional().describe('New auto-redirect setting'),
-                buttonObjectWFName: z.string().optional().describe('New workflow name to execute when button is clicked'),
                 conditionalVisiblePropertyName: z.string().optional().describe('New property name that controls conditional visibility'),
                 isVisible: z.enum(['true', 'false']).optional().describe('New visibility setting'),
                 isFK: z.enum(['true', 'false']).optional().describe('New foreign key setting'),

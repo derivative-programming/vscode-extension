@@ -47,32 +47,6 @@ export class PageInitTools {
                         description: "Is custom logic overwritten for this page init flow? String \"true\" or \"false\".",
                         examples: ["true", "false"]
                     },
-                    isExposedInBusinessObject: {
-                        type: "string",
-                        required: false,
-                        enum: ["true", "false"],
-                        description: "Is this page init flow exposed in the business object layer? String \"true\" or \"false\".",
-                        examples: ["true", "false"]
-                    },
-                    isRequestRunViaDynaFlowAllowed: {
-                        type: "string",
-                        required: false,
-                        enum: ["true", "false"],
-                        description: "Can this page init flow be run via DynaFlow? String \"true\" or \"false\".",
-                        examples: ["true", "false"]
-                    },
-                    pageIntroText: {
-                        type: "string",
-                        required: false,
-                        description: "Introduction text displayed at the top of the page after initialization.",
-                        examples: ["Welcome to the customer list", "View and manage your orders", "Product details"]
-                    },
-                    pageTitleText: {
-                        type: "string",
-                        required: false,
-                        description: "Title text displayed on the page after initialization.",
-                        examples: ["Customer List", "Order Management", "Product Details"]
-                    },
                     roleRequired: {
                         type: "string",
                         required: false,
@@ -93,24 +67,6 @@ export class PageInitTools {
                                 pattern: "^[A-Z][A-Za-z0-9]*$",
                                 description: "Output variable name. Must be in PascalCase format (starts with uppercase letter, no spaces, can contain letters and numbers).",
                                 examples: ["CustomerList", "TotalRecords", "FilteredResults", "UserPermissions"]
-                            },
-                            buttonNavURL: {
-                                type: "string",
-                                required: false,
-                                description: "Navigation URL when this output variable is clicked (if isLink is true).",
-                                examples: ["/customer/details", "/order/view", "/product/edit"]
-                            },
-                            buttonObjectWFName: {
-                                type: "string",
-                                required: false,
-                                description: "Workflow name to navigate to when this output variable is clicked.",
-                                examples: ["CustomerDetails", "OrderView", "ProductEdit"]
-                            },
-                            buttonText: {
-                                type: "string",
-                                required: false,
-                                description: "Button text if this output variable is displayed as a button.",
-                                examples: ["View Details", "Edit", "Delete"]
                             },
                             conditionalVisiblePropertyName: {
                                 type: "string",
@@ -480,10 +436,6 @@ export class PageInitTools {
         updates: {
             isAuthorizationRequired?: 'true' | 'false';
             isCustomLogicOverwritten?: 'true' | 'false';
-            isExposedInBusinessObject?: 'true' | 'false';
-            isRequestRunViaDynaFlowAllowed?: 'true' | 'false';
-            pageIntroText?: string;
-            pageTitleText?: string;
             roleRequired?: string;
         }
     ): Promise<{ success: boolean; page_init_flow?: any; owner_object_name?: string; message?: string; error?: string; note?: string }> {
@@ -728,9 +680,6 @@ export class PageInitTools {
         page_init_flow_name: string,
         output_var: {
             name: string;
-            buttonNavURL?: string;
-            buttonObjectWFName?: string;
-            buttonText?: string;
             conditionalVisiblePropertyName?: string;
             dataSize?: string; // Maps to sqlServerDBDataTypeSize
             dataType?: string; // Maps to sqlServerDBDataType
@@ -849,9 +798,6 @@ export class PageInitTools {
         output_var_name: string,
         updates: {
             name?: string; // Allow renaming the output variable
-            buttonNavURL?: string;
-            buttonObjectWFName?: string;
-            buttonText?: string;
             conditionalVisiblePropertyName?: string;
             sqlServerDBDataType?: string;
             sqlServerDBDataTypeSize?: string;

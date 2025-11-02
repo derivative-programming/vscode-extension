@@ -10,9 +10,6 @@ function getOutputVarPropertiesToHide() {
 function getOutputVarsListTemplate(outputVarsSchema) {
     // Only display these properties for an output var, in this exact order
     const allowedOrder = [
-        "buttonNavURL",
-        "buttonObjectWFName",
-        "buttonText",
         "conditionalVisiblePropertyName",
         "dataSize",
         "dataType",

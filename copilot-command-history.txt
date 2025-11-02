@@ -5,3 +5,4 @@ Command: Open Workflow Task Details for: CampaignPkgExportRequestBuild
 Command: Open Workflow Task Details for: CampaignPkgExportRequestBuild
 Command: Open Workflow Details for: BuildDataFileImageCatalogRequest
 Command: Open Page Init Details for: AIAssistantConfigAIAssistantThreadListInitReport
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
