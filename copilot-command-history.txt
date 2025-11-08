@@ -8,3 +8,4 @@ Command: Open Page Init Details for: AIAssistantConfigAIAssistantThreadListInitR
 Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
 Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
 Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Workflow Task Details for: CampaignPkgExportRequestBuild

@@ -12,6 +12,16 @@ common types of graphs...
 general flow have bad params (fk ones)
 
 hide...view, get tool, update tool, add tool, schema tool
+- form
+  - output var
+    - default value
+      - ✅ form details view output var tab
+      - ✅ tool get form schema
+      - ✅ tool get form (filter hidden properties)
+      - ✅ tool add form output var
+      - ✅ mcp add form output var (server.ts)
+      - ✅ tool update form output var
+      - ✅ mcp update form output var (server.ts)
 - page init flow
   - output var
     - Default Value:

@@ -1569,7 +1569,6 @@ export class MCPServer {
                 name: z.string().describe('Name of the output variable (required, PascalCase)'),
                 sqlServerDBDataType: z.enum(['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date', 'varchar', 'text']).optional().describe('SQL Server data type for this output variable'),
                 sqlServerDBDataTypeSize: z.string().optional().describe('Size of data type (for nvarchar, varchar, decimal). Default is 100 for nvarchar.'),
-                defaultValue: z.enum(['true', 'false']).optional().describe('Default value (optional): "true" or "false"'),
                 isFK: z.enum(['true', 'false']).optional().describe('Is this a foreign key? (optional): "true" or "false"'),
                 fKObjectName: z.string().optional().describe('Foreign key object name (required if isFK="true")'),
                 isFKLookup: z.enum(['true', 'false']).optional().describe('Is FK to a lookup object? (optional): "true" or "false"'),
@@ -1596,7 +1595,6 @@ export class MCPServer {
                 // Add optional properties if provided (only the allowed properties)
                 if (optionalProps.sqlServerDBDataType !== undefined) { output_var.sqlServerDBDataType = optionalProps.sqlServerDBDataType; }
                 if (optionalProps.sqlServerDBDataTypeSize !== undefined) { output_var.sqlServerDBDataTypeSize = optionalProps.sqlServerDBDataTypeSize; }
-                if (optionalProps.defaultValue !== undefined) { output_var.defaultValue = optionalProps.defaultValue; }
                 if (optionalProps.isFK !== undefined) { output_var.isFK = optionalProps.isFK; }
                 if (optionalProps.fKObjectName !== undefined) { output_var.fKObjectName = optionalProps.fKObjectName; }
                 if (optionalProps.isFKLookup !== undefined) { output_var.isFKLookup = optionalProps.isFKLookup; }
@@ -1629,7 +1627,6 @@ export class MCPServer {
                 output_var_name: z.string().describe('Name of the output variable to update (required, case-sensitive exact match, used to identify the output variable)'),
                 sqlServerDBDataType: z.enum(['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date', 'varchar', 'text']).optional().describe('New SQL Server data type'),
                 sqlServerDBDataTypeSize: z.string().optional().describe('New data type size'),
-                defaultValue: z.enum(['true', 'false']).optional().describe('New default value: "true" or "false"'),
                 isFK: z.enum(['true', 'false']).optional().describe('New FK setting: "true" or "false"'),
                 fKObjectName: z.string().optional().describe('New foreign key object name'),
                 isFKLookup: z.enum(['true', 'false']).optional().describe('New FK lookup setting: "true" or "false"'),

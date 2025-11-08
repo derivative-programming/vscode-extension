@@ -545,13 +545,6 @@ export class FormTools {
                                     description: 'Size of data type (for nvarchar, varchar, decimal)',
                                     examples: ['100', '255', 'MAX']
                                 },
-                                defaultValue: {
-                                    type: 'string',
-                                    required: false,
-                                    enum: ['true', 'false'],
-                                    description: 'Default value for this output variable. String "true" or "false".',
-                                    examples: ['true', 'false']
-                                },
                                 isFK: {
                                     type: 'string',
                                     required: false,
@@ -598,8 +591,7 @@ export class FormTools {
                                 {
                                     name: 'SuccessMessage',
                                     sqlServerDBDataType: 'nvarchar',
-                                    sqlServerDBDataTypeSize: '255',
-                                    defaultValue: 'false'
+                                    sqlServerDBDataTypeSize: '255'
                                 },
                                 {
                                     name: 'CustomerID',
@@ -962,6 +954,7 @@ export class FormTools {
             'buttonObjectWFName',
             'buttonText',
             'conditionalVisiblePropertyName',
+            'defaultValue',
             'isAutoRedirectURL',
             'isHeaderText',
             'isLabelVisible',
@@ -1996,7 +1989,6 @@ export class FormTools {
             name: string;
             sqlServerDBDataType?: string;
             sqlServerDBDataTypeSize?: string;
-            defaultValue?: string;
             isFK?: string;
             fKObjectName?: string;
             isFKLookup?: string;
@@ -2087,7 +2079,6 @@ export class FormTools {
         updates: {
             sqlServerDBDataType?: string;
             sqlServerDBDataTypeSize?: string;
-            defaultValue?: string;
             isFK?: string;
             fKObjectName?: string;
             isFKLookup?: string;
