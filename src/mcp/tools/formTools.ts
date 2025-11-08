@@ -552,13 +552,6 @@ export class FormTools {
                                     description: 'Default value for this output variable. String "true" or "false".',
                                     examples: ['true', 'false']
                                 },
-                                isAutoRedirectURL: {
-                                    type: 'string',
-                                    required: false,
-                                    enum: ['true', 'false'],
-                                    description: 'Should the form auto-redirect to this URL? String "true" or "false".',
-                                    examples: ['true', 'false']
-                                },
                                 isFK: {
                                     type: 'string',
                                     required: false,
@@ -969,6 +962,7 @@ export class FormTools {
             'buttonObjectWFName',
             'buttonText',
             'conditionalVisiblePropertyName',
+            'isAutoRedirectURL',
             'isHeaderText',
             'isLabelVisible',
             'isLink',
@@ -2003,7 +1997,6 @@ export class FormTools {
             sqlServerDBDataType?: string;
             sqlServerDBDataTypeSize?: string;
             defaultValue?: string;
-            isAutoRedirectURL?: string;
             isFK?: string;
             fKObjectName?: string;
             isFKLookup?: string;
@@ -2095,7 +2088,6 @@ export class FormTools {
             sqlServerDBDataType?: string;
             sqlServerDBDataTypeSize?: string;
             defaultValue?: string;
-            isAutoRedirectURL?: string;
             isFK?: string;
             fKObjectName?: string;
             isFKLookup?: string;

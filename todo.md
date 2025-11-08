@@ -5,13 +5,34 @@ common types of graphs...
 - pie chart (each slice is a category, shows how many items are in each category)
 - proportional visualization - all items are boxes. size of box is proportional to value
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
- 
+
 
 ---------------------
 
-general flow params have bad params (fk ones)
+general flow have bad params (fk ones)
 
 hide...view, get tool, update tool, add tool, schema tool
+- page init flow
+  - output var
+    - Default Value:
+    - FK Object Name:
+    - Is FK:
+    - Is FK Lookup:
+- general flow
+  - input params
+    - Default Value:
+    - FK Object Name:
+    - Is FK:
+    - Is FK Lookup:
+    - Is Required:
+    - Is Secured:
+    - Validation Rule Reg Ex Match Required:
+    - Validation Rule Reg Ex Match Required Error Text:
+  - output vars
+    - Default Value:
+    - FK Object Name:
+    - Is FK:
+    - Is FK Lookup:
 - workflows
   - settings
     - Is Authorization Required:

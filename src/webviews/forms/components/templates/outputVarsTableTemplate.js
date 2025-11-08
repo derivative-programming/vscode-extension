@@ -12,6 +12,7 @@ function getOutputVarPropertiesToHide() {
         "buttonobjectwfname",
         "buttontext",
         "conditionalvisiblepropertyname",
+        "isautoredirecturl",
         "isheadertext",
         "islabelvisible",
         "islink",
