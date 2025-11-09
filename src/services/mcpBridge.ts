@@ -1015,7 +1015,7 @@ export class McpBridge {
                                     
                                     // Filter output vars to only include properties applicable to general flows
                                     const filteredOutputVars = workflow.objectWorkflowOutputVar ? workflow.objectWorkflowOutputVar.map((outputVar: any) => {
-                                        const { defaultValue, fKObjectName, isFK, isFKLookup, ...allowedProps } = outputVar;
+                                        const { defaultValue, fKObjectName, isFK, isFKLookup, labelText, ...allowedProps } = outputVar;
                                         return allowedProps;
                                     }) : [];
                                     
