@@ -13,11 +13,8 @@ function getOutputVarsListTemplate(outputVarsSchema) {
     // Properties for General Flow output variables based on objectWorkflowOutputVar schema
     // Excluded UI-specific properties that are not relevant for general workflow output variables:
     // conditionalVisiblePropertyName, isHeaderText, isLabelVisible, isLink, isVisible, labelText
+    // Excluded FK and default value properties that are not applicable to general flow output variables
     const allowedOrder = [
-        "defaultValue",
-        "fKObjectName",
-        "isFK",
-        "isFKLookup",
         "isIgnored",
         "sourceObjectName",
         "sourcePropertyName",
@@ -79,10 +76,10 @@ function getOutputVarsListTemplate(outputVarsSchema) {
             inputField = `<input type="text" id="${fieldId}" name="${outputVarKey}" value="" ${tooltip} readonly>`;
         }
 
-        // Add browse button for sourceObjectName and fKObjectName fields
+        // Add browse button for sourceObjectName field
         let browseButton = "";
         let controlContainer = "";
-        if (outputVarKey === "sourceObjectName" || outputVarKey === "fKObjectName") {
+        if (outputVarKey === "sourceObjectName") {
             browseButton = `<button type="button" class="lookup-button" data-prop="${outputVarKey}" data-field-id="${fieldId}" disabled title="Browse Data Objects">
                 <span class="codicon codicon-search"></span>
             </button>`;

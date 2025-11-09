@@ -95,58 +95,6 @@ export class GeneralFlowTools {
                                     description: 'Size specification for the data type (e.g., length for strings, precision for decimals).',
                                     examples: ['50', '100', '18,2', 'MAX']
                                 },
-                                defaultValue: {
-                                    type: 'string',
-                                    required: false,
-                                    description: 'Default value for the parameter if not provided.',
-                                    examples: ['0', '', 'N/A', 'false']
-                                },
-                                isRequired: {
-                                    type: 'string',
-                                    required: false,
-                                    enum: ['true', 'false'],
-                                    description: 'Is this parameter required? String "true" or "false".',
-                                    examples: ['true', 'false']
-                                },
-                                isSecured: {
-                                    type: 'string',
-                                    required: false,
-                                    enum: ['true', 'false'],
-                                    description: 'Should this parameter be treated as secure/sensitive data? String "true" or "false".',
-                                    examples: ['true', 'false']
-                                },
-                                isFK: {
-                                    type: 'string',
-                                    required: false,
-                                    enum: ['true', 'false'],
-                                    description: 'Is this parameter a foreign key reference? String "true" or "false".',
-                                    examples: ['true', 'false']
-                                },
-                                isFKLookup: {
-                                    type: 'string',
-                                    required: false,
-                                    enum: ['true', 'false'],
-                                    description: 'Is this parameter a lookup foreign key? String "true" or "false".',
-                                    examples: ['true', 'false']
-                                },
-                                fKObjectName: {
-                                    type: 'string',
-                                    required: false,
-                                    description: 'Name of the foreign key object if isFK or isFKLookup is true.',
-                                    examples: ['Customer', 'Order', 'Product', 'Role']
-                                },
-                                validationRuleRegExMatchRequired: {
-                                    type: 'string',
-                                    required: false,
-                                    description: 'Regular expression pattern for validation.',
-                                    examples: ['^[A-Za-z0-9]+$', '^\\d{5}$', '^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$']
-                                },
-                                validationRuleRegExMatchRequiredErrorText: {
-                                    type: 'string',
-                                    required: false,
-                                    description: 'Error message to display when regex validation fails.',
-                                    examples: ['Invalid format', 'Please enter a valid email address', 'Must be alphanumeric']
-                                },
                                 codeDescription: {
                                     type: 'string',
                                     required: false,
@@ -166,15 +114,13 @@ export class GeneralFlowTools {
                             {
                                 name: 'CustomerId',
                                 dataType: 'Int',
-                                isRequired: 'true',
-                                isFK: 'true',
-                                fKObjectName: 'Customer'
+                                codeDescription: 'Customer ID for order processing'
                             },
                             {
                                 name: 'OrderAmount',
                                 dataType: 'Decimal',
                                 dataSize: '18,2',
-                                isRequired: 'true'
+                                codeDescription: 'Order amount to process'
                             }
                         ]
                     },
@@ -204,32 +150,6 @@ export class GeneralFlowTools {
                                     required: false,
                                     description: 'Name of the property from the source object.',
                                     examples: ['TotalAmount', 'CustomerName', 'ProductCode', 'Status']
-                                },
-                                defaultValue: {
-                                    type: 'string',
-                                    required: false,
-                                    description: 'Default value for the output variable.',
-                                    examples: ['0', '', 'false', 'N/A']
-                                },
-                                isFK: {
-                                    type: 'string',
-                                    required: false,
-                                    enum: ['true', 'false'],
-                                    description: 'Is this output variable a foreign key reference? String "true" or "false".',
-                                    examples: ['true', 'false']
-                                },
-                                isFKLookup: {
-                                    type: 'string',
-                                    required: false,
-                                    enum: ['true', 'false'],
-                                    description: 'Is this output variable a lookup foreign key? String "true" or "false".',
-                                    examples: ['true', 'false']
-                                },
-                                fKObjectName: {
-                                    type: 'string',
-                                    required: false,
-                                    description: 'Name of the foreign key object if isFK or isFKLookup is true.',
-                                    examples: ['Customer', 'Order', 'Product', 'Status']
                                 },
                                 sqlServerDBDataType: {
                                     type: 'string',
@@ -262,8 +182,7 @@ export class GeneralFlowTools {
                             },
                             {
                                 name: 'IsSuccess',
-                                sqlServerDBDataType: 'Bit',
-                                defaultValue: 'false'
+                                sqlServerDBDataType: 'Bit'
                             }
                         ]
                     }
@@ -290,15 +209,13 @@ export class GeneralFlowTools {
                         {
                             name: 'CustomerId',
                             dataType: 'Int',
-                            isRequired: 'true',
-                            isFK: 'true',
-                            fKObjectName: 'Customer'
+                            codeDescription: 'Customer ID for discount calculation'
                         },
                         {
                             name: 'OrderAmount',
                             dataType: 'Decimal',
                             dataSize: '18,2',
-                            isRequired: 'true'
+                            codeDescription: 'Total order amount'
                         }
                     ],
                     objectWorkflowOutputVar: [
@@ -686,14 +603,6 @@ export class GeneralFlowTools {
             name: string;
             dataType?: string; // Maps to sqlServerDBDataType
             dataSize?: string; // Maps to sqlServerDBDataTypeSize
-            defaultValue?: string;
-            isRequired?: 'true' | 'false';
-            isSecured?: 'true' | 'false';
-            isFK?: 'true' | 'false';
-            isFKLookup?: 'true' | 'false';
-            fKObjectName?: string;
-            validationRuleRegExMatchRequired?: string;
-            validationRuleRegExMatchRequiredErrorText?: string;
             codeDescription?: string;
             isIgnored?: 'true' | 'false';
         }
@@ -806,14 +715,6 @@ export class GeneralFlowTools {
             name?: string;
             dataType?: string; // Maps to sqlServerDBDataType
             dataSize?: string; // Maps to sqlServerDBDataTypeSize
-            defaultValue?: string;
-            isRequired?: 'true' | 'false';
-            isSecured?: 'true' | 'false';
-            isFK?: 'true' | 'false';
-            isFKLookup?: 'true' | 'false';
-            fKObjectName?: string;
-            validationRuleRegExMatchRequired?: string;
-            validationRuleRegExMatchRequiredErrorText?: string;
             codeDescription?: string;
             isIgnored?: 'true' | 'false';
         }
@@ -1007,10 +908,6 @@ export class GeneralFlowTools {
             name: string;
             dataSize?: string; // Maps to sqlServerDBDataTypeSize
             dataType?: string; // Maps to sqlServerDBDataType
-            defaultValue?: string;
-            fKObjectName?: string;
-            isFK?: 'true' | 'false';
-            isFKLookup?: 'true' | 'false';
             isIgnored?: 'true' | 'false';
             sourceObjectName?: string;
             sourcePropertyName?: string;
@@ -1118,10 +1015,6 @@ export class GeneralFlowTools {
             name?: string;
             dataSize?: string;
             dataType?: string;
-            defaultValue?: string;
-            fKObjectName?: string;
-            isFK?: 'true' | 'false';
-            isFKLookup?: 'true' | 'false';
             isIgnored?: 'true' | 'false';
             sourceObjectName?: string;
             sourcePropertyName?: string;
@@ -1322,7 +1215,7 @@ export class GeneralFlowTools {
             if (owner_object) { queryParams.push(`owner_object_name=${encodeURIComponent(owner_object)}`); }
             
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
-            const endpoint = `/api/general-flows${queryString}`;
+            const endpoint = `/api/general-flows-summary${queryString}`;
             
             const generalFlows = await this.fetchFromBridge(endpoint);
             

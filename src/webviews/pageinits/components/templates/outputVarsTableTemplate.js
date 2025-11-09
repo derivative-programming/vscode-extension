@@ -3,7 +3,10 @@ const { formatLabel } = require("../../helpers/formDataHelper");
 
 function getOutputVarPropertiesToHide() {
     return [
-        // Keep all properties visible by default for page init output vars
+        'defaultValue',
+        'fKObjectName',
+        'isFK',
+        'isFKLookup'
     ];
 }
 
@@ -13,12 +16,8 @@ function getOutputVarsListTemplate(outputVarsSchema) {
         "conditionalVisiblePropertyName",
         "dataSize",
         "dataType",
-        "defaultValue",
-        "fKObjectName",
         "labelText",
         "isAutoRedirectURL",
-        "isFK",
-        "isFKLookup",
         "isLabelVisible",
         "isHeaderText",
         "isIgnored",

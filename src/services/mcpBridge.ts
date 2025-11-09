@@ -894,8 +894,9 @@ export class McpBridge {
                         }));
                     }
                 }
-                else if (req.url && req.url.startsWith('/api/general-flows')) {
-                    // Get general flows (objectWorkflow with isPage="false", not DynaFlow tasks, not ending with initreport/initobjwf)
+                else if (req.url && req.url.startsWith('/api/general-flows-summary')) {
+                    // Get general flows summary (name, owner, counts only - for listing)
+                    // objectWorkflow with isPage="false", not DynaFlow tasks, not ending with initreport/initobjwf
                     // with optional filtering by general_flow_name or owner_object_name (case-insensitive)
                     try {
                         const url = new URL(req.url, `http://${req.headers.host}`);
@@ -948,7 +949,7 @@ export class McpBridge {
                                     
                                     // If searching for specific general flow name, we can stop after finding it
                                     if (generalFlowName && workflow.name.toLowerCase() === generalFlowName.toLowerCase()) {
-                                        this.outputChannel.appendLine(`[Data Bridge] Found general flow "${workflow.name}" in owner object "${obj.name}"`);
+                                        this.outputChannel.appendLine(`[Data Bridge] Found general flow summary "${workflow.name}" in owner object "${obj.name}"`);
                                         res.writeHead(200);
                                         res.end(JSON.stringify(generalFlows));
                                         return;
@@ -957,7 +958,89 @@ export class McpBridge {
                             }
                         }
                         
-                        this.outputChannel.appendLine(`[Data Bridge] Returning ${generalFlows.length} general flows`);
+                        this.outputChannel.appendLine(`[Data Bridge] Returning ${generalFlows.length} general flow summaries`);
+                        res.writeHead(200);
+                        res.end(JSON.stringify(generalFlows));
+                    } catch (error) {
+                        this.outputChannel.appendLine(`[Data Bridge] Error getting general flow summaries: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            error: error instanceof Error ? error.message : 'Failed to get general flow summaries'
+                        }));
+                    }
+                }
+                else if (req.url && req.url.startsWith('/api/general-flows')) {
+                    // Get complete general flow objects with all properties and child arrays (params, output vars)
+                    // objectWorkflow with isPage="false", not DynaFlow tasks, not ending with initreport/initobjwf
+                    // with optional filtering by general_flow_name or owner_object_name (case-insensitive)
+                    try {
+                        const url = new URL(req.url, `http://${req.headers.host}`);
+                        const generalFlowName = url.searchParams.get('general_flow_name');
+                        const ownerObjectName = url.searchParams.get('owner_object_name');
+                        
+                        const allObjects = modelService.getAllObjects();
+                        const generalFlows: any[] = [];
+                        
+                        for (const obj of allObjects) {
+                            // Skip if owner_object_name filter specified and doesn't match (case-insensitive)
+                            if (ownerObjectName && obj.name.toLowerCase() !== ownerObjectName.toLowerCase()) {
+                                continue;
+                            }
+                            
+                            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                for (const workflow of obj.objectWorkflow) {
+                                    // Apply general flow filtering criteria
+                                    const isDynaFlowOk = !workflow.isDynaFlow || workflow.isDynaFlow === "false";
+                                    const isDynaFlowTaskOk = !workflow.isDynaFlowTask || workflow.isDynaFlowTask === "false";
+                                    const isPageOk = workflow.isPage === "false";
+                                    const workflowName = (workflow.name || '').toLowerCase();
+                                    const notInitObjWf = !workflowName.endsWith('initobjwf');
+                                    const notInitReport = !workflowName.endsWith('initreport');
+                                    
+                                    // Skip if doesn't meet general flow criteria
+                                    if (!isDynaFlowOk || !isDynaFlowTaskOk || !isPageOk || !notInitObjWf || !notInitReport) {
+                                        continue;
+                                    }
+                                    
+                                    // Skip if general_flow_name filter specified and doesn't match (case-insensitive)
+                                    if (generalFlowName && workflow.name.toLowerCase() !== generalFlowName.toLowerCase()) {
+                                        continue;
+                                    }
+                                    
+                                    // Filter params to only include properties applicable to general flows
+                                    const filteredParams = workflow.objectWorkflowParam ? workflow.objectWorkflowParam.map((param: any) => {
+                                        const { defaultValue, fKObjectName, isFK, isFKLookup, isRequired, isSecured, validationRuleRegExMatchRequired, validationRuleRegExMatchRequiredErrorText, ...allowedProps } = param;
+                                        return allowedProps;
+                                    }) : [];
+                                    
+                                    // Filter output vars to only include properties applicable to general flows
+                                    const filteredOutputVars = workflow.objectWorkflowOutputVar ? workflow.objectWorkflowOutputVar.map((outputVar: any) => {
+                                        const { defaultValue, fKObjectName, isFK, isFKLookup, ...allowedProps } = outputVar;
+                                        return allowedProps;
+                                    }) : [];
+                                    
+                                    // Return complete workflow object with filtered child arrays
+                                    const completeFlow = {
+                                        ...workflow,
+                                        objectWorkflowParam: filteredParams,
+                                        objectWorkflowOutputVar: filteredOutputVars,
+                                        _ownerObjectName: obj.name // Temporary property for MCP tools to know the owner
+                                    };
+                                    
+                                    generalFlows.push(completeFlow);
+                                    
+                                    // If searching for specific general flow name, we can stop after finding it
+                                    if (generalFlowName && workflow.name.toLowerCase() === generalFlowName.toLowerCase()) {
+                                        this.outputChannel.appendLine(`[Data Bridge] Found complete general flow "${workflow.name}" in owner object "${obj.name}"`);
+                                        res.writeHead(200);
+                                        res.end(JSON.stringify(generalFlows));
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        this.outputChannel.appendLine(`[Data Bridge] Returning ${generalFlows.length} complete general flows`);
                         res.writeHead(200);
                         res.end(JSON.stringify(generalFlows));
                     } catch (error) {

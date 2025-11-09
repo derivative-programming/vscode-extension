@@ -8,41 +8,10 @@ common types of graphs...
 
 
 ---------------------
-
-general flow have bad params (fk ones)
-
-hide...view, get tool, update tool, add tool, schema tool
-- form
+hide
+- general flow 
   - output var
-    - default value
-      - ✅ form details view output var tab
-      - ✅ tool get form schema
-      - ✅ tool get form (filter hidden properties)
-      - ✅ tool add form output var
-      - ✅ mcp add form output var (server.ts)
-      - ✅ tool update form output var
-      - ✅ mcp update form output var (server.ts)
-- page init flow
-  - output var
-    - Default Value:
-    - FK Object Name:
-    - Is FK:
-    - Is FK Lookup:
-- general flow
-  - input params
-    - Default Value:
-    - FK Object Name:
-    - Is FK:
-    - Is FK Lookup:
-    - Is Required:
-    - Is Secured:
-    - Validation Rule Reg Ex Match Required:
-    - Validation Rule Reg Ex Match Required Error Text:
-  - output vars
-    - Default Value:
-    - FK Object Name:
-    - Is FK:
-    - Is FK Lookup:
+    - labelText
 - workflows
   - settings
     - Is Authorization Required:

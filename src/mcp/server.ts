@@ -945,10 +945,6 @@ export class MCPServer {
                     name: z.string().describe('The name of the output variable (required, typically PascalCase without spaces)'),
                     dataSize: z.string().optional().describe('Data size for the output variable (e.g., "50", "MAX"). Maps to sqlServerDBDataTypeSize.'),
                     dataType: z.string().optional().describe('SQL Server data type for the output variable (e.g., "nvarchar", "int", "datetime"). Maps to sqlServerDBDataType.'),
-                    defaultValue: z.string().optional().describe('Default value for the output variable'),
-                    fKObjectName: z.string().optional().describe('Foreign key object name if isFK="true"'),
-                    isFK: z.enum(['true', 'false']).optional().describe('Whether this is a foreign key reference'),
-                    isFKLookup: z.enum(['true', 'false']).optional().describe('Whether this is a lookup from foreign key'),
                     isIgnored: z.enum(['true', 'false']).optional().describe('Whether the output variable is ignored (soft delete)'),
                     sourceObjectName: z.string().optional().describe('Source object name for the output variable value'),
                     sourcePropertyName: z.string().optional().describe('Source property name for the output variable value')
@@ -991,10 +987,6 @@ export class MCPServer {
                     name: z.string().optional().describe('New name for the output variable (PascalCase without spaces)'),
                     dataSize: z.string().optional().describe('Data size for the output variable (e.g., "50", "MAX"). Maps to sqlServerDBDataTypeSize.'),
                     dataType: z.string().optional().describe('SQL Server data type for the output variable (e.g., "nvarchar", "int", "datetime"). Maps to sqlServerDBDataType.'),
-                    defaultValue: z.string().optional().describe('Default value for the output variable'),
-                    fKObjectName: z.string().optional().describe('Foreign key object name if isFK="true"'),
-                    isFK: z.enum(['true', 'false']).optional().describe('Whether this is a foreign key reference'),
-                    isFKLookup: z.enum(['true', 'false']).optional().describe('Whether this is a lookup from foreign key'),
                     isIgnored: z.enum(['true', 'false']).optional().describe('Whether the output variable is ignored (soft delete)'),
                     sourceObjectName: z.string().optional().describe('Source object name for the output variable value'),
                     sourcePropertyName: z.string().optional().describe('Source property name for the output variable value')
@@ -1066,21 +1058,13 @@ export class MCPServer {
         // Register add_general_flow_param tool
         this.server.registerTool('add_general_flow_param', {
             title: 'Add General Flow Parameter',
-            description: 'Add a new parameter (input parameter) to an existing general flow with optional properties (sqlServerDBDataType, labelText, isRequired, isFK, etc.). General flows are reusable workflows with isPage="false", excluding DynaFlows and init flows. Returns success status with parameter details.',
+            description: 'Add a new parameter (input parameter) to an existing general flow. General flows are reusable workflows with isPage="false", excluding DynaFlows and init flows. Parameters support basic data type configuration only. Returns success status with parameter details.',
             inputSchema: {
                 general_flow_name: z.string().describe('Name of the general flow to add the parameter to (case-sensitive, exact match required)'),
                 param: z.object({
                     name: z.string().describe('Name of the parameter (required, PascalCase). Must be unique within the general flow.'),
                     dataType: z.string().optional().describe('SQL Server data type (e.g., "Int", "NVarChar", "Decimal", "DateTime", "Bit"). Maps to sqlServerDBDataType.'),
                     dataSize: z.string().optional().describe('Size specification for the data type (e.g., "50", "100", "18,2", "MAX"). Maps to sqlServerDBDataTypeSize.'),
-                    defaultValue: z.string().optional().describe('Default value for the parameter if not provided'),
-                    isRequired: z.enum(['true', 'false']).optional().describe('Is this parameter required? ("true" or "false")'),
-                    isSecured: z.enum(['true', 'false']).optional().describe('Should this parameter be treated as secure/sensitive data? ("true" or "false")'),
-                    isFK: z.enum(['true', 'false']).optional().describe('Is this parameter a foreign key reference? ("true" or "false")'),
-                    isFKLookup: z.enum(['true', 'false']).optional().describe('Is this parameter a lookup foreign key? ("true" or "false")'),
-                    fKObjectName: z.string().optional().describe('Name of the foreign key object if isFK or isFKLookup is true'),
-                    validationRuleRegExMatchRequired: z.string().optional().describe('Regular expression pattern for validation'),
-                    validationRuleRegExMatchRequiredErrorText: z.string().optional().describe('Error message to display when regex validation fails'),
                     codeDescription: z.string().optional().describe('Code description for the parameter'),
                     isIgnored: z.enum(['true', 'false']).optional().describe('Should this parameter be ignored during code generation? ("true" or "false")')
                 }).describe('The parameter object to add. Only name is required; all other properties are optional.')
@@ -1105,7 +1089,7 @@ export class MCPServer {
         // Register update_general_flow_param tool
         this.server.registerTool('update_general_flow_param', {
             title: 'Update General Flow Parameter',
-            description: 'Update properties of an existing parameter in a general flow. Can update 13 parameter properties including name, data type, default value, FK settings, validation rules, etc. General flows are reusable workflows with isPage="false", excluding DynaFlows and init flows. Returns success status with updated parameter details.',
+            description: 'Update properties of an existing parameter in a general flow. Can update name, data type, data size, code description, and isIgnored flag. General flows are reusable workflows with isPage="false", excluding DynaFlows and init flows. Returns success status with updated parameter details.',
             inputSchema: {
                 general_flow_name: z.string().describe('Name of the general flow containing the parameter (case-sensitive, exact match required)'),
                 param_name: z.string().describe('Name of the parameter to update (case-sensitive, exact match required)'),
@@ -1113,14 +1097,6 @@ export class MCPServer {
                     name: z.string().optional().describe('New name for the parameter (PascalCase, must be unique within the general flow)'),
                     dataType: z.string().optional().describe('SQL Server data type (e.g., "Int", "NVarChar", "Decimal", "DateTime", "Bit"). Maps to sqlServerDBDataType.'),
                     dataSize: z.string().optional().describe('Size specification for the data type (e.g., "50", "100", "18,2", "MAX"). Maps to sqlServerDBDataTypeSize.'),
-                    defaultValue: z.string().optional().describe('Default value for the parameter if not provided'),
-                    isRequired: z.enum(['true', 'false']).optional().describe('Is this parameter required? ("true" or "false")'),
-                    isSecured: z.enum(['true', 'false']).optional().describe('Should this parameter be treated as secure/sensitive data? ("true" or "false")'),
-                    isFK: z.enum(['true', 'false']).optional().describe('Is this parameter a foreign key reference? ("true" or "false")'),
-                    isFKLookup: z.enum(['true', 'false']).optional().describe('Is this parameter a lookup foreign key? ("true" or "false")'),
-                    fKObjectName: z.string().optional().describe('Name of the foreign key object if isFK or isFKLookup is true'),
-                    validationRuleRegExMatchRequired: z.string().optional().describe('Regular expression pattern for validation'),
-                    validationRuleRegExMatchRequiredErrorText: z.string().optional().describe('Error message to display when regex validation fails'),
                     codeDescription: z.string().optional().describe('Code description for the parameter'),
                     isIgnored: z.enum(['true', 'false']).optional().describe('Should this parameter be ignored during code generation? ("true" or "false")')
                 }).describe('Object containing the properties to update. At least one property must be provided.')
@@ -2795,7 +2771,7 @@ export class MCPServer {
         // Register add_page_init_flow_output_var tool
         this.server.registerTool('add_page_init_flow_output_var', {
             title: 'Add Page Init Flow Output Variable',
-            description: 'Add a new output variable to an existing page init flow (objectWorkflow ending in InitObjWF or InitReport) in the AppDNA model. Page init flow name must match exactly (case-sensitive). The output variable name is required. All other properties are optional and will only be included if provided. Searches all data objects to find the page init flow. After adding, the model will have unsaved changes.',
+            description: 'Add a new output variable to an existing page init flow (objectWorkflow ending in InitObjWF or InitReport) in the AppDNA model. Page init flow name must match exactly (case-sensitive). The output variable name is required. All other properties are optional and will only be included if provided. Searches all data objects to find the page init flow. After adding, the model will have unsaved changes. NOTE: The properties defaultValue, fKObjectName, isFK, and isFKLookup are NOT supported for page init flow output variables and will be rejected.',
             inputSchema: {
                 page_init_flow_name: z.string().describe('The name of the page init flow to add the output variable to (required, case-sensitive exact match, must end with "InitObjWF" or "InitReport")'),
                 name: z.string().describe('The name of the output variable (required)'),
@@ -2803,14 +2779,10 @@ export class MCPServer {
                 sqlServerDBDataTypeSize: z.string().optional().describe('Size of the SQL Server data type (e.g., "50", "MAX")'),
                 labelText: z.string().optional().describe('Label text to display for this output variable'),
                 isLabelVisible: z.enum(['true', 'false']).optional().describe('Whether the label should be visible'),
-                defaultValue: z.string().optional().describe('Default value for the output variable'),
                 isLink: z.enum(['true', 'false']).optional().describe('Whether this output variable is a link'),
                 isAutoRedirectURL: z.enum(['true', 'false']).optional().describe('Whether to auto-redirect to the URL'),
                 conditionalVisiblePropertyName: z.string().optional().describe('Property name that controls conditional visibility'),
                 isVisible: z.enum(['true', 'false']).optional().describe('Whether the output variable is visible'),
-                isFK: z.enum(['true', 'false']).optional().describe('Whether this is a foreign key'),
-                fKObjectName: z.string().optional().describe('Name of the foreign key object'),
-                isFKLookup: z.enum(['true', 'false']).optional().describe('Whether this is a foreign key lookup'),
                 isHeaderText: z.enum(['true', 'false']).optional().describe('Whether this is header text'),
                 isIgnored: z.enum(['true', 'false']).optional().describe('Whether this output variable should be ignored'),
                 sourceObjectName: z.string().optional().describe('Source object name for this output variable'),
@@ -2825,7 +2797,7 @@ export class MCPServer {
                 note: z.string().optional(),
                 error: z.string().optional()
             }
-        }, async ({ page_init_flow_name, name, sqlServerDBDataType, sqlServerDBDataTypeSize, labelText, isLabelVisible, defaultValue, isLink, isAutoRedirectURL, conditionalVisiblePropertyName, isVisible, isFK, fKObjectName, isFKLookup, isHeaderText, isIgnored, sourceObjectName, sourcePropertyName }) => {
+        }, async ({ page_init_flow_name, name, sqlServerDBDataType, sqlServerDBDataTypeSize, labelText, isLabelVisible, isLink, isAutoRedirectURL, conditionalVisiblePropertyName, isVisible, isHeaderText, isIgnored, sourceObjectName, sourcePropertyName }) => {
             try {
                 // Build output_var object with only provided properties
                 const output_var: any = { name };
@@ -2833,14 +2805,10 @@ export class MCPServer {
                 if (sqlServerDBDataTypeSize !== undefined) { output_var.sqlServerDBDataTypeSize = sqlServerDBDataTypeSize; }
                 if (labelText !== undefined) { output_var.labelText = labelText; }
                 if (isLabelVisible !== undefined) { output_var.isLabelVisible = isLabelVisible; }
-                if (defaultValue !== undefined) { output_var.defaultValue = defaultValue; }
                 if (isLink !== undefined) { output_var.isLink = isLink; }
                 if (isAutoRedirectURL !== undefined) { output_var.isAutoRedirectURL = isAutoRedirectURL; }
                 if (conditionalVisiblePropertyName !== undefined) { output_var.conditionalVisiblePropertyName = conditionalVisiblePropertyName; }
                 if (isVisible !== undefined) { output_var.isVisible = isVisible; }
-                if (isFK !== undefined) { output_var.isFK = isFK; }
-                if (fKObjectName !== undefined) { output_var.fKObjectName = fKObjectName; }
-                if (isFKLookup !== undefined) { output_var.isFKLookup = isFKLookup; }
                 if (isHeaderText !== undefined) { output_var.isHeaderText = isHeaderText; }
                 if (isIgnored !== undefined) { output_var.isIgnored = isIgnored; }
                 if (sourceObjectName !== undefined) { output_var.sourceObjectName = sourceObjectName; }
@@ -2864,7 +2832,7 @@ export class MCPServer {
         // Register update_page_init_flow_output_var tool
         this.server.registerTool('update_page_init_flow_output_var', {
             title: 'Update Page Init Flow Output Variable',
-            description: 'Update properties of an existing output variable in a page init flow (objectWorkflow ending in InitObjWF or InitReport). Page init flow name and output variable name are case-sensitive exact matches. At least one property to update is required. Updates only the specified properties, leaving others unchanged.',
+            description: 'Update properties of an existing output variable in a page init flow (objectWorkflow ending in InitObjWF or InitReport). Page init flow name and output variable name are case-sensitive exact matches. At least one property to update is required. Updates only the specified properties, leaving others unchanged. NOTE: The properties defaultValue, fKObjectName, isFK, and isFKLookup are NOT supported for page init flow output variables and will be rejected.',
             inputSchema: {
                 page_init_flow_name: z.string().describe('Name of the page init flow containing the output variable (required, case-sensitive exact match, must end with "InitObjWF" or "InitReport")'),
                 output_var_name: z.string().describe('Current name of the output variable to update (required, case-sensitive exact match, used to identify the output variable)'),
@@ -2873,14 +2841,10 @@ export class MCPServer {
                 sqlServerDBDataTypeSize: z.string().optional().describe('New size of the SQL Server data type (e.g., "50", "MAX")'),
                 labelText: z.string().optional().describe('New label text to display'),
                 isLabelVisible: z.enum(['true', 'false']).optional().describe('New label visibility setting'),
-                defaultValue: z.string().optional().describe('New default value'),
                 isLink: z.enum(['true', 'false']).optional().describe('New link setting'),
                 isAutoRedirectURL: z.enum(['true', 'false']).optional().describe('New auto-redirect setting'),
                 conditionalVisiblePropertyName: z.string().optional().describe('New property name that controls conditional visibility'),
                 isVisible: z.enum(['true', 'false']).optional().describe('New visibility setting'),
-                isFK: z.enum(['true', 'false']).optional().describe('New foreign key setting'),
-                fKObjectName: z.string().optional().describe('New foreign key object name'),
-                isFKLookup: z.enum(['true', 'false']).optional().describe('New foreign key lookup setting'),
                 isHeaderText: z.enum(['true', 'false']).optional().describe('New header text setting'),
                 isIgnored: z.enum(['true', 'false']).optional().describe('New ignored setting'),
                 sourceObjectName: z.string().optional().describe('New source object name'),

@@ -5,19 +5,12 @@ const { formatLabel } = require("../../../forms/helpers/formDataHelper");
 function getParamsListTemplate(paramSchema) {
     // Only display these properties for a parameter, in this exact order
     // Removed UI-specific properties that are not relevant for general workflow parameters
+    // Removed FK, validation, and security properties that are not applicable to general flow params
     const allowedOrder = [
         "codeDescription",
         "dataSize",
         "dataType",
-        "defaultValue",
-        "fKObjectName",
-        "isFK",
-        "isFKLookup",
-        "isIgnored",
-        "isRequired",
-        "isSecured",
-        "validationRuleRegExMatchRequired",
-        "validationRuleRegExMatchRequiredErrorText"
+        "isIgnored"
     ];
 
     // Build case-insensitive key map from schema

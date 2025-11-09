@@ -87,18 +87,6 @@ export class PageInitTools {
                                 description: "SQL Server data type for this output variable. Also known as sqlServerDBDataType in schema.",
                                 examples: ["varchar", "int", "datetime", "bit", "uniqueidentifier"]
                             },
-                            defaultValue: {
-                                type: "string",
-                                required: false,
-                                description: "Default value for this output variable if not set by the flow.",
-                                examples: ["0", "", "NULL", "[]"]
-                            },
-                            fKObjectName: {
-                                type: "string",
-                                required: false,
-                                description: "Name of the foreign key object target (data object name). Case-sensitive.",
-                                examples: ["Customer", "Order", "Status", "Role"]
-                            },
                             labelText: {
                                 type: "string",
                                 required: false,
@@ -110,20 +98,6 @@ export class PageInitTools {
                                 required: false,
                                 enum: ["true", "false"],
                                 description: "Should the page automatically redirect to this URL after initialization? String \"true\" or \"false\".",
-                                examples: ["true", "false"]
-                            },
-                            isFK: {
-                                type: "string",
-                                required: false,
-                                enum: ["true", "false"],
-                                description: "Is this output variable a foreign key reference? String \"true\" or \"false\".",
-                                examples: ["true", "false"]
-                            },
-                            isFKLookup: {
-                                type: "string",
-                                required: false,
-                                enum: ["true", "false"],
-                                description: "Is this output variable a foreign key to a lookup object? String \"true\" or \"false\".",
                                 examples: ["true", "false"]
                             },
                             isLabelVisible: {
@@ -196,7 +170,6 @@ export class PageInitTools {
                                 {
                                     name: "TotalCustomers",
                                     dataType: "int",
-                                    defaultValue: "0",
                                     isVisible: "true",
                                     labelText: "Total Customers"
                                 }
@@ -232,7 +205,9 @@ export class PageInitTools {
                     "This naming convention is how the tree view and tools distinguish page init flows from forms and reports",
                     "Page init flows typically have output variables (objectWorkflowOutputVar) but no parameters or buttons",
                     "Page init flows run before the page is displayed to prepare data and check permissions",
-                    "Forms and reports reference page init flows via the initObjectWorkflowName property"
+                    "Forms and reports reference page init flows via the initObjectWorkflowName property",
+                    "EXCLUDED PROPERTIES: The following properties are excluded from page init flow output variables as they are not applicable to page initialization: defaultValue, fKObjectName, isFK, isFKLookup. These properties may exist in the schema for general flows but are hidden for page init flows.",
+                    "BACKWARD COMPATIBILITY: Existing models may contain these excluded properties in page init flow output variables. They are preserved in the model file but not exposed through the UI or MCP tools."
                 ]
             }
         };
@@ -380,6 +355,37 @@ export class PageInitTools {
 
         // Create a shallow copy and remove hidden properties
         const filtered = { ...pageInitFlow };
+        hiddenProperties.forEach(prop => {
+            delete filtered[prop];
+        });
+
+        // Filter hidden properties from output variables
+        if (filtered.objectWorkflowOutputVar && Array.isArray(filtered.objectWorkflowOutputVar)) {
+            filtered.objectWorkflowOutputVar = filtered.objectWorkflowOutputVar.map((outputVar: any) => 
+                this.filterHiddenOutputVarProperties(outputVar)
+            );
+        }
+
+        return filtered;
+    }
+
+    /**
+     * Filters out hidden properties from an output variable object
+     * These properties are not applicable to page init flow output variables
+     * @param outputVar The output variable object to filter
+     * @returns Filtered output variable object without hidden properties
+     */
+    private filterHiddenOutputVarProperties(outputVar: any): any {
+        // These properties are excluded from page init flow output variables
+        const hiddenProperties = [
+            'defaultValue',
+            'fKObjectName',
+            'isFK',
+            'isFKLookup'
+        ];
+
+        // Create a shallow copy and remove hidden properties
+        const filtered = { ...outputVar };
         hiddenProperties.forEach(prop => {
             delete filtered[prop];
         });
@@ -672,6 +678,7 @@ export class PageInitTools {
     /**
      * Add a new output variable to an existing page init flow
      * Tool name: add_page_init_flow_output_var (following MCP snake_case convention)
+     * Note: defaultValue, fKObjectName, isFK, isFKLookup are excluded from page init flow output variables
      * @param page_init_flow_name - Name of the page init flow to add the output variable to (case-sensitive, exact match required)
      * @param output_var - The output variable object to add
      * @returns Result object with success status
@@ -683,12 +690,8 @@ export class PageInitTools {
             conditionalVisiblePropertyName?: string;
             dataSize?: string; // Maps to sqlServerDBDataTypeSize
             dataType?: string; // Maps to sqlServerDBDataType
-            defaultValue?: string;
-            fKObjectName?: string;
             labelText?: string;
             isAutoRedirectURL?: 'true' | 'false';
-            isFK?: 'true' | 'false';
-            isFKLookup?: 'true' | 'false';
             isLabelVisible?: 'true' | 'false';
             isHeaderText?: 'true' | 'false';
             isIgnored?: 'true' | 'false';
@@ -702,6 +705,18 @@ export class PageInitTools {
             return {
                 success: false,
                 error: 'Output variable name is required'
+            };
+        }
+
+        // Validate that forbidden properties are not provided
+        const forbiddenProps = ['defaultValue', 'fKObjectName', 'isFK', 'isFKLookup'];
+        const providedForbiddenProps = forbiddenProps.filter(prop => (output_var as any)[prop] !== undefined);
+        
+        if (providedForbiddenProps.length > 0) {
+            return {
+                success: false,
+                error: `The following properties are not allowed for page init flow output variables: ${providedForbiddenProps.join(', ')}`,
+                note: 'Page init flow output variables do not support FK-related properties or default values. These properties are only applicable to general flows.'
             };
         }
 
@@ -788,6 +803,7 @@ export class PageInitTools {
     /**
      * Update an existing output variable in a page init flow
      * Tool name: update_page_init_flow_output_var (following MCP snake_case convention)
+     * Note: defaultValue, fKObjectName, isFK, isFKLookup are excluded from page init flow output variables
      * @param page_init_flow_name - Name of the page init flow containing the output variable (case-sensitive, exact match required)
      * @param output_var_name - Current name of the output variable to update (case-sensitive, exact match required, used to identify the output variable)
      * @param updates - Object containing properties to update
@@ -801,12 +817,8 @@ export class PageInitTools {
             conditionalVisiblePropertyName?: string;
             sqlServerDBDataType?: string;
             sqlServerDBDataTypeSize?: string;
-            defaultValue?: string;
-            fKObjectName?: string;
             labelText?: string;
             isAutoRedirectURL?: 'true' | 'false';
-            isFK?: 'true' | 'false';
-            isFKLookup?: 'true' | 'false';
             isLabelVisible?: 'true' | 'false';
             isHeaderText?: 'true' | 'false';
             isIgnored?: 'true' | 'false';
@@ -820,6 +832,17 @@ export class PageInitTools {
             return {
                 success: false,
                 error: 'At least one property to update is required'
+            };
+        }
+
+        // Validate that forbidden properties are not provided
+        const forbiddenProps = ['defaultValue', 'fKObjectName', 'isFK', 'isFKLookup'];
+        const providedForbiddenProps = forbiddenProps.filter(prop => (updates as any)[prop] !== undefined);
+        
+        if (providedForbiddenProps.length > 0) {
+            return {
+                success: false,
+                error: `The following properties are not allowed for page init flow output variables: ${providedForbiddenProps.join(', ')}`,
             };
         }
 
