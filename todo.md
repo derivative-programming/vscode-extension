@@ -8,40 +8,12 @@ common types of graphs...
 
 
 ---------------------
-hide
-- general flow 
-  - output var
-    - labelText
-- workflows
-  - settings
-    - Is Authorization Required:
-    - Role Required:
-    - Is Exposed In Business Object:
-- workflow tasks
-  - settings
-    - Is Authorization Required:
-    - Role Required:
-    - Is Exposed In Business Object:
 
 if item has role required then auth is required
 
 _ownerdataobject prop added for mcp forms and reports tools?
 
-remove from pageinit...
-            isAuthorizationRequired?: 'true' | 'false';
-            isExposedInBusinessObject?: 'true' | 'false';
-            isRequestRunViaDynaFlowAllowed?: 'true' | 'false';
-            pageIntroText?: string;
-            pageTitleText?: string;
-            roleRequired?: string;
 
-tools...  
-  - get_page_init_flow_schema
-  - get_page_init_flow
-  - update_page_init_flow
-  - add_page_init_flow_output_var
-  - update_page_init_flow_output_var
-  - move_page_init_flow_output_var
 
   
 Describe data object model restrictions
@@ -49,7 +21,6 @@ Describe data object model restrictions
 Describe data object prop data types
 
 Describe lookups
-
 
 Describe base data objects expected… pac tac customer
 

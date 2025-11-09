@@ -4,13 +4,7 @@ const { formatLabel } = require("../../../forms/helpers/formDataHelper");
 function getSettingsTabTemplate(flow, flowSchemaProps) {
     // Settings-only view: choose a curated set of properties relevant to DynaFlow
     const allowedOrder = [
-        'isAuthorizationRequired',
-        'roleRequired',
-        'isRequestRunViaDynaFlowAllowed',
-        'isCustomLogicOverwritten',
-        'isExposedInBusinessObject',
-        'pageTitleText',
-        'pageIntroText'
+        'isCustomLogicOverwritten'
     ];
 
     const schemaKeyByLower = Object.keys(flowSchemaProps || {}).reduce((acc, key) => { acc[key.toLowerCase()] = key; return acc; }, {});

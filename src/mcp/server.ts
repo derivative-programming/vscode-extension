@@ -753,7 +753,7 @@ export class MCPServer {
         // Register get_general_flow_schema tool
         this.server.registerTool('get_general_flow_schema', {
             title: 'Get General Flow Schema',
-            description: 'Get the schema definition for complete general flow structure (objectWorkflow with isPage="false"). General flows are reusable business logic workflows that can be called from multiple places. Includes all general flow properties (name, isPage, roleRequired, isExposedInBusinessObject, etc.), input parameter structure (objectWorkflowParam), output variable structure (objectWorkflowOutputVar), validation rules, SQL data types, and examples of complete general flows with all components.',
+            description: 'Get the schema definition for complete general flow structure (general objectWorkflow). General flows are reusable business logic workflows that can be called from multiple places. Includes all general flow properties (name, roleRequired, isExposedInBusinessObject, etc.), input parameter structure (objectWorkflowParam), output variable structure (objectWorkflowOutputVar), validation rules, SQL data types, and examples of complete general flows with all components.',
             inputSchema: {},
             outputSchema: {
                 success: z.boolean(),
@@ -819,7 +819,7 @@ export class MCPServer {
         // Register get_general_flow tool
         this.server.registerTool('get_general_flow', {
             title: 'Get General Flow',
-            description: 'Get complete details of a specific general flow by name. If owner_object_name is provided, searches only that object; otherwise searches all objects. Returns the full general flow structure including all input parameters (objectWorkflowParam), output variables (objectWorkflowOutputVar), and element counts. General flows are reusable business logic workflows with isPage="false". General flow name matching is case-insensitive.',
+            description: 'Get complete details of a specific general flow by name. If owner_object_name is provided, searches only that object; otherwise searches all objects. Returns the full general flow structure including all input parameters (objectWorkflowParam), output variables (objectWorkflowOutputVar), and element counts. General flows are reusable business logic workflows. General flow name matching is case-insensitive.',
             inputSchema: {
                 general_flow_name: z.string().describe('The name of the general flow to retrieve (case-insensitive matching)'),
                 owner_object_name: z.string().optional().describe('Optional: The name of the owner data object that contains the general flow (case-insensitive matching). If not provided, all objects will be searched.')
@@ -857,7 +857,7 @@ export class MCPServer {
         // Register update_general_flow tool
         this.server.registerTool('update_general_flow', {
             title: 'Update General Flow',
-            description: 'Update properties of an existing general flow. Requires exact case-sensitive general flow name. Updates are made in-memory and model will have unsaved changes after update. General flows are reusable business logic workflows with isPage="false". At least one property to update must be provided. Properties align with general flow schema.',
+            description: 'Update properties of an existing general flow. Requires exact case-sensitive general flow name. Updates are made in-memory and model will have unsaved changes after update. General flows are reusable business logic workflows. At least one property to update must be provided. Properties align with general flow schema.',
             inputSchema: {
                 general_flow_name: z.string().describe('The name of the general flow to update (case-sensitive, exact match required)'),
                 updates: z.object({

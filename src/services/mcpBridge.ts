@@ -1009,19 +1009,20 @@ export class McpBridge {
                                     
                                     // Filter params to only include properties applicable to general flows
                                     const filteredParams = workflow.objectWorkflowParam ? workflow.objectWorkflowParam.map((param: any) => {
-                                        const { defaultValue, fKObjectName, isFK, isFKLookup, isRequired, isSecured, validationRuleRegExMatchRequired, validationRuleRegExMatchRequiredErrorText, ...allowedProps } = param;
+                                        const { defaultValue, fKObjectName, isFK, isFKLookup, isRequired, isSecured, validationRuleRegExMatchRequired, validationRuleRegExMatchRequiredErrorText, labelText, isVisible, ...allowedProps } = param;
                                         return allowedProps;
                                     }) : [];
                                     
                                     // Filter output vars to only include properties applicable to general flows
                                     const filteredOutputVars = workflow.objectWorkflowOutputVar ? workflow.objectWorkflowOutputVar.map((outputVar: any) => {
-                                        const { defaultValue, fKObjectName, isFK, isFKLookup, labelText, ...allowedProps } = outputVar;
+                                        const { defaultValue, fKObjectName, isFK, isFKLookup, labelText, isVisible, isLabelVisible, isHeaderText, isLink, conditionalVisiblePropertyName, ...allowedProps } = outputVar;
                                         return allowedProps;
                                     }) : [];
                                     
-                                    // Return complete workflow object with filtered child arrays
+                                    // Return complete workflow object with filtered child arrays and excluded main properties
+                                    const { isPage, ...workflowWithoutIsPage } = workflow;
                                     const completeFlow = {
-                                        ...workflow,
+                                        ...workflowWithoutIsPage,
                                         objectWorkflowParam: filteredParams,
                                         objectWorkflowOutputVar: filteredOutputVars,
                                         _ownerObjectName: obj.name // Temporary property for MCP tools to know the owner

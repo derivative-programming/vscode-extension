@@ -12,7 +12,7 @@ export class GeneralFlowTools {
     }
 
     /**
-     * Gets the schema definition for general flows (objectWorkflow with isPage="false")
+     * Gets the schema definition for general flows (general objectWorkflow)
      * Tool name: get_general_flow_schema (following MCP snake_case convention)
      * @returns Schema definition with properties, validation rules, and examples for general flows
      */
@@ -21,15 +21,9 @@ export class GeneralFlowTools {
             success: true,
             schema: {
                 type: 'object',
-                description: 'General Flow (objectWorkflow) structure in AppDNA model - represents reusable business logic workflows that can be called from multiple places in the application. General flows are not standalone pages (isPage="false") and are not DynaFlow tasks.',
+                description: 'General Flow (objectWorkflow) structure in AppDNA model - represents reusable business logic workflows that can be called from multiple places in the application. General flows are not standalone pages and are not DynaFlow tasks.',
                 objectType: 'objectWorkflow',
                 flowType: 'general',
-                filterCriteria: {
-                    isPage: 'false',
-                    isDynaFlow: 'false or not set',
-                    isDynaFlowTask: 'false or not set',
-                    namePattern: 'Does not end with "initobjwf" or "initreport"'
-                },
                 properties: {
                     name: {
                         type: 'string',
@@ -190,7 +184,7 @@ export class GeneralFlowTools {
                 usage: {
                     description: 'General flows are reusable business logic workflows that can be called from forms, reports, other workflows, and APIs. They are owned by a data object and defined within the objectWorkflow array of that data object.',
                     ownerObject: 'General flows are defined in the objectWorkflow array of a data object',
-                    filtering: 'General flows are identified by: isPage="false", isDynaFlow not true, isDynaFlowTask not true, name not ending with "InitObjWF" or "InitReport"',
+                    filtering: 'General flows are identified by: isDynaFlow not true, isDynaFlowTask not true, name not ending with "InitObjWF" or "InitReport"',
                     commonScenarios: [
                         'Business logic calculations (discounts, tax calculations, totals)',
                         'Data validation and processing workflows',
@@ -237,7 +231,6 @@ export class GeneralFlowTools {
                     ]
                 },
                 notes: [
-                    'General flows must have isPage="false" to distinguish them from page workflows',
                     'General flows are owned by data objects and appear in the objectWorkflow array',
                     'General flow names should not end with "InitObjWF" or "InitReport" (those are page init flows)',
                     'General flows can be called from forms, reports, other workflows, and APIs',
@@ -333,7 +326,7 @@ export class GeneralFlowTools {
                 },
                 note: `General flow "${general_flow_name}" retrieved successfully from owner object "${ownerObjectName}". ` +
                       `Contains ${paramCount} input parameter(s) and ${outputVarCount} output variable(s). ` +
-                      `General flows are reusable business logic workflows (isPage="false").`
+                      `General flows are reusable business logic workflows.`
             };
 
         } catch (error) {
@@ -346,7 +339,7 @@ export class GeneralFlowTools {
     }
 
     /**
-     * Update properties of an existing general flow (objectWorkflow with isPage="false")
+     * Update properties of an existing general flow (general objectWorkflow)
      * Tool name: update_general_flow (following MCP snake_case convention)
      * @param general_flow_name Name of the general flow to update (case-sensitive)
      * @param updates Object containing properties to update (aligned with general flow schema)
@@ -1227,7 +1220,7 @@ export class GeneralFlowTools {
                     general_flow_name: general_flow_name || null,
                     owner_object: owner_object || null
                 },
-                note: 'General flows loaded from AppDNA model. General flows are reusable business logic workflows (isPage="false", not DynaFlow tasks, not init flows). Each includes name, ownerObject, roleRequired, paramCount, and outputVarCount. Use get_general_flow for complete details.'
+                note: 'General flows loaded from AppDNA model. General flows are reusable business logic workflows (not DynaFlow tasks, not init flows). Each includes name, ownerObject, roleRequired, paramCount, and outputVarCount. Use get_general_flow for complete details.'
             };
         } catch (error) {
             return {
