@@ -8,6 +8,18 @@ common types of graphs...
 
 
 ---------------------
+show on all details views...
+- codeDescription
+
+
+test: workflow mcp tools
+- get_workflow_schema ✅
+- list_workflows (just summary with name and owner data object) ✅
+- get_workflow (full workflow with workflowtask array) ✅
+- update_workflow ✅
+- create_workflow ✅
+- add_workflow_task ✅
+- move_workflow_task ✅
 
 if item has role required then auth is required
 

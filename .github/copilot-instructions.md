@@ -134,7 +134,7 @@ Reference these files for deep architectural understanding of complex components
 
 ## MCP (Model Context Protocol) Integration
 
-The extension includes a comprehensive MCP server that enables GitHub Copilot and other MCP clients to interact with the AppDNA model through 71 tools.
+The extension includes a comprehensive MCP server that enables GitHub Copilot and other MCP clients to interact with the AppDNA model through 112 tools.
 
 ### MCP Architecture
 - **MCP Server**: `src/mcp/server.ts` - Registers all MCP tools using Zod schemas
@@ -202,6 +202,6 @@ When implementing or modifying MCP tools:
 - **Verification**: Run `verify-wizard-tools.sh` to check tool registration
 
 For detailed MCP documentation, see:
-- `MCP_README.md` - Complete MCP server documentation with all 71 tools
+- `MCP_README.md` - Complete MCP server documentation with all 112 tools (if exists)
 - `WIZARD-MCP-TOOLS-USAGE.md` - Usage guide for wizard tools
 - `WIZARD-MCP-TOOLS-SUMMARY.md` - Technical implementation details

@@ -3,7 +3,7 @@
   "publisher": "derivative-programming",
   "displayName": "AppDNA Model Builder",
   "description": "Build application models and generate code for multiple platforms (.NET, Python, Web, Mobile). Professional schema-driven UI with GitHub Copilot integration via Model Context Protocol.",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "engines": {
     "vscode": "^1.105.0"
   },
@@ -807,9 +807,9 @@
   "scripts": {
     "vscode:prepublish": "npm run package",
     "compile": "webpack && npm run compile-mcp",
-    "compile-mcp": "tsc src/mcp/server.ts src/mcp/tools/userStoryTools.ts src/mcp/tools/viewTools.ts src/mcp/tools/dataObjectTools.ts src/mcp/tools/formTools.ts src/mcp/tools/reportTools.ts src/mcp/tools/pageInitTools.ts src/mcp/tools/modelTools.ts src/mcp/tools/modelServiceTools.ts --outDir dist/mcp --rootDir src/mcp --target es2020 --module commonjs --esModuleInterop --skipLibCheck",
+    "compile-mcp": "tsc src/mcp/server.ts src/mcp/tools/userStoryTools.ts src/mcp/tools/viewTools.ts src/mcp/tools/dataObjectTools.ts src/mcp/tools/formTools.ts src/mcp/tools/reportTools.ts src/mcp/tools/pageInitTools.ts src/mcp/tools/modelTools.ts src/mcp/tools/modelServiceTools.ts src/mcp/tools/workflowTools.ts --outDir dist/mcp --rootDir src/mcp --target es2020 --module commonjs --esModuleInterop --skipLibCheck",
     "watch": "webpack --watch",
-    "watch-mcp": "tsc src/mcp/server.ts src/mcp/tools/userStoryTools.ts src/mcp/tools/viewTools.ts src/mcp/tools/dataObjectTools.ts src/mcp/tools/formTools.ts src/mcp/tools/modelTools.ts src/mcp/tools/modelServiceTools.ts --outDir dist/mcp --rootDir src/mcp --target es2020 --module commonjs --esModuleInterop --skipLibCheck --watch",
+    "watch-mcp": "tsc src/mcp/server.ts src/mcp/tools/userStoryTools.ts src/mcp/tools/viewTools.ts src/mcp/tools/dataObjectTools.ts src/mcp/tools/formTools.ts src/mcp/tools/modelTools.ts src/mcp/tools/modelServiceTools.ts src/mcp/tools/workflowTools.ts --outDir dist/mcp --rootDir src/mcp --target es2020 --module commonjs --esModuleInterop --skipLibCheck --watch",
     "watch-all": "npm-run-all --parallel watch watch-mcp",
     "package": "webpack --mode production --devtool hidden-source-map",
     "compile-tests": "tsc -p . --outDir out",

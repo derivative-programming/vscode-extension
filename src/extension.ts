@@ -183,6 +183,13 @@ tools:
   - get_model_fabrication_request_details
   - get_model_fabrication_request_schema
   - open_model_fabrication_request_details
+  - get_workflow_schema
+  - list_workflows
+  - get_workflow
+  - update_workflow
+  - create_workflow
+  - add_workflow_task
+  - move_workflow_task
 ---
 
 # AppDNA Chat Mode
@@ -332,7 +339,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
   - Auto-expand tree nodes
   - Custom model file name
 
-## Comprehensive MCP Tool Suite (106 Tools)
+## Comprehensive MCP Tool Suite (112 Tools)
 
 ### User Story Management (5 Tools)
 **CRUD Operations:**
@@ -489,6 +496,15 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`move_report_param\` - Move a report parameter (filter control) to a new position (0-based index) to reorder filter controls on the report
 - \`move_report_column\` - Move a report column to a new position (0-based index) to reorder columns in the report grid/table
 - \`move_report_button\` - Move a report button to a new position (0-based index) to reorder buttons on the report
+
+### Workflow Management Tools (7 Tools)
+- \`get_workflow_schema\` - View simplified workflow schema with 3 properties (name, codeDescription, isCustomLogicOverwritten) and task schema with 1 property (name)
+- \`list_workflows\` - List all DynaFlow workflows with optional filters (workflow_name partial match, owner_object_name exact match), returns name, owner object, and task count
+- \`get_workflow\` - Retrieve complete workflow details by name including all tasks (returns only schema-defined properties)
+- \`update_workflow\` - Update workflow properties (codeDescription, isCustomLogicOverwritten) by workflow name
+- \`create_workflow\` - Create new DynaFlow workflow with owner object, name, and optional codeDescription
+- \`add_workflow_task\` - Add a new task to an existing workflow with task name only
+- \`move_workflow_task\` - Reorder workflow tasks by moving a task to a new position (0-based index)
 
 ### Utility Tools (1 Tool)
 - \`secret_word_of_the_day\` - Test/verification tool
