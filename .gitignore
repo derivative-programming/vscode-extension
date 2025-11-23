@@ -5,6 +5,7 @@ node_modules
 /out
 .vscode-test
 /test-e2e/out
+/temp
 
 # Test files
 test-*.html
