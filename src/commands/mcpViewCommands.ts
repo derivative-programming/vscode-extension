@@ -305,6 +305,130 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
         })
     );
 
+    // Open Page Init Flow Details
+    // Description: Opens the details editor for a specific page initialization flow
+    // Parameters: flowName (required) - Name of the page init flow, initialTab (optional)
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openPageInitFlowDetails', async (flowName: string, initialTab?: string) => {
+            if (!modelService.isFileLoaded()) {
+                throw new Error('No App DNA file is currently loaded');
+            }
+            if (!flowName) {
+                throw new Error('Flow name is required');
+            }
+            const pageInitDetailsView = require('../webviews/pageInitDetailsView');
+            const item = { label: flowName, contextValue: 'pageInit' };
+            return pageInitDetailsView.showPageInitDetails(item, modelService, context);
+        })
+    );
+
+    // Open General Workflow Details
+    // Description: Opens the details editor for a specific general workflow
+    // Parameters: workflowName (required) - Name of the general workflow, initialTab (optional)
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openGeneralWorkflowDetails', async (workflowName: string, initialTab?: string) => {
+            if (!modelService.isFileLoaded()) {
+                throw new Error('No App DNA file is currently loaded');
+            }
+            if (!workflowName) {
+                throw new Error('Workflow name is required');
+            }
+            const generalFlowDetailsView = require('../webviews/generalFlow/generalFlowDetailsView');
+            const item = { label: workflowName, contextValue: 'generalFlow' };
+            return generalFlowDetailsView.showGeneralFlowDetails(item, modelService, context);
+        })
+    );
+
+    // Open Workflow Details
+    // Description: Opens the details editor for a specific DynaFlow workflow
+    // Parameters: workflowName (required) - Name of the workflow, initialTab (optional)
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openWorkflowDetails', async (workflowName: string, initialTab?: string) => {
+            if (!modelService.isFileLoaded()) {
+                throw new Error('No App DNA file is currently loaded');
+            }
+            if (!workflowName) {
+                throw new Error('Workflow name is required');
+            }
+            const workflowDetailsView = require('../webviews/workflowDetailsView');
+            const item = { label: workflowName, contextValue: 'workflow' };
+            return workflowDetailsView.showWorkflowDetails(item, modelService, context);
+        })
+    );
+
+    // Open Workflow Task Details
+    // Description: Opens the details editor for a specific workflow task
+    // Parameters: taskName (required) - Name of the workflow task, initialTab (optional)
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openWorkflowTaskDetails', async (taskName: string, initialTab?: string) => {
+            if (!modelService.isFileLoaded()) {
+                throw new Error('No App DNA file is currently loaded');
+            }
+            if (!taskName) {
+                throw new Error('Task name is required');
+            }
+            const workflowTaskDetailsView = require('../webviews/workflowTaskDetailsView');
+            const item = { label: taskName, contextValue: 'workflowTask' };
+            return workflowTaskDetailsView.showWorkflowTaskDetails(item, modelService, context);
+        })
+    );
+
+    // Open APIs List View
+    // Description: Opens the list view showing all external API integrations
+    // Parameters: None
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openAPIsList', async () => {
+            if (!modelService.isFileLoaded()) {
+                throw new Error('No App DNA file is currently loaded');
+            }
+            // Note: This view needs to be implemented - placeholder for now
+            throw new Error('APIs List view is not yet implemented. API management features are under development.');
+        })
+    );
+
+    // Open API Details
+    // Description: Opens the details editor for a specific API integration
+    // Parameters: apiName (required) - Name of the API, initialTab (optional)
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openAPIDetails', async (apiName: string, initialTab?: string) => {
+            if (!modelService.isFileLoaded()) {
+                throw new Error('No App DNA file is currently loaded');
+            }
+            if (!apiName) {
+                throw new Error('API name is required');
+            }
+            const apiDetailsView = require('../webviews/apis/apiDetailsView');
+            const item = { label: apiName, contextValue: 'api' };
+            return apiDetailsView.showApiDetails(item, modelService, context);
+        })
+    );
+
+    // Open Change Requests View
+    // Description: Opens the change requests view showing pending and completed modification requests
+    // Parameters: None
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openChangeRequests', async () => {
+            if (!modelService.isFileLoaded()) {
+                throw new Error('No App DNA file is currently loaded');
+            }
+            // Delegate to existing command if it exists
+            return vscode.commands.executeCommand('appdna.showChangeRequests');
+        })
+    );
+
+    // Open Workflow Tasks List View
+    // Description: Opens the list view showing all workflow tasks across all workflows
+    // Parameters: None
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openWorkflowTasksList', async () => {
+            if (!modelService.isFileLoaded()) {
+                throw new Error('No App DNA file is currently loaded');
+            }
+            // Note: This view needs to be implemented - placeholder for now
+            throw new Error('Workflow Tasks List view is not yet implemented. Use the workflow list view to access individual workflow tasks.');
+        })
+    );
+
     // Generic view opener - routes to specific commands based on view name
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.mcp.openView', async (viewName: string, params?: any) => {

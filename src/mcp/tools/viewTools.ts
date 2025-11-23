@@ -1,7 +1,7 @@
 // viewTools.ts
 // Tools for opening views via MCP
-// Created on: October 15, 2025
-// Modified on: October 19, 2025
+// Created on: October 15, 2024
+// Modified on: November 23, 2024
 // This file implements view opening tools for the MCP server with comprehensive descriptions
 // Added authentication checks for Model Services views
 
@@ -254,7 +254,7 @@ export class ViewTools {
                 return new Promise((resolve, reject) => {
                     const options = {
                         hostname: 'localhost',
-                        port: 3001,
+                        port: 3002,
                         path: endpoint,
                         method: 'GET',
                         timeout: 3000
@@ -408,10 +408,9 @@ export class ViewTools {
     /**
      * Open Page Init Flow Details View
      * Shows details for a specific page initialization flow
-     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openPageInitFlowDetails(flowName: string, initialTab?: string): Promise<any> {
-        throw new Error('Page Init Flow Details view is not yet implemented. Create page init details handler to add this functionality.');
+        return this.executeCommand('appdna.mcp.openPageInitFlowDetails', initialTab ? [flowName, initialTab] : [flowName]);
     }
 
     /**
@@ -433,10 +432,9 @@ export class ViewTools {
     /**
      * Open General Workflow Details View
      * Shows details for a specific general workflow
-     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openGeneralWorkflowDetails(workflowName: string, initialTab?: string): Promise<any> {
-        throw new Error('General Workflow Details view is not yet implemented. Create general workflow details handler to add this functionality.');
+        return this.executeCommand('appdna.mcp.openGeneralWorkflowDetails', initialTab ? [workflowName, initialTab] : [workflowName]);
     }
 
     /**
@@ -450,28 +448,26 @@ export class ViewTools {
     /**
      * Open Workflow Details View
      * Shows details for a specific DynaFlow workflow
-     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openWorkflowDetails(workflowName: string, initialTab?: string): Promise<any> {
-        throw new Error('Workflow Details view is not yet implemented. Create workflow details handler to add this functionality.');
+        return this.executeCommand('appdna.mcp.openWorkflowDetails', initialTab ? [workflowName, initialTab] : [workflowName]);
     }
 
     /**
      * Open Workflow Tasks List View
      * Shows all workflow tasks across all workflows
-     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
+     * ⚠️ NOTE: This feature is planned but not yet fully implemented
      */
     public async openWorkflowTasksList(): Promise<any> {
-        throw new Error('Workflow Tasks List view is not yet implemented. Create workflowTaskListCommands.ts to add this functionality.');
+        return this.executeCommand('appdna.mcp.openWorkflowTasksList');
     }
 
     /**
      * Open Workflow Task Details View
      * Shows details for a specific workflow task
-     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openWorkflowTaskDetails(taskName: string, initialTab?: string): Promise<any> {
-        throw new Error('Workflow Task Details view is not yet implemented. Create workflow task details handler to add this functionality.');
+        return this.executeCommand('appdna.mcp.openWorkflowTaskDetails', initialTab ? [taskName, initialTab] : [taskName]);
     }
 
     // ===== REPORT VIEWS =====
@@ -496,19 +492,18 @@ export class ViewTools {
     /**
      * Open APIs List View
      * Shows all external API integrations
-     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
+     * ⚠️ NOTE: This feature is planned but not yet fully implemented
      */
     public async openAPIsList(): Promise<any> {
-        throw new Error('APIs List view is not yet implemented. Create apiListCommands.ts to add this functionality.');
+        return this.executeCommand('appdna.mcp.openAPIsList');
     }
 
     /**
      * Open API Details View
      * Shows details for a specific API integration
-     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openAPIDetails(apiName: string, initialTab?: string): Promise<any> {
-        throw new Error('API Details view is not yet implemented. Create API details handler to add this functionality.');
+        return this.executeCommand('appdna.mcp.openAPIDetails', initialTab ? [apiName, initialTab] : [apiName]);
     }
 
     // ===== ANALYSIS VIEWS =====
@@ -533,10 +528,9 @@ export class ViewTools {
     /**
      * Open Change Requests View
      * Shows pending and completed change requests
-     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openChangeRequests(): Promise<any> {
-        throw new Error('Change Requests view is not yet implemented. Command appdna.changeRequests does not exist.');
+        return this.executeCommand('appdna.mcp.openChangeRequests');
     }
 
     /**

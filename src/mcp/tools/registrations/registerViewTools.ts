@@ -1,6 +1,6 @@
 ﻿// registerViewTools.ts
 // MCP tool registrations for view operations
-// Extracted from server.ts on: November 23, 2025
+// Extracted from server.ts on: November 23, 2024
 
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
