@@ -17,6 +17,16 @@ import { configureMcpSettings } from './commands/mcpCommands';
 import { McpBridge } from './services/mcpBridge';
 import { registerMcpViewCommands } from './commands/mcpViewCommands';
 import { AppDNAMcpProvider } from './mcp/mcpProvider';
+import { generateChatmodeDocumentation as generateViewDocs, getToolNames as getViewToolNames } from './mcp/tools/registrations/registerViewTools';
+import { generateChatmodeDocumentation as generateUserStoryDocs, getToolNames as getUserStoryToolNames } from './mcp/tools/registrations/registerUserStoryTools';
+import { generateChatmodeDocumentation as generateDataObjectDocs, getToolNames as getDataObjectToolNames } from './mcp/tools/registrations/registerDataObjectTools';
+import { generateChatmodeDocumentation as generateFormDocs, getToolNames as getFormToolNames } from './mcp/tools/registrations/registerFormTools';
+import { generateChatmodeDocumentation as generateReportDocs, getToolNames as getReportToolNames } from './mcp/tools/registrations/registerReportTools';
+import { generateChatmodeDocumentation as generatePageInitDocs, getToolNames as getPageInitToolNames } from './mcp/tools/registrations/registerPageInitTools';
+import { generateChatmodeDocumentation as generateWorkflowDocs, getToolNames as getWorkflowToolNames } from './mcp/tools/registrations/registerWorkflowTools';
+import { generateChatmodeDocumentation as generateGeneralFlowDocs, getToolNames as getGeneralFlowToolNames } from './mcp/tools/registrations/registerGeneralFlowTools';
+import { generateChatmodeDocumentation as generateModelDocs, getToolNames as getModelToolNames } from './mcp/tools/registrations/registerModelTools';
+import { generateChatmodeDocumentation as generateModelServiceDocs, getToolNames as getModelServiceToolNames } from './mcp/tools/registrations/registerModelServiceTools';
 
 // Track whether welcome view has been shown in this session
 let hasShownWelcomeView = false;
@@ -29,121 +39,51 @@ async function createAppDNAChatMode(workspacePath: string): Promise<void> {
     const copilotInstructionsDir = path.join(workspacePath, '.github', 'chatmodes');
     const chatModeFile = path.join(copilotInstructionsDir, 'appdna.chatmode.md');
 
+    console.log('[Extension] Chat mode directory:', copilotInstructionsDir);
+    console.log('[Extension] Chat mode file:', chatModeFile);
+
     // Create the .github/chatmodes directory if it doesn't exist
     if (!fs.existsSync(copilotInstructionsDir)) {
+        console.log('[Extension] Creating chat mode directory...');
         fs.mkdirSync(copilotInstructionsDir, { recursive: true });
+    } else {
+        console.log('[Extension] Chat mode directory already exists');
     }
 
+    // Collect all tool names dynamically from registration files
+    console.log('[Extension] Collecting tool names...');
+    let allTools: string[] = [];
+    try {
+        allTools = [
+            ...getUserStoryToolNames(),
+            ...getDataObjectToolNames(),
+            ...getFormToolNames(),
+            ...getReportToolNames(),
+            ...getPageInitToolNames(),
+            ...getWorkflowToolNames(),
+            ...getGeneralFlowToolNames(),
+            ...getModelToolNames(),
+            ...getModelServiceToolNames(),
+            ...getViewToolNames()
+        ];
+        console.log('[Extension] Collected', allTools.length, 'tool names');
+    } catch (error) {
+        console.error('[Extension] Error collecting tool names:', error);
+        throw error;
+    }
+    
+    // Generate YAML tools list
+    const toolsYaml = allTools.map(tool => `  - ${tool}`).join('\n');
+    console.log('[Extension] Generated YAML tools list');
+
     // Chat mode configuration in Markdown format with YAML frontmatter
-    const chatModeContent = `---
+    console.log('[Extension] Building chat mode content...');
+    let chatModeContent: string;
+    try {
+        chatModeContent = `---
 description: Specialized chat mode for AppDNA model building and code generation with MCP tool integration
 tools:
-  - create_user_story
-  - list_user_stories
-  - update_user_story
-  - get_user_story_schema
-  - list_roles
-  - add_role
-  - update_role
-  - add_lookup_value
-  - list_lookup_values
-  - update_lookup_value
-  - get_lookup_value_schema
-  - get_data_object_summary_schema
-  - get_role_schema
-  - get_form_schema
-  - get_form
-  - get_general_flow_schema
-  - list_general_flows
-  - get_general_flow
-  - update_general_flow
-  - update_full_general_flow
-  - add_general_flow_param
-  - update_general_flow_param
-  - move_general_flow_param
-  - add_general_flow_output_var
-  - update_general_flow_output_var
-  - move_general_flow_output_var
-  - get_page_init_flow_schema
-  - get_page_init_flow
-  - update_page_init_flow
-  - update_full_page_init_flow
-  - add_page_init_flow_output_var
-  - update_page_init_flow_output_var
-  - move_page_init_flow_output_var
-  - suggest_form_name_and_title
-  - create_form
-  - update_form
-  - update_full_form
-  - add_form_param
-  - update_form_param
-  - move_form_param
-  - add_form_button
-  - update_form_button
-  - move_form_button
-  - add_form_output_var
-  - update_form_output_var
-  - move_form_output_var
-  - get_report_schema
-  - get_report
-  - suggest_report_name_and_title
-  - create_report
-  - update_report
-  - add_report_param
-  - update_report_param
-  - move_report_param
-  - add_report_column
-  - update_report_column
-  - move_report_column
-  - add_report_button
-  - update_report_button
-  - move_report_button
-  - list_data_object_summary
-  - list_data_objects
-  - get_data_object
-  - get_data_object_schema
-  - create_data_object
-  - update_data_object
-  - update_full_data_object
-  - add_data_object_props
-  - update_data_object_prop
-  - get_data_object_usage
-  - list_pages
-  - save_model
-  - close_all_open_views
-  - expand_tree_view
-  - collapse_tree_view
-  - secret_word_of_the_day
-  - open_view
-  - list_model_features_catalog_items
-  - select_model_feature
-  - unselect_model_feature
-  - list_model_ai_processing_requests
-  - create_model_ai_processing_request
-  - merge_model_ai_processing_results
-  - get_model_ai_processing_request_details
-  - get_model_ai_processing_request_schema
-  - open_model_ai_processing_request_details
-  - list_model_validation_requests
-  - create_model_validation_request
-  - get_model_validation_request_details
-  - get_model_validation_request_schema
-  - open_validation_request_details
-  - list_fabrication_blueprint_catalog_items
-  - select_fabrication_blueprint
-  - unselect_fabrication_blueprint
-  - list_model_fabrication_requests
-  - create_model_fabrication_request
-  - get_model_fabrication_request_details
-  - get_model_fabrication_request_schema
-  - open_model_fabrication_request_details
-  - get_workflow_schema
-  - list_workflows
-  - get_workflow
-  - update_workflow
-  - create_workflow
-  - add_workflow_task
-  - move_workflow_task
+${toolsYaml}
 ---
 
 # AppDNA Chat Mode
@@ -231,312 +171,78 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 
 **ALWAYS** use the available MCP (Model Context Protocol) tools for modifying your AppDNA model. These tools provide safe, validated changes through the extension's interface and ensure your model remains consistent and valid.
 
-### Tool Usage Patterns
+## MCP Tool Reference
 
-**View Navigation Commands:**
-- When users say **"view"**, **"show"**, or **"open"**, these are synonyms - they all refer to the \`open_*_view\` tools
-- Examples: "view user stories" → use \`open_user_stories_view\`, "show form details" → use \`open_form_details_view\`, "open data objects" → use \`open_data_objects_list_view\`
-- All view navigation tools start with \`open_\` prefix and end with \`_view\` suffix
+${generateViewDocs()}
 
-**Creation Commands:**
-- When users say **"create"** or **"add"**, these are synonyms - both refer to creation/addition tools
-- Examples: "create a data object" or "add a data object" → use \`create_data_object\`, "add a form parameter" or "create a form parameter" → use \`add_form_param\`
-- Some tools use \`create_\` prefix (e.g., \`create_user_story\`, \`create_data_object\`, \`create_form\`)
-- Other tools use \`add_\` prefix (e.g., \`add_role\`, \`add_form_param\`, \`add_form_button\`, \`add_form_output_var\`)
-- The prefix difference is semantic: \`create_\` for new standalone entities, \`add_\` for adding elements to existing entities
+${generateUserStoryDocs()}
 
-**Update Commands:**
-- When users say **"update"** or **"modify"**, these are synonyms - both refer to modification tools
-- Examples: "update a form" or "modify a form" → use \`update_form\`, "modify form button" or "update form button" → use \`update_form_button\`
-- All update/modify tools use the \`update_\` prefix (e.g., \`update_user_story\`, \`update_data_object\`, \`update_form_param\`, \`update_form_output_var\`)
+${generateDataObjectDocs()}
 
-**Viewing Data Objects:**
-- **Use \`open_object_details_view\`** when you want to see and interact with a data object's details, properties, and settings in a visual interface
-- **Use \`get_data_object\`** only when you need the raw JSON data for programmatic analysis or when the visual interface is not available
-- **Use \`list_data_objects\`** to get an overview of all data objects in your model
+${generateFormDocs()}
 
-**Viewing Forms & Pages:**
-- **Use \`open_form_details_view\`** to view and edit form configurations including settings, input controls, buttons, and output variables
-- **Use \`open_page_details_view\`** to view and edit page configurations including components, variables, and navigation
-- **Use \`open_page_preview_view\`** to see how forms and pages will appear to end users before implementation
-- **Use \`open_pages_list_view\`** to get an overview of all pages in your application
+${generateReportDocs()}
 
-**Viewing vs. Getting Data:**
-- **Views** (\`open_*_view\` tools) provide interactive, visual interfaces for exploring and editing model elements
-- **Get tools** (\`get_*\` tools) return raw JSON data for analysis or when you need structured data
-- **Prefer views** for exploration and editing, use get tools for data analysis or automation
+${generatePageInitDocs()}
 
-## Best Practices for AppDNA Development
+${generateWorkflowDocs()}
 
-### Getting Started
-- **Start with User Stories**: Begin by creating user stories to define your application's requirements
-- **Design Data Objects**: Create your business entities and establish relationships between them
-- **Build Forms**: Design user interfaces that interact with your data objects
-- **Add Workflows**: Define business processes and application flows
-- **Generate Code**: Use the extension's code generation capabilities for multiple platforms
+${generateGeneralFlowDocs()}
 
-### Advanced Features
-- **Enable Advanced Properties**: Go to AppDNA settings and enable "Show Advanced Properties" to access:
-  - User Stories management
-  - Pages and forms
-  - Workflows and flows
-  - API management
-  - Analytics dashboard
-- **Use Page Preview**: Preview your forms and reports before implementation
-- **Leverage Analytics**: Use the analysis tools to understand model complexity and growth patterns
+${generateModelDocs()}
 
-### Configuration
-- **Model File**: Your AppDNA model is stored in \`app-dna.json\` (configurable)
-- **Config File**: Extension settings in \`app-dna.config.json\`:
-  - Output path for generated code
-  - Advanced properties visibility
-  - Auto-expand tree nodes
-  - Custom model file name
+${generateModelServiceDocs()}
 
-## Comprehensive MCP Tool Suite (112 Tools)
+## Tool Usage Patterns
 
-### User Story Management (5 Tools)
-**CRUD Operations:**
-- \`create_user_story\` - Create new user stories with validation
-- \`list_user_stories\` - View all user stories in your model
-- \`update_user_story\` - Modify existing user stories
-- \`get_user_story_schema\` - View user story structure and requirements
+**Command Synonyms:**
+- **"create"** / **"add"** - Both mean creation/addition
+  - \`create_\` prefix = new standalone entities (user stories, data objects, forms, reports, workflows)
+  - \`add_\` prefix = adding elements to existing entities (properties, parameters, buttons, output variables)
+- **"update"** / **"modify"** - Both mean modification (all use \`update_\` prefix)
+- **"view"** / **"show"** / **"open"** - All mean opening views (use \`open_view\` tool)
 
-**View Navigation (7 Tools):**
-- \`open_user_stories_view\` - Open the main user stories list view
-- \`open_user_stories_dev_view\` - Open development queue and metrics
-- \`open_user_stories_qa_view\` - Open QA/testing views and analytics
-- \`open_user_stories_journey_view\` - View user journey mapping
-- \`open_user_stories_page_mapping_view\` - See page-to-story relationships
-- \`open_user_stories_role_requirements_view\` - View role-based access requirements
-- \`open_requirements_fulfillment_view\` - View role requirements fulfillment status
+**Views vs. Data Tools:**
+- **Views** (\`open_view\`) - Interactive visual interfaces for exploration and editing
+- **Get/List** tools - Raw JSON data for programmatic analysis
+- **Preference**: Use views for exploration, get/list tools for automation
 
-### Data Object Management (12 Tools)
-**CRUD Operations:**
-- \`list_data_objects\` - View all data objects in your model
-- \`get_data_object\` - Get details for a specific data object
-- \`create_data_object\` - Create new business entities
-- \`update_data_object\` - Modify existing data objects (currently only codeDescription)
-- \`update_full_data_object\` - Update data object with provided properties (merge/patch - updates/adds without removing existing)
-- \`add_data_object_props\` - Add properties to data objects
-- \`update_data_object_prop\` - Modify data object properties
-- \`get_data_object_usage\` - Analyze where data objects are referenced
-- \`list_pages\` - List all pages (forms and reports) with filtering
+## Best Practices
 
-**View Navigation (6 Tools):**
-- \`open_object_details_view\` - Open detailed view for any data object
-- \`open_data_objects_list_view\` - Browse all data objects
-- \`open_data_object_usage_analysis_view\` - Impact analysis for objects
-- \`open_data_object_size_analysis_view\` - Storage and capacity planning
-- \`open_database_size_forecast_view\` - Database growth projections
-- \`list_data_object_summary\` - Get overview of all data objects
-### Role Management (4 Tools)
-- \`add_role\` - Create new user roles
-- \`update_role\` - Modify existing roles
-- \`list_roles\` - View all roles in the system
-- \`get_role_schema\` - View role structure and requirements
+**Getting Started:**
+1. Create user stories to define requirements
+2. Design data objects (business entities)
+3. Build forms for user interfaces
+4. Add workflows for business processes
+5. Generate code for multiple platforms
 
-### Lookup Value Management (4 Tools)
-- \`add_lookup_value\` - Add reference data values
-- \`list_lookup_values\` - View lookup table contents
-- \`update_lookup_value\` - Modify reference data
-- \`get_lookup_value_schema\` - View lookup value structure
-
-### Model Operations (4 Tools)
-- \`save_model\` - Save the current AppDNA model to file (same as clicking the save icon in tree view)
-- \`close_all_open_views\` - Close all open view panels and webviews
-- \`expand_tree_view\` - Expand all top-level items in the AppDNA tree view (PROJECT, DATA OBJECTS, USER STORIES, PAGES, FLOWS, APIS, ANALYSIS, MODEL SERVICES)
-- \`collapse_tree_view\` - Collapse all items in the AppDNA tree view to their top-level state
-
-### Wizard Tools (3 Tools)
-- \`open_add_data_object_wizard\` - Wizard for creating new data objects
-- \`open_add_report_wizard\` - Wizard for creating new reports
-- \`open_add_form_wizard\` - Wizard for creating new forms
-
-### Form & Page Views (7 Tools)
-**View Navigation:**
-- \`open_form_details_view\` - Open detailed editor for any form with settings, input controls, buttons, and output variables tabs
-- \`open_pages_list_view\` - View all pages in the application
-- \`open_page_details_view\` - Smart router that automatically determines if a page is a form or report and opens the appropriate view
-- \`open_page_preview_view\` - Preview how pages and forms appear to users
-- \`open_page_init_flows_list_view\` - View page initialization workflows
-- \`open_page_init_flow_details_view\` - Edit specific page init flow configurations
-
-### Report Views (1 Tool)
-- \`open_report_details_view\` - Open detailed editor for reports with settings, input controls, buttons, and output variables tabs
-
-### Workflow Views (7 Tools)
-- \`open_general_workflows_list_view\` - List general workflows
-- \`open_add_general_flow_wizard\` - Wizard for creating general flows
-- \`open_general_workflow_details_view\` - View general workflow details
-- \`open_workflows_list_view\` - List all DynaFlow workflows
-- \`open_workflow_details_view\` - View specific workflow details
-- \`open_workflow_tasks_list_view\` - List workflow tasks
-- \`open_workflow_task_details_view\` - View workflow task details
-
-### Report & API Views (3 Tools)
-- \`open_report_details_view\` - View/edit report details with settings, input controls, buttons, and output variables
-- \`open_apis_list_view\` - Browse all API integrations
-- \`open_api_details_view\` - View specific API details
-
-### Analysis & Metrics Views (3 Tools)
-- \`open_metrics_analysis_view\` - Project metrics and KPIs
-- \`open_hierarchy_diagram_view\` - Object hierarchy visualization
-- \`open_page_flow_diagram_view\` - Page navigation flow diagram
-
-### System & Configuration Views (9 Tools)
-- \`open_lexicon_view\` - Application terminology and definitions
-- \`open_change_requests_view\` - Change request tracking
-- \`open_model_ai_processing_view\` - AI analysis and recommendations
-- \`open_model_validation_requests_view\` - Validation request status
-- \`open_model_feature_catalog_view\` - Available features and enhancements
-- \`open_fabrication_requests_view\` - Fabrication/code generation requests
-- \`open_fabrication_blueprint_catalog_view\` - Available templates and blueprints
-- \`open_project_settings_view\` - Project configuration
-- \`open_settings_view\` - Extension settings
-
-### Welcome & Help Views (4 Tools)
-- \`open_welcome_view\` - Welcome screen and getting started
-- \`open_help_view\` - Help documentation and support
-- \`open_register_view\` - Model services registration
-- \`open_login_view\` - Model services login
-
-### Schema Tools (12 Tools)
-- \`get_user_story_schema\` - View user story structure
-- \`get_data_object_schema\` - View detailed data object schema
-- \`get_data_object_summary_schema\` - View data object summary structure
-- \`get_role_schema\` - View role structure
-- \`get_lookup_value_schema\` - View lookup value structure
-- \`get_form_schema\` - View complete form structure (objectWorkflow) with all properties, input parameters, buttons, and output variables
-- \`get_form\` - Retrieve complete form details including all parameters, buttons, and output variables with element counts
-- \`get_general_flow_schema\` - View complete general flow structure (objectWorkflow with isPage="false") with all properties, input parameters, and output variables for reusable business logic workflows
-- \`list_general_flows\` - List all general flows with summary data (name, ownerObject, roleRequired, paramCount, outputVarCount). Supports filtering by name or owner object (case-insensitive matching). Use get_general_flow for complete details.
-- \`get_general_flow\` - Retrieve complete general flow details including all parameters and output variables with element counts (reusable business logic workflows)
-- \`update_general_flow\` - Update properties of an existing general flow (8 updatable properties: titleText, isInitObjWFSubscribedToParams, layoutName, introText, codeDescription, isHeaderVisible, isIgnored, sortOrder)
-- \`add_general_flow_output_var\` - Add a new output variable to an existing general flow (19 optional properties available)
-- \`update_general_flow_output_var\` - Update properties of an existing general flow output variable (20 updatable properties including name, case-sensitive matching)
-- \`move_general_flow_output_var\` - Move a general flow output variable to a new position (0-based index) to reorder output display
-- \`get_page_init_flow_schema\` - View page init flow structure (objectWorkflow for page initialization) with all properties and output variables
-- \`get_page_init_flow\` - Retrieve complete page init flow details including all output variables with element counts
-- \`update_page_init_flow\` - Update properties of an existing page init flow (7 updatable properties, case-sensitive name matching)
-- \`add_page_init_flow_output_var\` - Add a new output variable to an existing page init flow (19 optional properties available)
-- \`update_page_init_flow_output_var\` - Update properties of an existing page init flow output variable (20 updatable properties including name, case-sensitive matching)
-- \`move_page_init_flow_output_var\` - Move a page init flow output variable to a new position (0-based index) to reorder output display
-- \`get_report_schema\` - View complete report structure with all properties, columns, buttons, and parameters
-- \`get_report\` - Retrieve complete report details including all columns, buttons, and parameters with element counts
-
-### Form Management Tools (15 Tools)
-- \`get_form_schema\` - View complete form structure (objectWorkflow) with all properties, input parameters, buttons, and output variables
-- \`get_form\` - Retrieve complete form details including all parameters, buttons, and output variables with element counts
-- \`suggest_form_name_and_title\` - Generate suggested form name (PascalCase) and title based on owner object, role, action, and target child object
-- \`create_form\` - Create new form with automatic page init flow creation, default buttons, and role-based authorization
-- \`update_form\` - Update properties of an existing form (16 updatable properties, requires exact case-sensitive form name match)
-- \`update_full_form\` - Update form with provided properties (merge/patch - updates/adds params, outputVars, buttons without removing existing)
-- \`add_form_param\` - Add a new input parameter (form field/control) to an existing form with 34 configurable properties
-- \`update_form_param\` - Update properties of an existing form parameter (34 updatable properties, case-sensitive name matching)
-- \`move_form_param\` - Move a form parameter to a new position (0-based index) to reorder input controls on the form
-- \`add_form_button\` - Add a new button to an existing form with 9 configurable properties (buttonText, buttonType, isVisible, etc.)
-- \`update_form_button\` - Update properties of an existing form button (10 updatable properties, case-sensitive buttonText matching)
-- \`move_form_button\` - Move a form button to a new position (0-based index) to reorder buttons on the form
-- \`add_form_output_var\` - Add a new output variable to a form with 20 configurable properties (displays results/data after submission)
-- \`update_form_output_var\` - Update properties of an existing form output variable (21 updatable properties including name itself)
-- \`move_form_output_var\` - Move a form output variable to a new position (0-based index) to reorder output display on the form
-
-### Report Management Tools (7 Tools)
-- \`get_report_schema\` - View complete report structure with all properties, columns, buttons, and parameters
-- \`get_report\` - Retrieve complete report details including all columns, buttons, and parameters with element counts
-- \`suggest_report_name_and_title\` - Generate suggested report name (PascalCase) and title based on owner object, role, visualization type, and target child object
-- \`create_report\` - Create new report with automatic page init flow creation, default buttons, and role-based authorization
-- \`move_report_param\` - Move a report parameter (filter control) to a new position (0-based index) to reorder filter controls on the report
-- \`move_report_column\` - Move a report column to a new position (0-based index) to reorder columns in the report grid/table
-- \`move_report_button\` - Move a report button to a new position (0-based index) to reorder buttons on the report
-
-### Workflow Management Tools (7 Tools)
-- \`get_workflow_schema\` - View simplified workflow schema with 3 properties (name, codeDescription, isCustomLogicOverwritten) and task schema with 1 property (name)
-- \`list_workflows\` - List all DynaFlow workflows with optional filters (workflow_name partial match, owner_object_name exact match), returns name, owner object, and task count
-- \`get_workflow\` - Retrieve complete workflow details by name including all tasks (returns only schema-defined properties)
-- \`update_workflow\` - Update workflow properties (codeDescription, isCustomLogicOverwritten) by workflow name
-- \`create_workflow\` - Create new DynaFlow workflow with owner object, name, and optional codeDescription
-- \`add_workflow_task\` - Add a new task to an existing workflow with task name only
-- \`move_workflow_task\` - Reorder workflow tasks by moving a task to a new position (0-based index)
-
-### Utility Tools (1 Tool)
-- \`secret_word_of_the_day\` - Test/verification tool
-
-### Model Services API Tools (22 Tools)
-- \`list_model_features_catalog_items\` - Retrieve Model Feature Catalog items with selection status and pagination
-- \`select_model_feature\` - Add a model feature from the catalog to your AppDNA model (requires exact name AND version match, updates in memory, marks unsaved changes)
-- \`unselect_model_feature\` - Remove a model feature from your AppDNA model (requires exact name AND version match, only allowed if not marked as completed by AI processing)
-- \`list_model_ai_processing_requests\` - List AI processing requests with status, timestamps, and details
-- \`create_model_ai_processing_request\` - Submit a new AI processing request with the current model file (auto-zips and uploads)
-- \`merge_model_ai_processing_results\` - Merge AI-enhanced model results from a completed request into current model (downloads, merges, updates in memory)
-- \`get_model_ai_processing_request_details\` - Get detailed information for a specific AI processing request by request code
-- \`get_model_ai_processing_request_schema\` - Get JSON schema definition for AI processing request objects
-- \`open_model_ai_processing_request_details\` - Open AI processing request details modal for a specific request code
-- \`list_model_validation_requests\` - List validation requests with status, results, and change suggestions
-- \`create_model_validation_request\` - Submit a new validation request with the current model file (auto-zips and uploads)
-- \`get_model_validation_request_details\` - Get detailed information for a specific validation request by request code
-- \`get_model_validation_request_schema\` - Get JSON schema definition for validation request objects
-- \`open_validation_request_details\` - Open validation request details modal for a specific request code
-- \`list_model_fabrication_requests\` - List fabrication requests with status, download URLs, and generated file information
-- \`create_model_fabrication_request\` - Submit a new fabrication request with the current model file (auto-zips and uploads)
-- \`get_model_fabrication_request_details\` - Get detailed information for a specific fabrication request by request code
-- \`get_model_fabrication_request_schema\` - Get JSON schema definition for fabrication request objects
-- \`open_model_fabrication_request_details\` - Open fabrication request details modal for a specific request code
-- \`list_fabrication_blueprint_catalog_items\` - List fabrication blueprints (template sets) with selection status showing which are currently selected in your model
-- \`select_fabrication_blueprint\` - Add a fabrication blueprint from the catalog to your AppDNA model (requires exact name AND version match, re-enables if previously disabled, updates in memory, marks unsaved changes)
-- \`unselect_fabrication_blueprint\` - Remove a fabrication blueprint from your AppDNA model (requires exact name AND version match, updates in memory, marks unsaved changes)
-
-## Navigation Tools for AppDNA Views
-
-The extension provides specialized navigation tools to help you explore different aspects of your AppDNA model:
-
-**User Story Views:**
-- Development queue, QA views, journey mapping, page relationships, role requirements
-
-**Data Views:**
-- Object details, hierarchical views, usage analysis, property management
-
-**Analytics Views:**
-- Metrics dashboards, forecasting tools, cost analysis, bottleneck detection
-
-**UI/UX Views:**
-- Page previews, form editors, workflow diagrams, API management
-
-**Workflow & Flow Views:**
-- Page initialization flows, general workflows, DynaFlow workflows, workflow tasks
-
-**List & Table Views:**
-- Page lists with complexity analysis, data object lists, workflow lists, API lists
+**Configuration:**
+- Model file: \`app-dna.json\` (configurable)
+- Config file: \`app-dna.config.json\` (output paths, settings)
+- Enable "Show Advanced Properties" for full feature access
 
 ## Getting Help
 
-- Use the extension's built-in help system (AppDNA: Show Help command)
-- Access the welcome view for new users (AppDNA: Show Welcome command)
-- Explore the tree view navigation to understand your model's structure
-- Use the page preview feature to see how forms will appear to users
-- Check the analytics dashboard for model complexity insights
-- Review the lexicon for business terminology definitions
+Use the AppDNA extension's built-in features:
+- **Help View**: AppDNA: Show Help command
+- **Welcome View**: AppDNA: Show Welcome command for new users
+- **Tree Navigation**: Explore model structure via hierarchical tree
+- **Page Preview**: See how forms/reports render before implementation
+- **Analytics Dashboard**: Model complexity insights and metrics
+- **Lexicon View**: Business terminology and definitions
 
-### MCP Integration
-- **96 Production-Ready Tools**: Complete coverage of all AppDNA functionality including Model Services API access
-- **GitHub Copilot Integration**: Natural language queries for model exploration and modification
-- **Safe Model Changes**: All modifications go through validated MCP tools, not direct file editing
-- **Real-time Status**: Visual indicators show MCP server running/stopped states
-- **Model Services Integration**: Access AI processing, validation, blueprint catalogs, and fabrication requests via MCP tools
-- **Feature Selection**: Add or remove model features programmatically with validation (unselect only if not AI-completed)
-
-### Configuration & Settings
-- **AppDNA Settings**: Configure extension behavior and advanced features
-- **Project Settings**: Manage model metadata and output paths
-- **Model Services**: Connect to cloud AI services for enhanced functionality
-- **File Watching**: Automatic detection of external model file changes
-
-**Always prefer MCP tools over direct file editing for all model changes to ensure data integrity and proper validation.**`;
+**Always use MCP tools for model changes to ensure data integrity and validation.**`;
+        console.log('[Extension] Chat mode content built successfully');
+    } catch (error) {
+        console.error('[Extension] Error building chat mode content:', error);
+        throw error;
+    }
 
     // Write the chat mode configuration file (always update to latest version)
+    console.log('[Extension] Writing chat mode file...');
+    console.log('[Extension] Content length:', chatModeContent.length, 'characters');
     fs.writeFileSync(chatModeFile, chatModeContent);
-    console.log('[Extension] AppDNA chat mode file created/updated successfully');
+    console.log('[Extension] AppDNA chat mode file created/updated successfully at:', chatModeFile);
 }
 
 /**
@@ -571,9 +277,13 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Create AppDNA chat mode for GitHub Copilot
     if (workspaceFolder) {
+        console.log('[Extension] Creating AppDNA chat mode for workspace:', workspaceFolder.uri.fsPath);
         createAppDNAChatMode(workspaceFolder.uri.fsPath).catch(error => {
-            console.warn('Failed to create AppDNA chat mode:', error);
+            console.error('[Extension] Failed to create AppDNA chat mode:', error);
+            console.error('[Extension] Error stack:', error.stack);
         });
+    } else {
+        console.log('[Extension] No workspace folder found, skipping chat mode creation');
     }
     
     // Set initial context based on file existence

@@ -6,6 +6,57 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ReportTools } from '../reportTools.js';
 
+/**
+ * Get list of tool names for chatmode YAML
+ */
+export function getToolNames(): string[] {
+    return [
+        'get_report_schema',
+        'get_report',
+        'suggest_report_name_and_title',
+        'create_report',
+        'update_report',
+        'add_report_param',
+        'update_report_param',
+        'move_report_param',
+        'add_report_column',
+        'update_report_column',
+        'move_report_column',
+        'add_report_button',
+        'update_report_button',
+        'move_report_button'
+    ];
+}
+
+/**
+ * Generate chatmode documentation for report tools
+ */
+export function generateChatmodeDocumentation(): string {
+    return `**Report Tools (13 tools):**
+
+*Report Operations:*
+- \`get_report_schema\` - Get schema definition for report structure
+- \`get_report\` - Get complete details of a specific report
+- \`suggest_report_name_and_title\` - Get AI suggestions for report name and title
+- \`create_report\` - Create a new report
+- \`update_report\` - Update report properties
+
+*Report Parameters (Input Controls):*
+- \`add_report_param\` - Add a filter/parameter to a report
+- \`update_report_param\` - Update report parameter properties
+- \`move_report_param\` - Change the display order of a parameter
+
+*Report Columns:*
+- \`add_report_column\` - Add a column to a report
+- \`update_report_column\` - Update column properties
+- \`move_report_column\` - Change the display order of a column
+
+*Report Buttons:*
+- \`add_report_button\` - Add a button to a report
+- \`update_report_button\` - Update button properties
+- \`move_report_button\` - Change the display order of a button`;
+}
+
 export function registerReportTools(server: McpServer, tools: ReportTools): void {
     // Register get_report_schema tool
         server.registerTool('get_report_schema', {

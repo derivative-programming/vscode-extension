@@ -6,6 +6,33 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { UserStoryTools } from '../userStoryTools.js';
 
+/**
+ * Get list of tool names for chatmode YAML
+ */
+export function getToolNames(): string[] {
+    return [
+        'create_user_story',
+        'list_user_stories',
+        'update_user_story',
+        'get_user_story_schema',
+        'secret_word_of_the_day'
+    ];
+}
+
+/**
+ * Generate chatmode documentation for user story tools
+ */
+export function generateChatmodeDocumentation(): string {
+    return `**User Story Tools (4 tools):**
+- \`create_user_story\` - Create a new user story with format validation. Must follow format: "A [Role] wants to [action] [object]"
+- \`list_user_stories\` - List all user stories with optional filtering by role, search text, and ignored status
+- \`update_user_story\` - Update the isIgnored property of a story (soft delete or re-enable)
+- \`get_user_story_schema\` - Get the schema definition for user story objects
+
+**Special Tools:**
+- \`secret_word_of_the_day\` - Get the secret word uniquely generated for this MCP server and project`;
+}
+
 export function registerUserStoryTools(server: McpServer, tools: UserStoryTools): void {
     // Register create_user_story tool
         server.registerTool('create_user_story', {

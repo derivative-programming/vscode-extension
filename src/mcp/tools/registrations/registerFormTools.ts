@@ -6,6 +6,58 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { FormTools } from '../formTools.js';
 
+/**
+ * Get list of tool names for chatmode YAML
+ */
+export function getToolNames(): string[] {
+    return [
+        'get_form_schema',
+        'get_form',
+        'suggest_form_name_and_title',
+        'create_form',
+        'update_form',
+        'update_full_form',
+        'add_form_param',
+        'update_form_param',
+        'move_form_param',
+        'add_form_button',
+        'update_form_button',
+        'move_form_button',
+        'add_form_output_var',
+        'update_form_output_var',
+        'move_form_output_var'
+    ];
+}
+
+/**
+ * Generate chatmode documentation for form tools
+ */
+export function generateChatmodeDocumentation(): string {
+    return `**Form Tools (13 tools):**
+
+*Form Operations:*
+- \`get_form_schema\` - Get schema definition for complete form structure
+- \`get_form\` - Get complete details of a specific form
+- \`suggest_form_name_and_title\` - Get AI suggestions for form name and title
+- \`create_form\` - Create a new form
+- \`update_form\` - Update form properties
+
+*Form Parameters (Input Controls):*
+- \`add_form_param\` - Add an input control/parameter to a form
+- \`update_form_param\` - Update form parameter properties
+- \`move_form_param\` - Change the display order of a parameter
+
+*Form Buttons:*
+- \`add_form_button\` - Add a button to a form
+- \`update_form_button\` - Update button properties
+- \`move_form_button\` - Change the display order of a button
+
+*Form Output Variables:*
+- \`add_form_output_var\` - Add an output variable to a form
+- \`update_form_output_var\` - Update output variable properties
+- \`move_form_output_var\` - Change the display order of an output variable`;
+}
+
 export function registerFormTools(server: McpServer, tools: FormTools): void {
     // Register get_form_schema tool
         server.registerTool('get_form_schema', {

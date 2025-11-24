@@ -420,6 +420,71 @@ PARAMETER REQUIREMENTS:\n`;
     return description;
 }
 
+/**
+ * Get list of tool names for chatmode YAML
+ */
+export function getToolNames(): string[] {
+    return ['open_view'];
+}
+
+/**
+ * Generates chatmode documentation from VIEW_METHOD_MAP for inclusion in extension.ts
+ * This provides users with a comprehensive guide to all available views
+ */
+export function generateChatmodeDocumentation(): string {
+    // Group views by category
+    const categories: Record<string, string[]> = {};
+    
+    for (const [viewName, config] of Object.entries(VIEW_METHOD_MAP)) {
+        if (!categories[config.category]) {
+            categories[config.category] = [];
+        }
+        categories[config.category].push(viewName);
+    }
+    
+    // Count total views
+    const totalViews = Object.keys(VIEW_METHOD_MAP).length;
+    
+    let doc = `**View Navigation:**
+- Use the \`open_view\` tool to open any view in the extension
+- When users say **"view"**, **"show"**, or **"open"**, use \`open_view\` with the appropriate viewName
+- Examples: 
+  - "view user stories" → \`open_view({ viewName: "user_stories" })\`
+  - "show form details for Customer" → \`open_view({ viewName: "form_details", params: { formName: "Customer" } })\`
+  - "open data objects" → \`open_view({ viewName: "data_objects_list" })\`
+
+**Available Views (${totalViews} total, organized by category):**
+
+`;
+    
+    // Generate documentation for each category
+    for (const [category, viewNames] of Object.entries(categories)) {
+        if (viewNames.length === 0) {
+            continue;
+        }
+        
+        doc += `**${category} (${viewNames.length} views):**\n`;
+        
+        for (const viewName of viewNames) {
+            const config = VIEW_METHOD_MAP[viewName];
+            const requiredParams = config.params.filter(p => p !== 'initialTab');
+            const requiresText = requiredParams.length > 0 ? ` (REQUIRES ${requiredParams.join(', ')})` : '';
+            const tabsText = config.tabs ? ` - tabs: ${config.tabs}` : '';
+            
+            doc += `- \`${viewName}\` - ${config.description}${requiresText}${tabsText}\n`;
+        }
+        
+        doc += `\n`;
+    }
+    
+    doc += `**Important Notes:**
+- Views marked "REQUIRES" need specific parameters in the params object
+- Many views support \`initialTab\` parameter for direct tab navigation
+- Authentication is required for model services views (AI processing, validation, fabrication)`;
+    
+    return doc;
+}
+
 export function registerViewTools(server: McpServer, tools: ViewTools): void {
     // Register consolidated open_view tool with dynamically generated description
     server.registerTool('open_view', {

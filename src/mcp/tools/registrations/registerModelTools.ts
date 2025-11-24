@@ -6,6 +6,29 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ModelTools } from '../modelTools.js';
 
+/**
+ * Get list of tool names for chatmode YAML
+ */
+export function getToolNames(): string[] {
+    return [
+        'save_model',
+        'close_all_open_views',
+        'expand_tree_view',
+        'collapse_tree_view'
+    ];
+}
+
+/**
+ * Generate chatmode documentation for model operation tools
+ */
+export function generateChatmodeDocumentation(): string {
+    return `**Model Operations (4 tools):**
+- \`save_model\` - Save the current AppDNA model to file (persists all changes)
+- \`close_all_open_views\` - Close all open view panels and webviews
+- \`expand_tree_view\` - Expand all top-level items in the tree view
+- \`collapse_tree_view\` - Collapse all items in the tree view to top-level state`;
+}
+
 export function registerModelTools(server: McpServer, tools: ModelTools): void {
     // Register save_model tool
         server.registerTool('save_model', {

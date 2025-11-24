@@ -6,6 +6,48 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { GeneralFlowTools } from '../generalFlowTools.js';
 
+/**
+ * Get list of tool names for chatmode YAML
+ */
+export function getToolNames(): string[] {
+    return [
+        'get_general_flow_schema',
+        'list_general_flows',
+        'get_general_flow',
+        'update_general_flow',
+        'update_full_general_flow',
+        'add_general_flow_param',
+        'update_general_flow_param',
+        'move_general_flow_param',
+        'add_general_flow_output_var',
+        'update_general_flow_output_var',
+        'move_general_flow_output_var'
+    ];
+}
+
+/**
+ * Generate chatmode documentation for general flow tools
+ */
+export function generateChatmodeDocumentation(): string {
+    return `**General Flow Tools (9 tools):**
+
+*Flow Operations:*
+- \`get_general_flow_schema\` - Get schema definition for general flows
+- \`get_general_flow\` - Get complete details of a specific general flow
+- \`update_general_flow\` - Update general flow properties
+- \`list_general_flows\` - List all general flows
+
+*Flow Parameters (Inputs):*
+- \`add_general_flow_param\` - Add an input parameter to a general flow
+- \`update_general_flow_param\` - Update parameter properties
+- \`move_general_flow_param\` - Change the display order of a parameter
+
+*Flow Output Variables:*
+- \`add_general_flow_output_var\` - Add an output variable to a general flow
+- \`update_general_flow_output_var\` - Update output variable properties
+- \`move_general_flow_output_var\` - Change the display order of an output variable`;
+}
+
 export function registerGeneralFlowTools(server: McpServer, tools: GeneralFlowTools): void {
     // Register get_general_flow_schema tool
         server.registerTool('get_general_flow_schema', {

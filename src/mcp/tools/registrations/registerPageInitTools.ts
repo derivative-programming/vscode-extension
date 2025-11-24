@@ -6,6 +6,38 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { PageInitTools } from '../pageInitTools.js';
 
+/**
+ * Get list of tool names for chatmode YAML
+ */
+export function getToolNames(): string[] {
+    return [
+        'get_page_init_flow_schema',
+        'get_page_init_flow',
+        'update_page_init_flow',
+        'update_full_page_init_flow',
+        'add_page_init_flow_output_var',
+        'update_page_init_flow_output_var',
+        'move_page_init_flow_output_var'
+    ];
+}
+
+/**
+ * Generate chatmode documentation for page init flow tools
+ */
+export function generateChatmodeDocumentation(): string {
+    return `**Page Init Flow Tools (6 tools):**
+
+*Flow Operations:*
+- \`get_page_init_flow_schema\` - Get schema definition for page init flows
+- \`get_page_init_flow\` - Get complete details of a specific page init flow
+- \`update_page_init_flow\` - Update page init flow properties
+
+*Output Variables:*
+- \`add_page_init_flow_output_var\` - Add an output variable to a page init flow
+- \`update_page_init_flow_output_var\` - Update output variable properties
+- \`move_page_init_flow_output_var\` - Change the display order of an output variable`;
+}
+
 export function registerPageInitTools(server: McpServer, tools: PageInitTools): void {
     // Register get_page_init_flow_schema tool
         server.registerTool('get_page_init_flow_schema', {

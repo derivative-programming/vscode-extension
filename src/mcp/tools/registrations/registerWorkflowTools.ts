@@ -6,6 +6,39 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WorkflowTools } from '../workflowTools.js';
 
+/**
+ * Get list of tool names for chatmode YAML
+ */
+export function getToolNames(): string[] {
+    return [
+        'get_workflow_schema',
+        'list_workflows',
+        'get_workflow',
+        'update_workflow',
+        'create_workflow',
+        'add_workflow_task',
+        'move_workflow_task'
+    ];
+}
+
+/**
+ * Generate chatmode documentation for workflow tools
+ */
+export function generateChatmodeDocumentation(): string {
+    return `**Workflow Tools (7 tools):**
+
+*Workflow Operations:*
+- \`get_workflow_schema\` - Get schema definition for DynaFlow workflows
+- \`list_workflows\` - List all workflows with filtering options
+- \`get_workflow\` - Get complete details of a specific workflow
+- \`update_workflow\` - Update workflow properties
+- \`create_workflow\` - Create a new workflow
+
+*Workflow Tasks:*
+- \`add_workflow_task\` - Add a task to a workflow
+- \`move_workflow_task\` - Change the execution order of a task`;
+}
+
 export function registerWorkflowTools(server: McpServer, tools: WorkflowTools): void {
     // Register get_workflow_schema tool
         server.registerTool('get_workflow_schema', {

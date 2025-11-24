@@ -6,6 +6,66 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { DataObjectTools } from '../dataObjectTools.js';
 
+/**
+ * Get list of tool names for chatmode YAML
+ */
+export function getToolNames(): string[] {
+    return [
+        'list_roles',
+        'add_role',
+        'update_role',
+        'get_role_schema',
+        'add_lookup_value',
+        'list_lookup_values',
+        'update_lookup_value',
+        'get_lookup_value_schema',
+        'list_data_object_summary',
+        'list_data_objects',
+        'get_data_object',
+        'get_data_object_schema',
+        'get_data_object_summary_schema',
+        'create_data_object',
+        'update_data_object',
+        'update_full_data_object',
+        'add_data_object_props',
+        'update_data_object_prop',
+        'get_data_object_usage',
+        'list_pages'
+    ];
+}
+
+/**
+ * Generate chatmode documentation for data object tools
+ */
+export function generateChatmodeDocumentation(): string {
+    return `**Data Object Tools (19 tools):**
+
+*Role Management:*
+- \`list_roles\` - List all roles from the Role data object
+- \`add_role\` - Add a new role (name must be PascalCase)
+- \`update_role\` - Update role properties
+- \`get_role_schema\` - Get schema definition for role objects
+
+*Lookup Value Management:*
+- \`add_lookup_value\` - Add lookup value to a lookup data object
+- \`list_lookup_values\` - List all lookup values for a data object
+- \`update_lookup_value\` - Update lookup value properties
+- \`get_lookup_value_schema\` - Get schema definition for lookup values
+
+*Data Object Operations:*
+- \`list_data_object_summary\` - List data objects with summary info
+- \`list_data_objects\` - List all data objects with full details
+- \`get_data_object\` - Get complete details of a specific data object
+- \`get_data_object_schema\` - Get schema definition for data objects
+- \`get_data_object_summary_schema\` - Get schema for summary view
+- \`create_data_object\` - Create a new data object
+- \`update_data_object\` - Update data object properties
+- \`add_data_object_props\` - Add properties to a data object
+- \`update_data_object_prop\` - Update a specific property
+- \`get_data_object_usage\` - Get usage information for a data object
+- \`list_pages\` - List all pages (forms and reports)`;
+}
+
 export function registerDataObjectTools(server: McpServer, tools: DataObjectTools): void {
     // Register list_roles tool
         server.registerTool('list_roles', {

@@ -6,6 +6,70 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ModelServiceTools } from '../modelServiceTools.js';
 
+/**
+ * Get list of tool names for chatmode YAML
+ */
+export function getToolNames(): string[] {
+    return [
+        'list_model_features_catalog_items',
+        'select_model_feature',
+        'unselect_model_feature',
+        'list_model_ai_processing_requests',
+        'create_model_ai_processing_request',
+        'merge_model_ai_processing_results',
+        'get_model_ai_processing_request_details',
+        'get_model_ai_processing_request_schema',
+        'open_model_ai_processing_request_details',
+        'list_model_validation_requests',
+        'create_model_validation_request',
+        'get_model_validation_request_details',
+        'get_model_validation_request_schema',
+        'open_validation_request_details',
+        'list_fabrication_blueprint_catalog_items',
+        'select_fabrication_blueprint',
+        'unselect_fabrication_blueprint',
+        'list_model_fabrication_requests',
+        'create_model_fabrication_request',
+        'get_model_fabrication_request_details',
+        'get_model_fabrication_request_schema',
+        'open_model_fabrication_request_details'
+    ];
+}
+
+/**
+ * Generate chatmode documentation for model service tools
+ */
+export function generateChatmodeDocumentation(): string {
+    return `**Model Service Tools (18 tools - requires authentication):**
+
+*Feature Catalog:*
+- \`list_model_features_catalog_items\` - List available features from catalog
+- \`select_model_feature\` - Select a feature to add to the model
+- \`unselect_model_feature\` - Remove a selected feature
+
+*AI Processing:*
+- \`list_model_ai_processing_requests\` - List AI processing requests
+- \`create_model_ai_processing_request\` - Create a new AI processing request
+- \`get_model_ai_processing_request_details\` - Get details of a specific request
+- \`get_model_ai_processing_request_schema\` - Get schema for AI processing requests
+- \`merge_model_ai_processing_results\` - Merge AI results into the model
+
+*Model Validation:*
+- \`list_model_validation_requests\` - List validation requests
+- \`create_model_validation_request\` - Create a new validation request
+- \`get_model_validation_request_details\` - Get details of a specific request
+- \`get_model_validation_request_schema\` - Get schema for validation requests
+
+*Fabrication (Code Generation):*
+- \`list_fabrication_blueprint_catalog_items\` - List available blueprints
+- \`select_fabrication_blueprint\` - Select a blueprint for code generation
+- \`unselect_fabrication_blueprint\` - Remove a selected blueprint
+- \`list_model_fabrication_requests\` - List fabrication requests
+- \`create_model_fabrication_request\` - Create a new fabrication request
+- \`get_model_fabrication_request_details\` - Get details of a specific request
+- \`get_model_fabrication_request_schema\` - Get schema for fabrication requests`;
+}
+
 export function registerModelServiceTools(server: McpServer, tools: ModelServiceTools): void {
         server.registerTool('list_model_features_catalog_items', {
         title: 'List Model Features Catalog Items',
