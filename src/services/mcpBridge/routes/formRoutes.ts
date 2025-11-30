@@ -156,27 +156,28 @@ export async function updateForm(
     logRequest(req, context.outputChannel);
     
     try {
-        const body = await parseRequestBody(req);
-        const formName = body.form_name || body.name;
+        const { form_name, updates } = await parseRequestBody(req);
         
-        if (!formName) {
-            throw new Error("form_name or name is required");
+        if (!form_name) {
+            throw new Error("form_name is required");
+        }
+        
+        if (!updates || Object.keys(updates).length === 0) {
+            throw new Error("At least one property to update is required");
         }
         
         const modelService = ModelService.getInstance();
         const model = modelService.getCurrentModel();
-        const found = findForm(model, formName);
+        const found = findForm(model, form_name);
         
         if (!found) {
-            throw new Error(`Form "${formName}" not found in any data object`);
+            throw new Error(`Form "${form_name}" not found in any data object`);
         }
         
-        // Update properties
-        Object.keys(body).forEach(key => {
-            if (key !== "form_name" && key !== "name") {
-                found.form[key] = body[key];
-            }
-        });
+        // Update properties from updates object
+        for (const [key, value] of Object.entries(updates)) {
+            found.form[key] = value;
+        }
         
         modelService.markUnsavedChanges();
         
@@ -188,7 +189,7 @@ export async function updateForm(
             }
         }, 100);
         
-        context.outputChannel.appendLine(`[Data Bridge] Updated form "${formName}" in owner object "${found.ownerObjectName}"`);
+        context.outputChannel.appendLine(`[Data Bridge] Updated form "${form_name}" in owner object "${found.ownerObjectName}"`);
         sendJsonResponse(res, 200, {
             success: true,
             form: found.form,
@@ -399,10 +400,14 @@ export async function updateFormParam(
     logRequest(req, context.outputChannel);
     
     try {
-        const { form_name, param_name, param } = await parseRequestBody(req);
+        const { form_name, param_name, updates } = await parseRequestBody(req);
         
         if (!form_name || !param_name) {
             throw new Error("form_name and param_name are required");
+        }
+        
+        if (!updates || Object.keys(updates).length === 0) {
+            throw new Error("At least one property to update is required");
         }
         
         const modelService = ModelService.getInstance();
@@ -413,23 +418,26 @@ export async function updateFormParam(
             throw new Error(`Form "${form_name}" not found`);
         }
         
-        const paramIndex = found.form.objectWorkflowParam?.findIndex((p: any) => p.name === param_name);
-        if (paramIndex === -1 || paramIndex === undefined) {
+        if (!found.form.objectWorkflowParam || !Array.isArray(found.form.objectWorkflowParam)) {
+            throw new Error(`Form "${form_name}" has no parameters`);
+        }
+        
+        const foundParam = found.form.objectWorkflowParam.find((p: any) => p.name === param_name);
+        if (!foundParam) {
             throw new Error(`Parameter "${param_name}" not found in form "${form_name}"`);
         }
         
-        Object.keys(param).forEach(key => {
-            if (key !== "name") {
-                found.form.objectWorkflowParam[paramIndex][key] = param[key];
-            }
-        });
+        // Update properties from updates object
+        for (const [key, value] of Object.entries(updates)) {
+            foundParam[key] = value;
+        }
         
         modelService.markUnsavedChanges();
         
         context.outputChannel.appendLine(`[Data Bridge] Updated parameter "${param_name}" in form "${form_name}"`);
         sendJsonResponse(res, 200, {
             success: true,
-            param: found.form.objectWorkflowParam[paramIndex],
+            param: foundParam,
             owner_object_name: found.ownerObjectName
         }, context.outputChannel);
         
@@ -450,10 +458,10 @@ export async function moveFormParam(
     logRequest(req, context.outputChannel);
     
     try {
-        const { form_name, param_name, new_index } = await parseRequestBody(req);
+        const { form_name, param_name, targetPosition } = await parseRequestBody(req);
         
-        if (!form_name || !param_name || new_index === undefined) {
-            throw new Error("form_name, param_name, and new_index are required");
+        if (!form_name || !param_name || targetPosition === undefined) {
+            throw new Error("form_name, param_name, and targetPosition are required");
         }
         
         const modelService = ModelService.getInstance();
@@ -470,14 +478,14 @@ export async function moveFormParam(
         }
         
         const [param] = found.form.objectWorkflowParam.splice(currentIndex, 1);
-        found.form.objectWorkflowParam.splice(new_index, 0, param);
+        found.form.objectWorkflowParam.splice(targetPosition, 0, param);
         
         modelService.markUnsavedChanges();
         
         context.outputChannel.appendLine(`[Data Bridge] Moved parameter "${param_name}" in form "${form_name}"`);
         sendJsonResponse(res, 200, {
             success: true,
-            message: `Parameter moved to index ${new_index}`
+            message: `Parameter moved to index ${targetPosition}`
         }, context.outputChannel);
         
     } catch (error) {
@@ -499,8 +507,8 @@ export async function addFormButton(
     try {
         const { form_name, button } = await parseRequestBody(req);
         
-        if (!form_name || !button?.name) {
-            throw new Error("form_name and button with name are required");
+        if (!form_name || !button?.buttonText) {
+            throw new Error("form_name and button with buttonText property is required");
         }
         
         const modelService = ModelService.getInstance();
@@ -518,10 +526,11 @@ export async function addFormButton(
         found.form.objectWorkflowButton.push(button);
         modelService.markUnsavedChanges();
         
-        context.outputChannel.appendLine(`[Data Bridge] Added button "${button.name}" to form "${form_name}"`);
+        context.outputChannel.appendLine(`[Data Bridge] Added button "${button.buttonText}" to form "${form_name}" in owner object "${found.ownerObjectName}"`);
         sendJsonResponse(res, 200, {
             success: true,
-            button: button
+            button: button,
+            owner_object_name: found.ownerObjectName
         }, context.outputChannel);
         
     } catch (error) {
@@ -541,10 +550,14 @@ export async function updateFormButton(
     logRequest(req, context.outputChannel);
     
     try {
-        const { form_name, button_name, button } = await parseRequestBody(req);
+        const { form_name, button_text, updates } = await parseRequestBody(req);
         
-        if (!form_name || !button_name) {
-            throw new Error("form_name and button_name are required");
+        if (!form_name || !button_text) {
+            throw new Error("form_name and button_text are required");
+        }
+        
+        if (!updates || Object.keys(updates).length === 0) {
+            throw new Error("At least one property to update is required");
         }
         
         const modelService = ModelService.getInstance();
@@ -555,23 +568,27 @@ export async function updateFormButton(
             throw new Error(`Form "${form_name}" not found`);
         }
         
-        const buttonIndex = found.form.objectWorkflowButton?.findIndex((b: any) => b.name === button_name);
-        if (buttonIndex === -1 || buttonIndex === undefined) {
-            throw new Error(`Button "${button_name}" not found`);
+        if (!found.form.objectWorkflowButton || !Array.isArray(found.form.objectWorkflowButton)) {
+            throw new Error(`Form "${form_name}" has no buttons`);
         }
         
-        Object.keys(button).forEach(key => {
-            if (key !== "name") {
-                found.form.objectWorkflowButton[buttonIndex][key] = button[key];
-            }
-        });
+        const foundButton = found.form.objectWorkflowButton.find((b: any) => b.buttonText === button_text);
+        if (!foundButton) {
+            throw new Error(`Button "${button_text}" not found in form "${form_name}"`);
+        }
+        
+        // Update button properties from updates object
+        for (const [key, value] of Object.entries(updates)) {
+            foundButton[key] = value;
+        }
         
         modelService.markUnsavedChanges();
         
-        context.outputChannel.appendLine(`[Data Bridge] Updated button "${button_name}" in form "${form_name}"`);
+        context.outputChannel.appendLine(`[Data Bridge] Updated button "${button_text}" in form "${form_name}" in owner object "${found.ownerObjectName}"`);
         sendJsonResponse(res, 200, {
             success: true,
-            button: found.form.objectWorkflowButton[buttonIndex]
+            button: foundButton,
+            owner_object_name: found.ownerObjectName
         }, context.outputChannel);
         
     } catch (error) {
@@ -591,10 +608,10 @@ export async function moveFormButton(
     logRequest(req, context.outputChannel);
     
     try {
-        const { form_name, button_name, new_index } = await parseRequestBody(req);
+        const { form_name, button_text, targetPosition } = await parseRequestBody(req);
         
-        if (!form_name || !button_name || new_index === undefined) {
-            throw new Error("form_name, button_name, and new_index are required");
+        if (!form_name || !button_text || targetPosition === undefined) {
+            throw new Error("form_name, button_text, and targetPosition are required");
         }
         
         const modelService = ModelService.getInstance();
@@ -605,20 +622,20 @@ export async function moveFormButton(
             throw new Error(`Form "${form_name}" not found or has no buttons`);
         }
         
-        const currentIndex = found.form.objectWorkflowButton.findIndex((b: any) => b.name === button_name);
+        const currentIndex = found.form.objectWorkflowButton.findIndex((b: any) => b.buttonText === button_text);
         if (currentIndex === -1) {
-            throw new Error(`Button "${button_name}" not found`);
+            throw new Error(`Button "${button_text}" not found`);
         }
         
         const [button] = found.form.objectWorkflowButton.splice(currentIndex, 1);
-        found.form.objectWorkflowButton.splice(new_index, 0, button);
+        found.form.objectWorkflowButton.splice(targetPosition, 0, button);
         
         modelService.markUnsavedChanges();
         
-        context.outputChannel.appendLine(`[Data Bridge] Moved button "${button_name}" in form "${form_name}"`);
+        context.outputChannel.appendLine(`[Data Bridge] Moved button "${button_text}" in form "${form_name}"`);
         sendJsonResponse(res, 200, {
             success: true,
-            message: `Button moved to index ${new_index}`
+            message: `Button moved to index ${targetPosition}`
         }, context.outputChannel);
         
     } catch (error) {
@@ -682,10 +699,14 @@ export async function updateFormOutputVar(
     logRequest(req, context.outputChannel);
     
     try {
-        const { form_name, output_var_name, output_var } = await parseRequestBody(req);
+        const { form_name, output_var_name, updates } = await parseRequestBody(req);
         
         if (!form_name || !output_var_name) {
             throw new Error("form_name and output_var_name are required");
+        }
+        
+        if (!updates || Object.keys(updates).length === 0) {
+            throw new Error("At least one property to update is required");
         }
         
         const modelService = ModelService.getInstance();
@@ -696,23 +717,26 @@ export async function updateFormOutputVar(
             throw new Error(`Form "${form_name}" not found`);
         }
         
-        const varIndex = found.form.objectWorkflowOutputVar?.findIndex((v: any) => v.name === output_var_name);
-        if (varIndex === -1 || varIndex === undefined) {
-            throw new Error(`Output var "${output_var_name}" not found`);
+        if (!found.form.objectWorkflowOutputVar || !Array.isArray(found.form.objectWorkflowOutputVar)) {
+            throw new Error(`Form "${form_name}" has no output vars`);
         }
         
-        Object.keys(output_var).forEach(key => {
-            if (key !== "name") {
-                found.form.objectWorkflowOutputVar[varIndex][key] = output_var[key];
-            }
-        });
+        const foundVar = found.form.objectWorkflowOutputVar.find((v: any) => v.name === output_var_name);
+        if (!foundVar) {
+            throw new Error(`Output var "${output_var_name}" not found in form "${form_name}"`);
+        }
+        
+        // Update properties from updates object
+        for (const [key, value] of Object.entries(updates)) {
+            foundVar[key] = value;
+        }
         
         modelService.markUnsavedChanges();
         
         context.outputChannel.appendLine(`[Data Bridge] Updated output var "${output_var_name}" in form "${form_name}"`);
         sendJsonResponse(res, 200, {
             success: true,
-            output_var: found.form.objectWorkflowOutputVar[varIndex]
+            output_var: foundVar
         }, context.outputChannel);
         
     } catch (error) {
@@ -732,10 +756,10 @@ export async function moveFormOutputVar(
     logRequest(req, context.outputChannel);
     
     try {
-        const { form_name, output_var_name, new_index } = await parseRequestBody(req);
+        const { form_name, output_var_name, targetPosition } = await parseRequestBody(req);
         
-        if (!form_name || !output_var_name || new_index === undefined) {
-            throw new Error("form_name, output_var_name, and new_index are required");
+        if (!form_name || !output_var_name || targetPosition === undefined) {
+            throw new Error("form_name, output_var_name, and targetPosition are required");
         }
         
         const modelService = ModelService.getInstance();
@@ -752,14 +776,14 @@ export async function moveFormOutputVar(
         }
         
         const [outputVar] = found.form.objectWorkflowOutputVar.splice(currentIndex, 1);
-        found.form.objectWorkflowOutputVar.splice(new_index, 0, outputVar);
+        found.form.objectWorkflowOutputVar.splice(targetPosition, 0, outputVar);
         
         modelService.markUnsavedChanges();
         
         context.outputChannel.appendLine(`[Data Bridge] Moved output var "${output_var_name}" in form "${form_name}"`);
         sendJsonResponse(res, 200, {
             success: true,
-            message: `Output var moved to index ${new_index}`
+            message: `Output var moved to index ${targetPosition}`
         }, context.outputChannel);
         
     } catch (error) {

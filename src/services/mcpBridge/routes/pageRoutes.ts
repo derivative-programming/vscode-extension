@@ -19,36 +19,30 @@ export async function getPages(
     logRequest(req, context.outputChannel);
     
     try {
+        // Parse query parameters if present
         const url = new URL(req.url!, `http://${req.headers.host}`);
+        const filters: any = {};
+        
         const pageName = url.searchParams.get("page_name");
         const pageType = url.searchParams.get("page_type");
+        const ownerObject = url.searchParams.get("owner_object");
+        const targetChildObject = url.searchParams.get("target_child_object");
+        const roleRequired = url.searchParams.get("role_required");
         
+        if (pageName) { filters.pageName = pageName; }
+        if (pageType) { filters.pageType = pageType; }
+        if (ownerObject) { filters.ownerObject = ownerObject; }
+        if (targetChildObject) { filters.targetChildObject = targetChildObject; }
+        if (roleRequired) { filters.roleRequired = roleRequired; }
+        
+        // Use ModelService's getPagesWithDetails method
         const modelService = ModelService.getInstance();
-        const allObjects = modelService.getAllObjects();
-        const pages: any[] = [];
+        const pages = modelService.getPagesWithDetails(Object.keys(filters).length > 0 ? filters : undefined);
         
-        for (const obj of allObjects) {
-            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
-                for (const workflow of obj.objectWorkflow) {
-                    if (workflow.isPage !== "true") {
-                        continue;
-                    }
-                    
-                    if (pageName && workflow.name.toLowerCase() !== pageName.toLowerCase()) {
-                        continue;
-                    }
-                    
-                    pages.push({
-                        ...workflow,
-                        _ownerObjectName: obj.name
-                    });
-                }
-            }
-        }
-        
-        context.outputChannel.appendLine(`[Data Bridge] Returning ${pages.length} pages`);
+        context.outputChannel.appendLine(`[Data Bridge] Returning ${pages.length} pages (filtered: ${Object.keys(filters).length > 0})`);
         sendJsonResponse(res, 200, pages, context.outputChannel);
     } catch (error) {
+        context.outputChannel.appendLine(`[Data Bridge] Error getting pages: ${error instanceof Error ? error.message : "Unknown error"}`);
         sendErrorResponse(res, 500, error instanceof Error ? error.message : "Failed to get pages", context.outputChannel);
     }
 }

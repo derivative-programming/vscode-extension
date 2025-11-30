@@ -117,7 +117,7 @@ export function getDataBridgeRoutes(): RouteDefinition[] {
         { method: "POST", path: "/api/update-page-init-flow-output-var", handler: pageInitFlowRoutes.updatePageInitFlowOutputVar },
         { method: "POST", path: "/api/move-page-init-flow-output-var", handler: pageInitFlowRoutes.movePageInitFlowOutputVar },
         
-        // Model Services (8 stub endpoints - need implementation from mcpBridge.ts lines 6152-7453)
+        // Model Services (13 endpoints)
         { method: "GET", path: "/api/auth-status", handler: modelServiceRoutes.getAuthStatus },
         { method: "GET", path: "/api/model-services/model-features", handler: modelServiceRoutes.getModelFeatures },
         { method: "GET", path: "/api/model-services/prep-requests", handler: modelServiceRoutes.getPrepRequests },
@@ -125,7 +125,12 @@ export function getDataBridgeRoutes(): RouteDefinition[] {
         { method: "POST", path: "/api/model-services/create-validation-request", handler: modelServiceRoutes.createValidationRequest },
         { method: "POST", path: "/api/model-services/create-fabrication-request", handler: modelServiceRoutes.createFabricationRequest },
         { method: "GET", path: "/api/model-services/validation-requests", handler: modelServiceRoutes.getValidationRequests },
-        { method: "GET", path: "/api/model-services/fabrication-requests", handler: modelServiceRoutes.getFabricationRequests }
+        { method: "GET", path: "/api/model-services/fabrication-requests", handler: modelServiceRoutes.getFabricationRequests },
+        { method: "GET", path: /^\/api\/model-services\/prep-request-details/, handler: modelServiceRoutes.getPrepRequestDetails },
+        { method: "POST", path: "/api/model-services/merge-ai-processing-results", handler: modelServiceRoutes.mergeAiProcessingResults },
+        { method: "GET", path: /^\/api\/model-services\/validation-request-details/, handler: modelServiceRoutes.getValidationRequestDetails },
+        { method: "GET", path: /^\/api\/model-services\/fabrication-request-details/, handler: modelServiceRoutes.getFabricationRequestDetails },
+        { method: "GET", path: /^\/api\/model-services\/template-sets/, handler: modelServiceRoutes.getTemplateSets }
     ];
 }
 

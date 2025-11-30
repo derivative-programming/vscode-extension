@@ -20,35 +20,46 @@ export async function getLookupValues(
     
     try {
         const url = new URL(req.url!, `http://${req.headers.host}`);
-        const dataObjectName = url.searchParams.get("data_object_name");
+        const lookupObjectName = url.searchParams.get("lookupObjectName");
         
-        if (!dataObjectName) {
-            throw new Error("data_object_name parameter is required");
+        if (!lookupObjectName) {
+            sendErrorResponse(res, 400, "lookupObjectName query parameter is required", context.outputChannel);
+            return;
         }
         
         const modelService = ModelService.getInstance();
         const allObjects = modelService.getAllObjects();
-        const dataObject = allObjects.find((obj: any) => 
-            obj.name.toLowerCase() === dataObjectName.toLowerCase()
-        );
         
-        if (!dataObject) {
-            throw new Error(`Data object "${dataObjectName}" not found`);
+        // Case-sensitive exact match
+        const lookupObject = allObjects.find((obj: any) => obj.name === lookupObjectName);
+        
+        if (!lookupObject) {
+            sendErrorResponse(res, 404, `Lookup object "${lookupObjectName}" not found`, context.outputChannel);
+            return;
         }
         
-        if (!dataObject.lookupItem || !Array.isArray(dataObject.lookupItem)) {
+        // Validate that this is a lookup object
+        if (lookupObject.isLookup !== "true") {
+            sendErrorResponse(res, 400, `Object "${lookupObjectName}" is not a lookup object (isLookup must be "true")`, context.outputChannel);
+            return;
+        }
+        
+        if (!lookupObject.lookupItem || !Array.isArray(lookupObject.lookupItem)) {
             sendJsonResponse(res, 200, [], context.outputChannel);
             return;
         }
         
-        const lookupValues = dataObject.lookupItem.map((item: any) => ({
+        const lookupValues = lookupObject.lookupItem.map((item: any) => ({
             name: item.name || "",
             displayName: item.displayName || "",
             description: item.description || "",
             isActive: item.isActive || "true"
         }));
         
-        context.outputChannel.appendLine(`[Data Bridge] Returning ${lookupValues.length} lookup values for "${dataObjectName}"`);
+        // Sort by name
+        lookupValues.sort((a, b) => a.name.localeCompare(b.name));
+        
+        context.outputChannel.appendLine(`[Data Bridge] Returning ${lookupValues.length} lookup values for "${lookupObjectName}"`);
         sendJsonResponse(res, 200, lookupValues, context.outputChannel);
     } catch (error) {
         sendErrorResponse(res, 500, error instanceof Error ? error.message : "Failed to get lookup values", context.outputChannel);

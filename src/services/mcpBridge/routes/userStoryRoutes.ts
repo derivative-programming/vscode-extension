@@ -34,7 +34,7 @@ export async function getUserStories(
 
 /**
  * POST /api/user-stories
- * Create a new user story (extracted from original bridge)
+ * Create a new user story with validation
  */
 export async function createUserStory(
     req: http.IncomingMessage,
@@ -44,54 +44,78 @@ export async function createUserStory(
     logRequest(req, context.outputChannel);
     
     try {
-        const body = await parseRequestBody(req);
+        const { storyText, storyNumber } = await parseRequestBody(req);
         const modelService = ModelService.getInstance();
         
-        // Simple validation
-        if (!body.name || !body.title) {
-            sendErrorResponse(res, 400, "name and title are required", context.outputChannel);
+        // Validate storyText is provided
+        if (!storyText) {
+            sendErrorResponse(res, 400, "storyText is required", context.outputChannel);
             return;
         }
-        const model = modelService.getCurrentModel();
         
-        if (!model || !model.namespace || model.namespace.length === 0) {
-            sendErrorResponse(res, 400, "No namespaces available", context.outputChannel);
+        // Get namespace
+        const model = modelService.getCurrentModel();
+        if (!model || !model.namespace || !Array.isArray(model.namespace) || model.namespace.length === 0) {
+            sendErrorResponse(res, 400, "Model structure is invalid or namespace not found", context.outputChannel);
             return;
         }
         
         const namespace = model.namespace[0];
-        if (!namespace.userStory) {
+        if (!namespace.userStory || !Array.isArray(namespace.userStory)) {
             namespace.userStory = [];
         }
         
-        const newStory = {
-            name: body.name,
-            title: body.title,
-            description: body.description || "",
-            isIgnored: body.isIgnored || "false",
-            roleName: body.roleName || ""
+        // Validate user story using validation module
+        const validation = validateUserStory(storyText, modelService);
+        if (!validation.valid) {
+            sendErrorResponse(res, 400, validation.error || "Invalid user story", context.outputChannel);
+            return;
+        }
+        
+        // Check for duplicate
+        const existingStory = namespace.userStory.find((story: any) => story.storyText === storyText);
+        if (existingStory) {
+            sendErrorResponse(res, 409, "Duplicate story text already exists", context.outputChannel);
+            return;
+        }
+        
+        // Generate GUID for name
+        const generateGuid = (): string => {
+            return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === "x" ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
         };
         
+        // Create new story
+        const newStory: any = {
+            name: generateGuid(),
+            storyText: storyText
+        };
+        
+        // Add optional storyNumber if provided
+        if (storyNumber) {
+            newStory.storyNumber = storyNumber;
+        }
+        
+        // Add to model
         namespace.userStory.push(newStory);
+        
+        // Mark unsaved changes
         modelService.markUnsavedChanges();
         
-        setTimeout(() => {
-            try {
-                require("vscode").commands.executeCommand("appdna.refresh");
-            } catch (e) {
-                // Ignore errors
-            }
-        }, 100);
-        
-        context.outputChannel.appendLine(`[Data Bridge] Created user story: ${body.name}`);
-        sendJsonResponse(res, 200, {
+        context.outputChannel.appendLine(`[Data Bridge] User story created: ${newStory.name}`);
+        sendJsonResponse(res, 201, {
             success: true,
-            userStory: newStory,
-            message: `User story "${body.name}" created successfully`
+            story: newStory,
+            message: "User story added successfully (unsaved changes)"
         }, context.outputChannel);
         
     } catch (error) {
-        sendErrorResponse(res, 400, error instanceof Error ? error.message : "Invalid request", context.outputChannel);
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        context.outputChannel.appendLine(`[Data Bridge] Error creating story: ${errorMessage}`);
+        sendErrorResponse(res, 500, errorMessage, context.outputChannel);
     }
 }
 

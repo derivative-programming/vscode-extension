@@ -145,6 +145,84 @@ export async function getFabricationRequests(
     }, context.outputChannel);
 }
 
+/**
+ * GET/POST /api/model-services/prep-request-details
+ * Get single prep request details by request code
+ */
+export async function getPrepRequestDetails(
+    req: http.IncomingMessage,
+    res: http.ServerResponse,
+    context: RouteContext
+): Promise<void> {
+    logRequest(req, context.outputChannel);
+    
+    // Placeholder: Return not found
+    sendErrorResponse(res, 501, "Prep request details requires model services configuration", context.outputChannel);
+}
+
+/**
+ * POST /api/model-services/merge-ai-processing-results
+ * Merge AI processing results into the current model
+ */
+export async function mergeAiProcessingResults(
+    req: http.IncomingMessage,
+    res: http.ServerResponse,
+    context: RouteContext
+): Promise<void> {
+    logRequest(req, context.outputChannel);
+    
+    // Placeholder: Return not implemented
+    sendErrorResponse(res, 501, "Merge AI processing results requires model services configuration", context.outputChannel);
+}
+
+/**
+ * GET /api/model-services/validation-request-details
+ * Get single validation request details by request code
+ */
+export async function getValidationRequestDetails(
+    req: http.IncomingMessage,
+    res: http.ServerResponse,
+    context: RouteContext
+): Promise<void> {
+    logRequest(req, context.outputChannel);
+    
+    // Placeholder: Return not found
+    sendErrorResponse(res, 501, "Validation request details requires model services configuration", context.outputChannel);
+}
+
+/**
+ * GET /api/model-services/fabrication-request-details
+ * Get single fabrication request details by request code
+ */
+export async function getFabricationRequestDetails(
+    req: http.IncomingMessage,
+    res: http.ServerResponse,
+    context: RouteContext
+): Promise<void> {
+    logRequest(req, context.outputChannel);
+    
+    // Placeholder: Return not found
+    sendErrorResponse(res, 501, "Fabrication request details requires model services configuration", context.outputChannel);
+}
+
+/**
+ * GET /api/model-services/template-sets
+ * Get available template sets (fabrication blueprint catalog)
+ */
+export async function getTemplateSets(
+    req: http.IncomingMessage,
+    res: http.ServerResponse,
+    context: RouteContext
+): Promise<void> {
+    logRequest(req, context.outputChannel);
+    
+    // Placeholder: Return empty template sets list
+    sendJsonResponse(res, 200, {
+        templateSets: [],
+        message: "Model services not configured"
+    }, context.outputChannel);
+}
+
 // NOTE: Model service routes return placeholder responses
 // Full implementation requires:
 // 1. External AI service API configuration
