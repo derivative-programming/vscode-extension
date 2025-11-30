@@ -403,13 +403,11 @@ export function registerDataObjectTools(server: McpServer, tools: DataObjectTool
                     location: z.string(),
                     access: z.string(),
                     modelStructure: z.string(),
-                    purpose: z.string()
+                    purpose: z.string(),
+                    tools: z.array(z.string()),
+                    genericAlternatives: z.array(z.string())
                 }),
-                tools: z.object({
-                    roleSpecific: z.array(z.string()),
-                    genericLookup: z.array(z.string())
-                }),
-                exampleRoles: z.array(z.any()),
+                commonRoles: z.array(z.any()),
                 notes: z.array(z.string())
             }),
             note: z.string()

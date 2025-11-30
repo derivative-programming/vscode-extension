@@ -1581,7 +1581,7 @@ export class ReportTools {
             const postData = {
                 report_name,
                 param_name,
-                updates: updates
+                param: updates
             };
 
             const result: any = await this.postToBridge('/api/update-report-param', postData);
@@ -1647,9 +1647,11 @@ export class ReportTools {
             }
 
             // Call bridge API to add report column
+            // Ensure column has columnName (backend expects it)
+            const columnData = { ...column, columnName: column.name };
             const postData = {
                 report_name,
-                column: column
+                column: columnData
             };
 
             const result: any = await this.postToBridge('/api/add-report-column', postData);
@@ -1720,7 +1722,7 @@ export class ReportTools {
             const postData = {
                 report_name,
                 column_name,
-                updates: updates
+                column: updates
             };
 
             const result: any = await this.postToBridge('/api/update-report-column', postData);
@@ -1842,8 +1844,8 @@ export class ReportTools {
             // Call bridge API to update report button
             const postData = {
                 report_name,
-                button_name,
-                updates: updates
+                button_text: button_name,
+                button: updates
             };
 
             const result: any = await this.postToBridge('/api/update-report-button', postData);
@@ -1894,7 +1896,7 @@ export class ReportTools {
             }
 
             const http = await import('http');
-            const postData = { report_name, param_name, new_position };
+            const postData = { report_name, param_name, new_index: new_position };
             const postDataString = JSON.stringify(postData);
 
             const result: any = await new Promise((resolve, reject) => {
@@ -1972,7 +1974,7 @@ export class ReportTools {
             }
 
             const http = await import('http');
-            const postData = { report_name, column_name, new_position };
+            const postData = { report_name, column_name, new_index: new_position };
             const postDataString = JSON.stringify(postData);
 
             const result: any = await new Promise((resolve, reject) => {
@@ -2050,7 +2052,7 @@ export class ReportTools {
             }
 
             const http = await import('http');
-            const postData = { report_name, button_name, new_position };
+            const postData = { report_name, button_text: button_name, new_index: new_position };
             const postDataString = JSON.stringify(postData);
 
             const result: any = await new Promise((resolve, reject) => {

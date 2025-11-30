@@ -2378,7 +2378,7 @@ export class FormTools {
             const postData = {
                 form_name,
                 param_name,
-                new_position
+                targetPosition: new_position
             };
 
             const postDataString = JSON.stringify(postData);
@@ -2467,7 +2467,7 @@ export class FormTools {
             }
 
             const http = await import('http');
-            const postData = { form_name, button_text, new_position };
+            const postData = { form_name, button_text, targetPosition: new_position };
             const postDataString = JSON.stringify(postData);
 
             const result: any = await new Promise((resolve, reject) => {
@@ -2545,7 +2545,7 @@ export class FormTools {
             }
 
             const http = await import('http');
-            const postData = { form_name, output_var_name, new_position };
+            const postData = { form_name, output_var_name, targetPosition: new_position };
             const postDataString = JSON.stringify(postData);
 
             const result: any = await new Promise((resolve, reject) => {

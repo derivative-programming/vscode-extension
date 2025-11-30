@@ -14,7 +14,7 @@ import { AuthService } from './services/authService';
 import { showWelcomeView } from './webviews/welcomeView';
 import { showLexiconView } from './webviews/lexiconView';
 import { configureMcpSettings } from './commands/mcpCommands';
-import { McpBridge } from './services/mcpBridge';
+import { McpBridge } from './services/mcpBridge/index';
 import { registerMcpViewCommands } from './commands/mcpViewCommands';
 import { AppDNAMcpProvider } from './mcp/mcpProvider';
 import { generateChatmodeDocumentation as generateViewDocs, getToolNames as getViewToolNames } from './mcp/tools/registrations/registerViewTools';

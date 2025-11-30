@@ -193,4 +193,12 @@ export class McpBridge {
             this.outputChannel.appendLine("[MCP Bridge] Command bridge stopped");
         }
     }
+
+    /**
+     * Dispose of resources
+     */
+    public dispose(): void {
+        this.stop();
+        this.outputChannel.dispose();
+    }
 }

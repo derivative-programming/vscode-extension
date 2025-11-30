@@ -141,6 +141,157 @@ export async function getDataObjectUsageByName(
 }
 
 /**
+ * POST /api/roles
+ * Add a new role to the Role data object
+ */
+export async function addRole(
+    req: http.IncomingMessage,
+    res: http.ServerResponse,
+    context: RouteContext
+): Promise<void> {
+    logRequest(req, context.outputChannel);
+    
+    try {
+        let body = "";
+        req.on("data", (chunk) => {
+            body += chunk.toString();
+        });
+        
+        req.on("end", () => {
+            try {
+                const data = JSON.parse(body);
+                const { name, displayName, description, isActive } = data;
+                
+                if (!name) {
+                    sendErrorResponse(res, 400, "name is required", context.outputChannel);
+                    return;
+                }
+                
+                const modelService = ModelService.getInstance();
+                const allObjects = modelService.getAllObjects();
+                
+                // Find the Role object
+                const roleObject = allObjects.find((obj: any) => obj.name === "Role");
+                
+                if (!roleObject) {
+                    sendErrorResponse(res, 404, "Role data object not found", context.outputChannel);
+                    return;
+                }
+                
+                // Initialize lookupItem array if needed
+                if (!roleObject.lookupItem) {
+                    roleObject.lookupItem = [];
+                }
+                
+                // Check for duplicate (case-insensitive)
+                const duplicate = roleObject.lookupItem.find((item: any) => 
+                    item.name.toLowerCase() === name.toLowerCase()
+                );
+                
+                if (duplicate) {
+                    sendErrorResponse(res, 409, `Role "${name}" already exists`, context.outputChannel);
+                    return;
+                }
+                
+                // Create new role
+                const newRole = {
+                    name,
+                    displayName: displayName || name.replace(/([A-Z])/g, " $1").trim(),
+                    description: description || `${name.replace(/([A-Z])/g, " $1").trim()} role`,
+                    isActive: isActive || "true"
+                };
+                
+                // Add to lookupItem array
+                roleObject.lookupItem.push(newRole);
+                
+                context.outputChannel.appendLine(`[Data Bridge] Added role "${name}"`);
+                sendJsonResponse(res, 201, {
+                    success: true,
+                    role: newRole,
+                    message: `Role "${name}" added successfully`
+                }, context.outputChannel);
+            } catch (parseError) {
+                sendErrorResponse(res, 400, "Invalid JSON", context.outputChannel);
+            }
+        });
+    } catch (error) {
+        sendErrorResponse(res, 500, error instanceof Error ? error.message : "Failed to add role", context.outputChannel);
+    }
+}
+
+/**
+ * POST /api/roles/update
+ * Update an existing role in the Role data object
+ */
+export async function updateRole(
+    req: http.IncomingMessage,
+    res: http.ServerResponse,
+    context: RouteContext
+): Promise<void> {
+    logRequest(req, context.outputChannel);
+    
+    try {
+        let body = "";
+        req.on("data", (chunk) => {
+            body += chunk.toString();
+        });
+        
+        req.on("end", () => {
+            try {
+                const data = JSON.parse(body);
+                const { name, displayName, description, isActive } = data;
+                
+                if (!name) {
+                    sendErrorResponse(res, 400, "name is required", context.outputChannel);
+                    return;
+                }
+                
+                const modelService = ModelService.getInstance();
+                const allObjects = modelService.getAllObjects();
+                
+                // Find the Role object
+                const roleObject = allObjects.find((obj: any) => obj.name === "Role");
+                
+                if (!roleObject || !roleObject.lookupItem) {
+                    sendErrorResponse(res, 404, "Role data object not found", context.outputChannel);
+                    return;
+                }
+                
+                // Find the role (case-sensitive exact match)
+                const role = roleObject.lookupItem.find((item: any) => item.name === name);
+                
+                if (!role) {
+                    sendErrorResponse(res, 404, `Role "${name}" not found`, context.outputChannel);
+                    return;
+                }
+                
+                // Update provided fields
+                if (displayName !== undefined) {
+                    role.displayName = displayName;
+                }
+                if (description !== undefined) {
+                    role.description = description;
+                }
+                if (isActive !== undefined) {
+                    role.isActive = isActive;
+                }
+                
+                context.outputChannel.appendLine(`[Data Bridge] Updated role "${name}"`);
+                sendJsonResponse(res, 200, {
+                    success: true,
+                    role,
+                    message: `Role "${name}" updated successfully`
+                }, context.outputChannel);
+            } catch (parseError) {
+                sendErrorResponse(res, 400, "Invalid JSON", context.outputChannel);
+            }
+        });
+    } catch (error) {
+        sendErrorResponse(res, 500, error instanceof Error ? error.message : "Failed to update role", context.outputChannel);
+    }
+}
+
+/**
  * GET /api/health
  * Health check endpoint
  */

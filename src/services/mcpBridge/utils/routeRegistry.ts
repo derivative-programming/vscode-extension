@@ -33,33 +33,36 @@ export function matchRoute(req: http.IncomingMessage, route: RouteDefinition): b
 
 /**
  * All registered routes for the data bridge (port 3001)
+ * IMPORTANT: Routes are matched in order - more specific routes must come before general ones
  */
 export function getDataBridgeRoutes(): RouteDefinition[] {
     return [
-        // User Stories
+        // User Stories (exact matches first)
+        { method: "POST", path: "/api/user-stories/update", handler: userStoryRoutes.updateUserStory },
         { method: "GET", path: "/api/user-stories", handler: userStoryRoutes.getUserStories },
         { method: "POST", path: "/api/user-stories", handler: userStoryRoutes.createUserStory },
-        { method: "POST", path: "/api/user-stories/update", handler: userStoryRoutes.updateUserStory },
         
         // Model & General
         { method: "GET", path: "/api/model", handler: modelRoutes.getModel },
         { method: "GET", path: "/api/objects", handler: modelRoutes.getAllObjects },
+        { method: "POST", path: "/api/roles/update", handler: modelRoutes.updateRole },
+        { method: "POST", path: "/api/roles", handler: modelRoutes.addRole },
         { method: "GET", path: "/api/roles", handler: modelRoutes.getRoles },
         { method: "GET", path: "/api/health", handler: modelRoutes.getHealth },
         
-        // Data Object Usage
+        // Data Object Usage (exact match first, then regex)
         { method: "GET", path: "/api/data-object-usage", handler: modelRoutes.getDataObjectUsage },
         { method: "GET", path: /^\/api\/data-object-usage\/.+/, handler: modelRoutes.getDataObjectUsageByName },
         
-        // Data Objects (8 endpoints)
-        { method: "GET", path: "/api/data-objects", handler: dataObjectRoutes.getDataObjectsSummary },
+        // Data Objects (exact matches first, then regex)
         { method: "GET", path: "/api/data-objects-full", handler: dataObjectRoutes.getDataObjectsFull },
-        { method: "GET", path: /^\/api\/data-objects\/.+/, handler: dataObjectRoutes.getDataObjectByName },
-        { method: "POST", path: "/api/data-objects", handler: dataObjectRoutes.createDataObject },
-        { method: "POST", path: "/api/data-objects/update", handler: dataObjectRoutes.updateDataObject },
+        { method: "GET", path: "/api/data-objects", handler: dataObjectRoutes.getDataObjectsSummary },
         { method: "POST", path: "/api/update-full-data-object", handler: dataObjectRoutes.updateFullDataObject },
+        { method: "POST", path: "/api/data-objects/update", handler: dataObjectRoutes.updateDataObject },
         { method: "POST", path: "/api/data-objects/add-props", handler: dataObjectRoutes.addDataObjectProps },
         { method: "POST", path: "/api/data-objects/update-prop", handler: dataObjectRoutes.updateDataObjectProp },
+        { method: "POST", path: "/api/data-objects", handler: dataObjectRoutes.createDataObject },
+        { method: "GET", path: /^\/api\/data-objects\/.+/, handler: dataObjectRoutes.getDataObjectByName },
         
         // Forms (14 endpoints)
         { method: "GET", path: /^\/api\/forms/, handler: formRoutes.getForms },
@@ -79,7 +82,9 @@ export function getDataBridgeRoutes(): RouteDefinition[] {
         // Pages (1 endpoint)
         { method: "GET", path: /^\/api\/pages/, handler: pageRoutes.getPages },
         
-        // Lookups (1 endpoint)
+        // Lookups (3 endpoints)
+        { method: "POST", path: "/api/lookup-values/update", handler: lookupRoutes.updateLookupValue },
+        { method: "POST", path: "/api/lookup-values", handler: lookupRoutes.addLookupValue },
         { method: "GET", path: /^\/api\/lookup-values/, handler: lookupRoutes.getLookupValues },
         
         // Reports (13 endpoints)
