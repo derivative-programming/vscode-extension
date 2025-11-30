@@ -7,7 +7,7 @@ const { getOutputVarModalHtml } = require("./templates/modalTemplates");
 const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
 const { getMainTemplate } = require("./templates/mainTemplate");
 
-function generateDetailsView(flow, flowSchemaProps, flowOutputVarsSchema, codiconsUri, allDataObjects = [], ownerObject = null) {
+function generateDetailsView(flow, flowSchemaProps, flowOutputVarsSchema, codiconsUri, allDataObjects = [], ownerObject = null, initialTab = null) {
     try {
         const outputVars = flow.objectWorkflowOutputVar || [];
         const flowForSettings = { ...flow };
@@ -34,7 +34,8 @@ function generateDetailsView(flow, flowSchemaProps, flowOutputVarsSchema, codico
             outputVarModalHtml,
             clientScript,
             codiconsUri,
-            ownerObject
+            ownerObject,
+            initialTab
         );
         return result;
     } catch (error) {

@@ -127,9 +127,9 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
 
     // Open report details by name (MCP-friendly - takes string instead of tree item)
     // Description: Opens the Report details view showing report configuration, input controls, buttons, and output variables
-    // Tabs: 'settings' (report configuration), 'inputControls' (parameters and filters), 'buttons' (actions and downloads), 'outputVars' (data outputs)
+    // Tabs: 'settings' (report configuration), 'columns' (report columns), 'buttons' (actions and downloads), 'inputControls' (parameters and filters)
     // Parameters: reportName (required) - Name of the report
-    //            initialTab (optional) - One of: 'settings', 'inputControls', 'buttons', 'outputVars'
+    //            initialTab (optional) - One of: 'settings', 'columns', 'buttons', 'inputControls'
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.mcp.openReportDetails', async (reportName: string, initialTab?: string) => {
             if (!modelService.isFileLoaded()) {
@@ -151,6 +151,8 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
                 nodeType: 'report',
                 contextValue: 'reportItem'
             };
+            
+            console.log(`[MCP] Opening report details for ${reportName} with initialTab: ${initialTab}`);
             
             // Open the report details view
             return vscode.commands.executeCommand('appdna.showReportDetails', mockTreeItem, initialTab);
@@ -318,7 +320,7 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
             }
             const pageInitDetailsView = require('../webviews/pageInitDetailsView');
             const item = { label: flowName, contextValue: 'pageInit' };
-            return pageInitDetailsView.showPageInitDetails(item, modelService, context);
+            return pageInitDetailsView.showPageInitDetails(item, modelService, context, initialTab);
         })
     );
 
@@ -335,7 +337,7 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
             }
             const generalFlowDetailsView = require('../webviews/generalFlow/generalFlowDetailsView');
             const item = { label: workflowName, contextValue: 'generalFlow' };
-            return generalFlowDetailsView.showGeneralFlowDetails(item, modelService, context);
+            return generalFlowDetailsView.showGeneralFlowDetails(item, modelService, context, initialTab);
         })
     );
 
@@ -352,7 +354,7 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
             }
             const workflowDetailsView = require('../webviews/workflowDetailsView');
             const item = { label: workflowName, contextValue: 'workflow' };
-            return workflowDetailsView.showWorkflowDetails(item, modelService, context);
+            return workflowDetailsView.showWorkflowDetails(item, modelService, context, initialTab);
         })
     );
 

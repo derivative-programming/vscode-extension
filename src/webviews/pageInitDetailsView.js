@@ -17,9 +17,10 @@ const { showPageInitDetails, refreshAll, getOpenPanelItems, closeAllPanels } = r
  * @param {Object} item The tree/list item representing the workflow (expects label, optional ownerObject)
  * @param {Object} modelService ModelService instance
  * @param {vscode.ExtensionContext} context Extension context (optional)
+ * @param {string} initialTab Optional tab to open initially
  */
-function showPageInitDetailsWrapper(item, modelService, context) {
-    return showPageInitDetails(item, modelService, context);
+function showPageInitDetailsWrapper(item, modelService, context, initialTab) {
+    return showPageInitDetails(item, modelService, context, initialTab);
 }
 
 function refreshAllWrapper() { return refreshAll(); }

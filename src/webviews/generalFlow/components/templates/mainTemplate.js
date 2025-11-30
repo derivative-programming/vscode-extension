@@ -13,7 +13,8 @@ function getMainTemplate(
     outputVarModalHtml,
     clientScript,
     codiconsUri,
-    ownerObject = null
+    ownerObject = null,
+    initialTab = null
 ) {
     const flowName = (flow && flow.name) || 'Unknown Flow';
     return `<!DOCTYPE html>
@@ -118,7 +119,54 @@ function getMainTemplate(
     <script>
         const vscode = acquireVsCodeApi();
         const flow = ${JSON.stringify(flow)};
+        const initialTab = ${JSON.stringify(initialTab)};
+        
         ${clientScript}
+        
+        // Switch to initial tab if specified
+        if (initialTab) {
+            console.log('[DEBUG] Switching to initial tab:', initialTab);
+            setTimeout(() => {
+                const tabMap = {
+                    'settings': 'settings',
+                    'inputParameters': 'params',
+                    'params': 'params',
+                    'outputVariables': 'outputVars',
+                    'outputVars': 'outputVars'
+                };
+                const tabId = tabMap[initialTab] || initialTab;
+                const tabLink = document.querySelector(\`.tab[data-tab="\${tabId}"]\`);
+                if (tabLink) {
+                    console.log('[DEBUG] Found tab link, clicking:', tabId);
+                    tabLink.click();
+                } else {
+                    console.warn('[DEBUG] Tab link not found for:', tabId);
+                }
+            }, 100);
+        }
+        
+        // Listen for tab switch messages from extension
+        window.addEventListener('message', event => {
+            const message = event.data;
+            if (message.command === 'switchTab' && message.tab) {
+                console.log('[DEBUG] Received switchTab message:', message.tab);
+                const tabMap = {
+                    'settings': 'settings',
+                    'inputParameters': 'params',
+                    'params': 'params',
+                    'outputVariables': 'outputVars',
+                    'outputVars': 'outputVars'
+                };
+                const tabId = tabMap[message.tab] || message.tab;
+                const tabLink = document.querySelector(\`.tab[data-tab="\${tabId}"]\`);
+                if (tabLink) {
+                    console.log('[DEBUG] Clicking tab:', tabId);
+                    tabLink.click();
+                } else {
+                    console.warn('[DEBUG] Tab link not found for:', tabId);
+                }
+            }
+        });
     </script>
 </body>
 </html>`;

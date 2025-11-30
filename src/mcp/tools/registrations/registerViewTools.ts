@@ -180,7 +180,7 @@ const VIEW_METHOD_MAP: Record<string, ViewConfig> = {
         params: ['workflowName', 'initialTab'],
         description: 'Opens details for a specific general workflow showing settings and input parameters for reusable business logic.',
         category: 'Workflows',
-        tabs: 'settings (workflow configuration), inputParameters (workflow input parameters)'
+        tabs: 'settings (workflow configuration), inputParameters (workflow input parameters), outputVariables (data outputs)'
     },
     'workflows_list': { 
         method: 'openWorkflowsList', 
@@ -215,7 +215,7 @@ const VIEW_METHOD_MAP: Record<string, ViewConfig> = {
         params: ['reportName', 'initialTab'],
         description: 'Opens details editor for a specific report with configuration, parameters, filters, and outputs.',
         category: 'Reports & APIs',
-        tabs: 'settings (report configuration), inputControls (parameters and filters), buttons (actions and downloads), outputVars (data outputs)'
+        tabs: 'settings (report configuration), columns (report columns), buttons (actions and downloads), inputControls (parameters and filters)'
     },
     'apis_list': { 
         method: 'openAPIsList', 

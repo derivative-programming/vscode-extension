@@ -14,8 +14,9 @@ let currentContext = undefined;
 /**
  * Opens a webview panel displaying details for a Page Init workflow
  * The item.label is the workflow title/name; item.ownerObjectName optional for context.
+ * @param {string} initialTab Optional tab to open initially
  */
-function showPageInitDetails(item, modelService, context) {
+function showPageInitDetails(item, modelService, context, initialTab) {
     if (context) { currentContext = context; }
     const extensionContext = context || currentContext;
     if (!extensionContext) {
@@ -27,7 +28,17 @@ function showPageInitDetails(item, modelService, context) {
     const normalizedLabel = (item.label || '').trim().toLowerCase();
     const panelId = `pageInitDetails-${normalizedLabel}`;
     if (activePanels.has(panelId)) {
-        activePanels.get(panelId).reveal(vscode.ViewColumn.One);
+        console.log(`Panel already exists for ${item.label}, revealing existing panel with initialTab: ${initialTab}`);
+        const existingPanel = activePanels.get(panelId);
+        existingPanel.reveal(vscode.ViewColumn.One);
+        
+        // If initialTab is specified, send a message to switch to that tab
+        if (initialTab) {
+            existingPanel.webview.postMessage({
+                command: 'switchTab',
+                tab: initialTab
+            });
+        }
         return;
     }
 
@@ -99,7 +110,8 @@ function showPageInitDetails(item, modelService, context) {
             flowOutputVarsSchema,
             codiconsUri,
             allDataObjects,
-            ownerObject
+            ownerObject,
+            initialTab
         );
     } catch (error) {
         console.error("Error generating page init details view:", error);

@@ -10,83 +10,23 @@ common types of graphs...
 ---------------------
 show on all details views...
 - codeDescription
-
-add registraiton functions to src\mcp\tools\*.ts files
-  - registerDataObjectTools
-  - registerFormTools
-  - registerGeneralFlowTools
-  - registerReportTools
-  - registerModelTools
-  - registerModelServiceTools
-  - registerPageInitTools
-  - registerWorkflowTools
-  - registerUserStoryTools
-  - registerViewTools
-
-have server.ts call these functions to register the tools
-
+ 
+mcp tools...
+- close all views does not close model service views
 
 consolidate 'open_*' mcp tools
-  - open_user_stories_view
-  - open_user_stories_dev_view
-  - open_user_stories_qa_view
-  - open_user_stories_journey_view
-  - open_user_stories_page_mapping_view
-  - open_user_stories_role_requirements_view
-  - open_requirements_fulfillment_view
-  - open_object_details_view
-  - open_data_objects_list_view
-  - open_add_data_object_wizard
-  - open_data_object_usage_analysis_view
-  - open_data_object_size_analysis_view
-  - open_database_size_forecast_view
-  - open_form_details_view
-  - open_pages_list_view
-  - open_page_details_view
-  - open_page_preview_view
-  - open_page_init_flows_list_view
-  - open_page_init_flow_details_view
-  - open_general_workflows_list_view
-  - open_add_general_flow_wizard
-  - open_general_workflow_details_view
-  - open_workflows_list_view
-  - open_workflow_details_view
-  - open_workflow_tasks_list_view
-  - open_workflow_task_details_view
-  - open_report_details_view
-  - open_apis_list_view
-  - open_api_details_view
-  - open_metrics_analysis_view
-  - open_lexicon_view
   - open_change_requests_view
-  - open_model_ai_processing_view
-  - open_model_validation_requests_view
-  - open_model_feature_catalog_view
-  - open_fabrication_requests_view
-  - open_fabrication_blueprint_catalog_view
-  - open_hierarchy_diagram_view
-  - open_page_flow_diagram_view
-  - open_project_settings_view
-  - open_settings_view
-  - open_welcome_view
-  - open_help_view
-  - open_register_view
-  - open_login_view
-  - open_add_report_wizard
-  - open_add_form_wizard
-  - open_model_ai_processing_request_details
-  - open_validation_request_details
-  - open_model_fabrication_request_details
+  
 
 
 test: workflow mcp tools
-- get_workflow_schema ✅
-- list_workflows (just summary with name and owner data object) ✅
-- get_workflow (full workflow with workflowtask array) ✅
-- update_workflow ✅
-- create_workflow ✅
-- add_workflow_task ✅
-- move_workflow_task ✅
+- get_workflow_schema
+- list_workflows (just summary with name and owner data object)
+- get_workflow (full workflow with workflowtask array)
+- update_workflow
+- create_workflow 
+- add_workflow_task 
+- move_workflow_task 
 
 if item has role required then auth is required
 

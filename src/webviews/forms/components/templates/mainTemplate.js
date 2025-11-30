@@ -33,11 +33,13 @@ function getMainTemplate(
     outputVarModalHtml,
     clientScript,
     codiconsUri,
-    ownerObject = null
+    ownerObject = null,
+    initialTab = null
 ) {
     console.log('[DEBUG] Form object in mainTemplate:', form);
     console.log('[DEBUG] Form initObjectWorkflowName:', form.initObjectWorkflowName);
     console.log('[DEBUG] Form keys:', Object.keys(form));
+    console.log('[DEBUG] Initial tab requested:', initialTab);
     
     return `<!DOCTYPE html>
 <html lang="en">
@@ -324,7 +326,52 @@ function getMainTemplate(
         // Store the form data for reference
         const form = ${JSON.stringify(form)};
         
+        // Store the initial tab to display
+        const initialTab = ${JSON.stringify(initialTab)};
+        
         ${clientScript}
+        
+        // Switch to initial tab if specified
+        if (initialTab) {
+            console.log('[DEBUG] Switching to initial tab:', initialTab);
+            setTimeout(() => {
+                const tabMap = {
+                    'settings': 'settings',
+                    'inputControls': 'params',
+                    'buttons': 'buttons',
+                    'outputVariables': 'outputVars',
+                    'outputVars': 'outputVars'
+                };
+                const tabId = tabMap[initialTab] || initialTab;
+                const tabLink = document.querySelector(\`[data-tab="\${tabId}"]\`);
+                if (tabLink) {
+                    console.log('[DEBUG] Found tab link, clicking:', tabId);
+                    tabLink.click();
+                } else {
+                    console.warn('[DEBUG] Tab link not found for:', tabId);
+                }
+            }, 100);
+        }
+        
+        // Listen for tab switch messages from extension
+        window.addEventListener('message', event => {
+            const message = event.data;
+            if (message.command === 'switchTab' && message.tab) {
+                console.log('[DEBUG] Received switchTab message:', message.tab);
+                const tabMap = {
+                    'settings': 'settings',
+                    'inputControls': 'params',
+                    'buttons': 'buttons',
+                    'outputVariables': 'outputVars',
+                    'outputVars': 'outputVars'
+                };
+                const tabId = tabMap[message.tab] || message.tab;
+                const tabLink = document.querySelector(\`[data-tab="\${tabId}"]\`);
+                if (tabLink) {
+                    tabLink.click();
+                }
+            }
+        });
     </script>
 </body>
 </html>`;

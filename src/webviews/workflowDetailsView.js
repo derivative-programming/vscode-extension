@@ -12,8 +12,8 @@
 // Import the workflow details view from the workflows subfolder
 const { showWorkflowDetails, refreshAll, getOpenPanelItems, closeAllPanels } = require("./workflows/workflowDetailsView");
 
-function showWorkflowDetailsWrapper(item, modelService, context) {
-    return showWorkflowDetails(item, modelService, context);
+function showWorkflowDetailsWrapper(item, modelService, context, initialTab) {
+    return showWorkflowDetails(item, modelService, context, initialTab);
 }
 
 function refreshAllWrapper() { return refreshAll(); }

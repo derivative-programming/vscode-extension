@@ -16,9 +16,12 @@ const { showAddReportWizard } = require('../webviews/addReportWizardView');
  * @param item The tree item representing the report
  * @param modelService The ModelService instance
  * @param context The extension context
+ * @param initialTab Optional tab to open initially
  */
-export async function showReportDetailsCommand(item: JsonTreeItem, modelService: any, context?: vscode.ExtensionContext): Promise<void> {
+export async function showReportDetailsCommand(item: JsonTreeItem, modelService: any, context?: vscode.ExtensionContext, initialTab?: string): Promise<void> {
     try {
+        console.log(`[showReportDetailsCommand] Called with initialTab: ${initialTab}`);
+        
         // Ensure the reportDetailsView module is loaded correctly
         if (!reportDetailsView || typeof reportDetailsView.showReportDetails !== 'function') {
             vscode.window.showErrorMessage('Failed to load reportDetailsView module. Please check the extension setup.');
@@ -26,7 +29,7 @@ export async function showReportDetailsCommand(item: JsonTreeItem, modelService:
         }
 
         // Use the reportDetailsView implementation with modelService and context
-        reportDetailsView.showReportDetails(item, modelService, context);
+        reportDetailsView.showReportDetails(item, modelService, context, initialTab);
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         console.error('Error showing report details:', errorMessage);
@@ -63,8 +66,8 @@ export async function addReportCommand(modelService: any, context: vscode.Extens
 export function registerReportCommands(context: vscode.ExtensionContext, modelService: any): void {
     // Register the command to show report details
     context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.showReportDetails', (node: JsonTreeItem) => {
-            showReportDetailsCommand(node, modelService, context);
+        vscode.commands.registerCommand('appdna.showReportDetails', (node: JsonTreeItem, initialTab?: string) => {
+            showReportDetailsCommand(node, modelService, context, initialTab);
         })
     );
     

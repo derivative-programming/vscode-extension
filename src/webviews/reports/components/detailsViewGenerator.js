@@ -27,7 +27,7 @@ const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
  * @param {Object} ownerObject The owner data object for this report (optional)
  * @returns {string} HTML content
  */
-function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, reportButtonsSchema, reportParamsSchema, codiconsUri, allForms = [], allReports = [], allDataObjects = [], ownerObject = null) {
+function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, reportButtonsSchema, reportParamsSchema, codiconsUri, allForms = [], allReports = [], allDataObjects = [], ownerObject = null, initialTab = null) {
     const columns = report.reportColumn || [];
     const buttons = report.reportButton || [];
     const params = report.reportParam || [];
@@ -80,7 +80,8 @@ function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, rep
         columnModalHtml, buttonModalHtml, paramModalHtml,
         clientScript,
         codiconsUri,
-        ownerObject
+        ownerObject,
+        initialTab
     );
 }
 

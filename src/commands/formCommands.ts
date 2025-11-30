@@ -16,8 +16,9 @@ const { showAddFormWizard } = require('../webviews/addFormWizardView');
  * @param item The tree item representing the form
  * @param modelService The ModelService instance
  * @param context The extension context
+ * @param initialTab Optional initial tab to display
  */
-export async function showFormDetailsCommand(item: JsonTreeItem, modelService: any, context?: any): Promise<void> {
+export async function showFormDetailsCommand(item: JsonTreeItem, modelService: any, context?: any, initialTab?: string): Promise<void> {
     try {
         // Ensure the formDetailsView module is loaded correctly
         if (!formDetailsView || typeof formDetailsView.showFormDetails !== 'function') {
@@ -26,7 +27,7 @@ export async function showFormDetailsCommand(item: JsonTreeItem, modelService: a
         }
 
         // Use the formDetailsView implementation with modelService and context
-        formDetailsView.showFormDetails(item, modelService, context);
+        formDetailsView.showFormDetails(item, modelService, context, initialTab);
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         console.error('Error showing form details:', errorMessage);
@@ -63,8 +64,8 @@ export async function addFormCommand(modelService: any, context: vscode.Extensio
 export function registerFormCommands(context: vscode.ExtensionContext, modelService: any): void {
     // Register the command to show form details
     context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.showFormDetails', (node: JsonTreeItem) => {
-            showFormDetailsCommand(node, modelService, context);
+        vscode.commands.registerCommand('appdna.showFormDetails', (node: JsonTreeItem, initialTab?: string) => {
+            showFormDetailsCommand(node, modelService, context, initialTab);
         })
     );
     

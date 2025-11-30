@@ -19,8 +19,9 @@ let currentContext = undefined;
  * @param {Object} item The tree item representing the form
  * @param {Object} modelService The ModelService instance
  * @param {vscode.ExtensionContext} context Extension context (optional, uses stored context if not provided)
+ * @param {string} initialTab Optional initial tab to display ('settings', 'inputControls', 'buttons', 'outputVariables')
  */
-function showFormDetails(item, modelService, context) {
+function showFormDetails(item, modelService, context, initialTab) {
     // Store context for later use if provided
     if (context) {
         currentContext = context;
@@ -43,9 +44,17 @@ function showFormDetails(item, modelService, context) {
     
     // Check if panel already exists for this form
     if (activePanels.has(panelId)) {
-        console.log(`Panel already exists for ${item.label}, revealing existing panel`);
-        // Panel exists, reveal it instead of creating a new one
-        activePanels.get(panelId).reveal(vscode.ViewColumn.One);
+        console.log(`Panel already exists for ${item.label}, revealing existing panel with initialTab: ${initialTab}`);
+        const existingPanel = activePanels.get(panelId);
+        existingPanel.reveal(vscode.ViewColumn.One);
+        
+        // If initialTab is specified, send a message to switch to that tab
+        if (initialTab) {
+            existingPanel.webview.postMessage({
+                command: 'switchTab',
+                tab: initialTab
+            });
+        }
         return;
     }
       // Create webview panel
@@ -155,7 +164,8 @@ function showFormDetails(item, modelService, context) {
             allForms,
             allReports,
             allDataObjects,
-            ownerObject
+            ownerObject,
+            initialTab
         );
     } catch (error) {
         console.error("Error generating details view:", error);
@@ -656,7 +666,8 @@ function refreshAll() {
                 allForms,
                 allReports,
                 allDataObjects,
-                ownerObject
+                ownerObject,
+                null // initialTab not available in refresh context
             );
         }
     }
@@ -752,7 +763,8 @@ function updateModelDirectly(data, formReference, modelService, panel = null) {
                 allForms,
                 allReports,
                 allDataObjects,
-                ownerObject
+                ownerObject,
+                null // initialTab not available in this context
             );
             
             // If preserveTab was specified, restore the active tab

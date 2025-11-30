@@ -8,7 +8,7 @@ const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
 const { getMainTemplate } = require("./templates/mainTemplate");
 
 // Generates HTML content for the workflow (DynaFlow) details webview
-function generateDetailsView(flow, flowSchemaProps, flowDynaFlowTaskSchema, codiconsUri, allDataObjects = [], ownerObject = null) {
+function generateDetailsView(flow, flowSchemaProps, flowDynaFlowTaskSchema, codiconsUri, allDataObjects = [], ownerObject = null, initialTab = null) {
     try {
         const workflowTasks = flow.dynaFlowTask || [];
         const flowForSettings = { ...flow };
@@ -39,7 +39,8 @@ function generateDetailsView(flow, flowSchemaProps, flowDynaFlowTaskSchema, codi
             workflowTaskModalHtml,
             clientScript,
             codiconsUri,
-            ownerObject
+            ownerObject,
+            initialTab
         );
         return result;
     } catch (error) {

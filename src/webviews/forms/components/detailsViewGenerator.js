@@ -31,9 +31,10 @@ const { getMainTemplate } = require("./templates/mainTemplate");
  * @param {Array} allReports Array of all available reports for page search (optional)
  * @param {Array} allDataObjects Array of all available data objects for object search (optional)
  * @param {Object} ownerObject The owner data object for this form (optional)
+ * @param {string} initialTab Optional initial tab to display ('settings', 'inputControls', 'buttons', 'outputVariables')
  * @returns {string} HTML content
  */
-function generateDetailsView(form, formSchemaProps, formParamsSchema, formButtonsSchema, formOutputVarsSchema, codiconsUri, allForms = [], allReports = [], allDataObjects = [], ownerObject = null) {
+function generateDetailsView(form, formSchemaProps, formParamsSchema, formButtonsSchema, formOutputVarsSchema, codiconsUri, allForms = [], allReports = [], allDataObjects = [], ownerObject = null, initialTab = null) {
     console.log("[DEBUG] generateDetailsView called with:", {
         form: form,
         formSchemaPropsKeys: formSchemaProps ? Object.keys(formSchemaProps) : [],
@@ -107,7 +108,7 @@ function generateDetailsView(form, formSchemaProps, formParamsSchema, formButton
         );
         
         // Generate the complete HTML document
-        console.log("[DEBUG] Generating main template...");
+        console.log("[DEBUG] Generating main template with initialTab:", initialTab);
         const result = getMainTemplate(
             form,
             params.length,
@@ -122,7 +123,8 @@ function generateDetailsView(form, formSchemaProps, formParamsSchema, formButton
             outputVarModalHtml,
             clientScript,
             codiconsUri,
-            ownerObject
+            ownerObject,
+            initialTab
         );
         
         console.log("[DEBUG] generateDetailsView completed successfully");

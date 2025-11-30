@@ -19,8 +19,9 @@ let currentContext = undefined;
  * @param {Object} item The tree item representing the report
  * @param {Object} modelService The ModelService instance
  * @param {vscode.ExtensionContext} context Extension context (optional, uses stored context if not provided)
+ * @param {string} initialTab Optional tab to open initially
  */
-function showReportDetails(item, modelService, context) {
+function showReportDetails(item, modelService, context, initialTab) {
     // Store context for later use if provided
     if (context) {
         currentContext = context;
@@ -43,9 +44,17 @@ function showReportDetails(item, modelService, context) {
     
     // Check if panel already exists for this report
     if (activePanels.has(panelId)) {
-        console.log(`Panel already exists for ${item.label}, revealing existing panel`);
-        // Panel exists, reveal it instead of creating a new one
-        activePanels.get(panelId).reveal(vscode.ViewColumn.One);
+        console.log(`Panel already exists for ${item.label}, revealing existing panel with initialTab: ${initialTab}`);
+        const existingPanel = activePanels.get(panelId);
+        existingPanel.reveal(vscode.ViewColumn.One);
+        
+        // If initialTab is specified, send a message to switch to that tab
+        if (initialTab) {
+            existingPanel.webview.postMessage({
+                command: 'switchTab',
+                tab: initialTab
+            });
+        }
         return;
     }
       // Create webview panel
@@ -156,7 +165,8 @@ function showReportDetails(item, modelService, context) {
         allForms,
         allReports,
         allDataObjects,
-        ownerObject
+        ownerObject,
+        initialTab
     );
     
     // Handle messages from the webview

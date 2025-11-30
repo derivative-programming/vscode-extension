@@ -1,0 +1,75 @@
+Command: Fix MCP workflow_details view not respecting initialTab parameter
+Date: November 30, 2025
+Status: COMPLETED
+Architecture Notes:
+- Added initialTab parameter support throughout workflow details view chain
+- Updated workflowDetailsView.js wrapper to pass initialTab through
+- Updated workflows/workflowDetailsView.js to accept and pass initialTab
+- Added switchTab message handling for existing panels
+- Updated detailsViewGenerator.js to pass initialTab to mainTemplate
+- Added initialTab handling in mainTemplate.js with tab mapping:
+  - 'settings' maps to 'settings' tab
+  - 'workflowTasks' maps to 'workflowTasks' tab
+- Added message listener for switchTab command from extension
+Impact: MCP tool open_workflow_details now works with initialTab
+
+Command: Fix MCP general_workflow_details view not respecting initialTab parameter
+Date: November 30, 2025
+Status: COMPLETED
+Architecture Notes:
+- Added initialTab parameter support throughout general workflow details view chain
+- Updated generalFlowDetailsView.js to accept and pass initialTab
+- Added switchTab message handling for existing panels
+- Updated detailsViewGenerator.js to pass initialTab to mainTemplate
+- Added initialTab handling in mainTemplate.js with tab mapping:
+  - 'inputParameters' and 'params' both map to 'params' tab
+  - 'outputVariables' and 'outputVars' both map to 'outputVars' tab
+  - 'settings' maps directly
+- Added message listener for switchTab command from extension
+Impact: MCP tool open_general_workflow_details now works with initialTab
+
+Command: Fix MCP page_init_flow_details view not respecting initialTab parameter
+Date: November 30, 2025
+Status: COMPLETED
+Architecture Notes:
+- Added initialTab parameter support throughout page init flow details view chain
+- Updated pageInitDetailsView.js wrapper to accept and pass initialTab
+- Added switchTab message handling for existing panels
+- Updated detailsViewGenerator.js to pass initialTab to mainTemplate
+- Added initialTab handling in mainTemplate.js with tab mapping:
+  - 'outputVariables' and 'outputVars' both map to 'outputVars' tab
+  - 'settings' maps directly
+- Added message listener for switchTab command from extension
+Impact: MCP tool open_page_init_flow_details now works with initialTab
+
+Command: Fix MCP report_details view not respecting initialTab parameter
+Date: November 30, 2025
+Status: COMPLETED
+Architecture Notes:
+- Added initialTab parameter support throughout report details view chain
+- Updated reportCommands.ts to accept and pass initialTab parameter
+- Updated reportDetailsView.js showReportDetails() to accept initialTab
+- Added switchTab message handling for existing panels (like forms has)
+- Updated detailsViewGenerator.js to pass initialTab to mainTemplate
+- Added initialTab handling in mainTemplate.js with tab mapping:
+  - 'inputControls' and 'params' both map to 'params' tab
+  - 'settings', 'columns', 'buttons' map directly
+- Added message listener for switchTab command from extension
+- Tab switching uses 100ms setTimeout to ensure DOM is ready
+Impact: MCP tools like open_report_details_view with initialTab now work correctly
+
+Command: Fix MCP form_details view not respecting initialTab parameter
+Date: November 30, 2025
+Status: COMPLETED
+Architecture Notes:
+- Fixed duplicate command registration causing initialTab parameter loss
+- The appdna.showFormDetails command was registered twice:
+  1. In registerCommands.ts without initialTab parameter (BAD)
+  2. In formCommands.ts with initialTab parameter (GOOD)
+- Removed duplicate registration in registerCommands.ts
+- Now uses registerFormCommands() function which properly handles both commands
+- The formDetailsView.js already had switchTab message handling in place
+- The mainTemplate.js already had initialTab support on load
+Impact: MCP tools like open_form_details_view with initialTab now work correctly
+
+Command: Open Workflow Task Details for: DFTCampaignCloneRequestPrep

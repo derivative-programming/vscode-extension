@@ -12,7 +12,7 @@ const { getMainTemplate } = require("./templates/mainTemplate");
 /**
  * Generates the HTML content for the general flow details webview
  */
-function generateDetailsView(flow, flowSchemaProps, flowParamsSchema, flowOutputVarsSchema, codiconsUri, allDataObjects = [], ownerObject = null) {
+function generateDetailsView(flow, flowSchemaProps, flowParamsSchema, flowOutputVarsSchema, codiconsUri, allDataObjects = [], ownerObject = null, initialTab = null) {
     try {
         const params = flow.objectWorkflowParam || [];
         const outputVars = flow.objectWorkflowOutputVar || [];
@@ -50,7 +50,8 @@ function generateDetailsView(flow, flowSchemaProps, flowParamsSchema, flowOutput
             outputVarModalHtml,
             clientScript,
             codiconsUri,
-            ownerObject
+            ownerObject,
+            initialTab
         );
 
         return result;

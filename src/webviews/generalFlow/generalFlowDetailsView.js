@@ -15,7 +15,7 @@ let currentContext = undefined;
  * Opens a webview panel displaying details for a General workflow
  * The item.label is the workflow title/name
  */
-function showGeneralFlowDetails(item, modelService, context) {
+function showGeneralFlowDetails(item, modelService, context, initialTab) {
     if (context) { currentContext = context; }
     const extensionContext = context || currentContext;
     if (!extensionContext) {
@@ -27,7 +27,17 @@ function showGeneralFlowDetails(item, modelService, context) {
     const normalizedLabel = (item.label || '').trim().toLowerCase();
     const panelId = `generalFlowDetails-${normalizedLabel}`;
     if (activePanels.has(panelId)) {
-        activePanels.get(panelId).reveal(vscode.ViewColumn.One);
+        console.log(`Panel already exists for ${item.label}, revealing existing panel with initialTab: ${initialTab}`);
+        const existingPanel = activePanels.get(panelId);
+        existingPanel.reveal(vscode.ViewColumn.One);
+        
+        // If initialTab is specified, send a message to switch to that tab
+        if (initialTab) {
+            existingPanel.webview.postMessage({
+                command: 'switchTab',
+                tab: initialTab
+            });
+        }
         return;
     }
 
@@ -110,7 +120,8 @@ function showGeneralFlowDetails(item, modelService, context) {
             flowOutputVarsSchema,
             codiconsUri,
             allDataObjects,
-            ownerObject
+            ownerObject,
+            initialTab
         );
     } catch (error) {
         console.error("Error generating general flow details view:", error);

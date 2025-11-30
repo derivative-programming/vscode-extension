@@ -14,8 +14,9 @@ let currentContext = undefined;
 /**
  * Opens a webview panel displaying details for a DynaFlow workflow (isDynaFlow=true)
  * The item.label is the workflow title/name
+ * @param {string} initialTab Optional tab to open initially
  */
-function showWorkflowDetails(item, modelService, context) {
+function showWorkflowDetails(item, modelService, context, initialTab) {
     if (context) { currentContext = context; }
     const extensionContext = context || currentContext;
     if (!extensionContext) {
@@ -27,7 +28,17 @@ function showWorkflowDetails(item, modelService, context) {
     const normalizedLabel = (item.label || '').trim().toLowerCase();
     const panelId = `workflowDetails-${normalizedLabel}`;
     if (activePanels.has(panelId)) {
-        activePanels.get(panelId).reveal(vscode.ViewColumn.One);
+        console.log(`Panel already exists for ${item.label}, revealing existing panel with initialTab: ${initialTab}`);
+        const existingPanel = activePanels.get(panelId);
+        existingPanel.reveal(vscode.ViewColumn.One);
+        
+        // If initialTab is specified, send a message to switch to that tab
+        if (initialTab) {
+            existingPanel.webview.postMessage({
+                command: 'switchTab',
+                tab: initialTab
+            });
+        }
         return;
     }
 
@@ -92,7 +103,8 @@ function showWorkflowDetails(item, modelService, context) {
             flowDynaFlowTaskSchema,
             codiconsUri,
             allDataObjects,
-            ownerObject
+            ownerObject,
+            initialTab
         );
     } catch (error) {
         console.error("Error generating workflow details view:", error);
