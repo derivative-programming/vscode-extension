@@ -205,22 +205,20 @@ export class ModelServiceTools {
         return new Promise((resolve, reject) => {
             const http = require('http');
             
-            const postData = JSON.stringify({ 
-                pageNumber, 
-                itemCountPerPage, 
-                orderByColumnName, 
-                orderByDescending 
-            });
+            // Build query string for GET request
+            const params = [
+                'pageNumber=' + encodeURIComponent(pageNumber),
+                'itemCountPerPage=' + encodeURIComponent(itemCountPerPage),
+                'orderByColumnName=' + encodeURIComponent(orderByColumnName),
+                'orderByDescending=' + encodeURIComponent(orderByDescending)
+            ];
+            const queryString = params.join('&');
             
             const options = {
                 hostname: 'localhost',
                 port: 3001,  // Data bridge port
-                path: '/api/model-services/' + endpoint,
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(postData)
-                },
+                path: '/api/model-services/' + endpoint + '?' + queryString,
+                method: 'GET',
                 timeout: 30000 // 30 second timeout for API calls
             };
 
@@ -251,7 +249,6 @@ export class ModelServiceTools {
                 reject(new Error('API call timed out. The Model Services API may be slow or unavailable.'));
             });
 
-            req.write(postData);
             req.end();
         });
     }

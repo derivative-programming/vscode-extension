@@ -136,7 +136,7 @@ export async function getModelFeatures(
 }
 
 /**
- * POST /api/model-services/prep-requests
+ * GET /api/model-services/prep-requests
  * Get all prep requests with pagination and sorting
  */
 export async function getPrepRequests(
@@ -147,8 +147,12 @@ export async function getPrepRequests(
     logRequest(req, context.outputChannel);
     
     try {
-        const body = await parseRequestBody(req);
-        const { pageNumber = 1, itemCountPerPage = 10, orderByColumnName = 'modelPrepRequestRequestedUTCDateTime', orderByDescending = true } = body;
+        // Parse query parameters from GET request
+        const requestUrl = new URL(req.url || '', `http://${req.headers.host}`);
+        const pageNumber = parseInt(requestUrl.searchParams.get('pageNumber') || '1');
+        const itemCountPerPage = parseInt(requestUrl.searchParams.get('itemCountPerPage') || '10');
+        const orderByColumnName = requestUrl.searchParams.get('orderByColumnName') || 'modelPrepRequestRequestedUTCDateTime';
+        const orderByDescending = requestUrl.searchParams.get('orderByDescending') !== 'false';
         
         const authService = AuthService.getInstance();
         const apiKey = await authService.getApiKey();
@@ -170,10 +174,10 @@ export async function getPrepRequests(
         if (orderByColumnName) {
             params.push('OrderByColumnName=' + encodeURIComponent(orderByColumnName));
         }
-        const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/prep-requests?' + params.join('&');
+        const apiUrl = 'https://modelservicesapi.derivative-programming.com/api/v1_0/prep-requests?' + params.join('&');
         
         // Make the API call
-        const response = await fetch(url, {
+        const response = await fetch(apiUrl, {
             headers: { 'Api-Key': apiKey }
         });
         
@@ -510,8 +514,12 @@ export async function getValidationRequests(
     logRequest(req, context.outputChannel);
     
     try {
-        const body = await parseRequestBody(req);
-        const { pageNumber = 1, itemCountPerPage = 10, orderByColumnName = 'modelValidationRequestRequestedUTCDateTime', orderByDescending = true } = body;
+        // Parse query parameters from GET request
+        const requestUrl = new URL(req.url || '', `http://${req.headers.host}`);
+        const pageNumber = parseInt(requestUrl.searchParams.get('pageNumber') || '1');
+        const itemCountPerPage = parseInt(requestUrl.searchParams.get('itemCountPerPage') || '10');
+        const orderByColumnName = requestUrl.searchParams.get('orderByColumnName') || 'modelValidationRequestRequestedUTCDateTime';
+        const orderByDescending = requestUrl.searchParams.get('orderByDescending') !== 'false';
         
         const authService = AuthService.getInstance();
         const apiKey = await authService.getApiKey();
@@ -533,10 +541,10 @@ export async function getValidationRequests(
         if (orderByColumnName) {
             params.push('OrderByColumnName=' + encodeURIComponent(orderByColumnName));
         }
-        const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/validation-requests?' + params.join('&');
+        const apiUrl = 'https://modelservicesapi.derivative-programming.com/api/v1_0/validation-requests?' + params.join('&');
         
         // Make the API call
-        const response = await fetch(url, {
+        const response = await fetch(apiUrl, {
             headers: { 'Api-Key': apiKey }
         });
         
@@ -579,8 +587,12 @@ export async function getFabricationRequests(
     logRequest(req, context.outputChannel);
     
     try {
-        const body = await parseRequestBody(req);
-        const { pageNumber = 1, itemCountPerPage = 10, orderByColumnName = 'modelFabricationRequestRequestedUTCDateTime', orderByDescending = true } = body;
+        // Parse query parameters from GET request
+        const requestUrl = new URL(req.url || '', `http://${req.headers.host}`);
+        const pageNumber = parseInt(requestUrl.searchParams.get('pageNumber') || '1');
+        const itemCountPerPage = parseInt(requestUrl.searchParams.get('itemCountPerPage') || '10');
+        const orderByColumnName = requestUrl.searchParams.get('orderByColumnName') || 'modelFabricationRequestRequestedUTCDateTime';
+        const orderByDescending = requestUrl.searchParams.get('orderByDescending') !== 'false';
         
         const authService = AuthService.getInstance();
         const apiKey = await authService.getApiKey();
@@ -602,10 +614,10 @@ export async function getFabricationRequests(
         if (orderByColumnName) {
             params.push('OrderByColumnName=' + encodeURIComponent(orderByColumnName));
         }
-        const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/fabrication-requests?' + params.join('&');
+        const apiUrl = 'https://modelservicesapi.derivative-programming.com/api/v1_0/fabrication-requests?' + params.join('&');
         
         // Make the API call
-        const response = await fetch(url, {
+        const response = await fetch(apiUrl, {
             headers: { 'Api-Key': apiKey }
         });
         
@@ -1041,8 +1053,12 @@ export async function getTemplateSets(
     logRequest(req, context.outputChannel);
     
     try {
-        const body = await parseRequestBody(req);
-        const { pageNumber = 1, itemCountPerPage = 10, orderByColumnName = 'displayName', orderByDescending = false } = body;
+        // Parse query parameters from GET request
+        const requestUrl = new URL(req.url || '', `http://${req.headers.host}`);
+        const pageNumber = parseInt(requestUrl.searchParams.get('pageNumber') || '1');
+        const itemCountPerPage = parseInt(requestUrl.searchParams.get('itemCountPerPage') || '10');
+        const orderByColumnName = requestUrl.searchParams.get('orderByColumnName') || 'displayName';
+        const orderByDescending = requestUrl.searchParams.get('orderByDescending') === 'true';
         
         const authService = AuthService.getInstance();
         const apiKey = await authService.getApiKey();
@@ -1064,10 +1080,10 @@ export async function getTemplateSets(
         if (orderByColumnName) {
             params.push('OrderByColumnName=' + encodeURIComponent(orderByColumnName));
         }
-        const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/template-sets?' + params.join('&');
+        const apiUrl = 'https://modelservicesapi.derivative-programming.com/api/v1_0/template-sets?' + params.join('&');
         
         // Make the API call
-        const response = await fetch(url, {
+        const response = await fetch(apiUrl, {
             headers: { 'Api-Key': apiKey }
         });
         

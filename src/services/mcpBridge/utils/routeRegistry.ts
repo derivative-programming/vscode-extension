@@ -129,7 +129,7 @@ export function getDataBridgeRoutes(): RouteDefinition[] {
         // Model Services (13 endpoints)
         { method: "GET", path: "/api/auth-status", handler: modelServiceRoutes.getAuthStatus },
         { method: "POST", path: "/api/model-services/model-features", handler: modelServiceRoutes.getModelFeatures },
-        { method: "POST", path: "/api/model-services/prep-requests", handler: modelServiceRoutes.getPrepRequests },
+        { method: "GET", path: "/api/model-services/prep-requests", handler: modelServiceRoutes.getPrepRequests },
         { method: "GET", path: "/api/model-services/prep-request-details", handler: modelServiceRoutes.getPrepRequestDetails },
         { method: "POST", path: "/api/model-services/create-prep-request", handler: modelServiceRoutes.createPrepRequest },
         { method: "POST", path: "/api/model-services/create-validation-request", handler: modelServiceRoutes.createValidationRequest },
@@ -139,7 +139,7 @@ export function getDataBridgeRoutes(): RouteDefinition[] {
         { method: "POST", path: "/api/model-services/merge-ai-processing-results", handler: modelServiceRoutes.mergeAiProcessingResults },
         { method: "GET", path: "/api/model-services/validation-request-details", handler: modelServiceRoutes.getValidationRequestDetails },
         { method: "GET", path: "/api/model-services/fabrication-request-details", handler: modelServiceRoutes.getFabricationRequestDetails },
-        { method: "GET", path: /^\/api\/model-services\/template-sets/, handler: modelServiceRoutes.getTemplateSets }
+        { method: "GET", path: "/api/model-services/template-sets", handler: modelServiceRoutes.getTemplateSets }
     ];
 }
 
