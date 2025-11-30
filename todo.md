@@ -14,10 +14,8 @@ show on all details views...
 mcp tools...
 - close all views does not close model service views
 
-consolidate 'open_*' mcp tools
-  - open_change_requests_view
-  
 
+mcpbridge is too large.
 
 test: workflow mcp tools
 - get_workflow_schema
@@ -37,7 +35,7 @@ _ownerdataobject prop added for mcp forms and reports tools?
   
 Describe data object model restrictions
 
-Describe data object prop data types
+Describe data object prop data types`
 
 Describe lookups
 

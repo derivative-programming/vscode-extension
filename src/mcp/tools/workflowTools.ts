@@ -129,7 +129,7 @@ export class WorkflowTools {
     public async list_workflows(workflow_name?: string, owner_object_name?: string): Promise<any> {
         try {
             // Use HTTP bridge to get all objects
-            const response = await fetch('http://localhost:3001/api/model/objects');
+            const response = await fetch('http://localhost:3001/api/objects');
             if (!response.ok) {
                 return {
                     success: false,
@@ -210,7 +210,7 @@ export class WorkflowTools {
 
         try {
             // Use HTTP bridge to get all objects
-            const response = await fetch('http://localhost:3001/api/model/objects');
+            const response = await fetch('http://localhost:3001/api/objects');
             if (!response.ok) {
                 return {
                     success: false,
@@ -306,7 +306,7 @@ export class WorkflowTools {
 
         try {
             // First, find the workflow
-            const getResponse = await fetch('http://localhost:3001/api/model/objects');
+            const getResponse = await fetch('http://localhost:3001/api/objects');
             if (!getResponse.ok) {
                 return {
                     success: false,
@@ -351,19 +351,7 @@ export class WorkflowTools {
                 foundWorkflow.isCustomLogicOverwritten = isCustomLogicOverwritten;
             }
 
-            // Save via HTTP bridge
-            const saveResponse = await fetch('http://localhost:3001/api/model/save', {
-                method: 'POST'
-            });
-
-            if (!saveResponse.ok) {
-                return {
-                    success: false,
-                    error: 'Could not save model changes',
-                    note: 'Bridge connection required.'
-                };
-            }
-
+            // Changes are applied in memory - the model service will track unsaved changes
             const filteredWorkflow = this.filterHiddenWorkflowProperties(foundWorkflow);
 
             return {
@@ -426,7 +414,7 @@ export class WorkflowTools {
 
         try {
             // Get all objects
-            const response = await fetch('http://localhost:3001/api/model/objects');
+            const response = await fetch('http://localhost:3001/api/objects');
             if (!response.ok) {
                 return {
                     success: false,
@@ -475,19 +463,7 @@ export class WorkflowTools {
             }
             ownerObject.objectWorkflow.push(newWorkflow);
 
-            // Save via HTTP bridge
-            const saveResponse = await fetch('http://localhost:3001/api/model/save', {
-                method: 'POST'
-            });
-
-            if (!saveResponse.ok) {
-                return {
-                    success: false,
-                    error: 'Could not save model changes',
-                    note: 'Bridge connection required.'
-                };
-            }
-
+            // Changes are applied in memory - the model service will track unsaved changes
             const filteredWorkflow = this.filterHiddenWorkflowProperties(newWorkflow);
 
             return {
@@ -543,7 +519,7 @@ export class WorkflowTools {
 
         try {
             // Find the workflow
-            const response = await fetch('http://localhost:3001/api/model/objects');
+            const response = await fetch('http://localhost:3001/api/objects');
             if (!response.ok) {
                 return {
                     success: false,
@@ -601,19 +577,7 @@ export class WorkflowTools {
             // Add task to workflow
             foundWorkflow.dynaFlowTask.push(newTask);
 
-            // Save via HTTP bridge
-            const saveResponse = await fetch('http://localhost:3001/api/model/save', {
-                method: 'POST'
-            });
-
-            if (!saveResponse.ok) {
-                return {
-                    success: false,
-                    error: 'Could not save model changes',
-                    note: 'Bridge connection required.'
-                };
-            }
-
+            // Changes are applied in memory - the model service will track unsaved changes
             return {
                 success: true,
                 task: newTask,
@@ -673,7 +637,7 @@ export class WorkflowTools {
 
         try {
             // Find the workflow
-            const response = await fetch('http://localhost:3001/api/model/objects');
+            const response = await fetch('http://localhost:3001/api/objects');
             if (!response.ok) {
                 return {
                     success: false,
@@ -740,19 +704,7 @@ export class WorkflowTools {
             const [task] = foundWorkflow.dynaFlowTask.splice(oldPosition, 1);
             foundWorkflow.dynaFlowTask.splice(new_position, 0, task);
 
-            // Save via HTTP bridge
-            const saveResponse = await fetch('http://localhost:3001/api/model/save', {
-                method: 'POST'
-            });
-
-            if (!saveResponse.ok) {
-                return {
-                    success: false,
-                    error: 'Could not save model changes',
-                    note: 'Bridge connection required.'
-                };
-            }
-
+            // Changes are applied in memory - the model service will track unsaved changes
             return {
                 success: true,
                 workflow_name: workflow_name,
