@@ -411,7 +411,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Start MCP bridge for data and command access
     const mcpBridge = new McpBridge();
-    mcpBridge.start(context);
+    mcpBridge.start(context, modelService);
     context.subscriptions.push(mcpBridge);
     console.log('[Extension] MCP bridge started');
 

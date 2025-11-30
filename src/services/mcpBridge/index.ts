@@ -22,6 +22,7 @@ export class McpBridge {
     private commandPort: number = 3002;
     private outputChannel: vscode.OutputChannel;
     private extensionContext: vscode.ExtensionContext | undefined;
+    private modelService: any;
 
     constructor() {
         this.outputChannel = vscode.window.createOutputChannel("MCP Bridge");
@@ -30,8 +31,9 @@ export class McpBridge {
     /**
      * Start both data and command bridges
      */
-    public start(context: vscode.ExtensionContext): void {
+    public start(context: vscode.ExtensionContext, modelService: any): void {
         this.extensionContext = context;
+        this.modelService = modelService;
         this.startDataBridge();
         this.startCommandBridge(context);
         this.outputChannel.appendLine("[MCP Bridge] Started successfully (data + command)");
@@ -54,7 +56,8 @@ export class McpBridge {
 
             const context: RouteContext = {
                 outputChannel: this.outputChannel,
-                extensionContext: this.extensionContext
+                extensionContext: this.extensionContext,
+                modelService: this.modelService
             };
 
             try {

@@ -21,7 +21,7 @@ export class ModelServiceTools {
             
             const options = {
                 hostname: 'localhost',
-                port: 3002,
+                port: 3001,  // Use data bridge port
                 path: '/api/auth-status',
                 method: 'GET',
                 timeout: 2000 // 2 second timeout
@@ -79,7 +79,7 @@ export class ModelServiceTools {
             
             const options = {
                 hostname: 'localhost',
-                port: 3002,
+                port: 3001,  // Data bridge port
                 path: '/api/model-services/model-features',
                 method: 'POST',
                 headers: {
@@ -206,7 +206,6 @@ export class ModelServiceTools {
             const http = require('http');
             
             const postData = JSON.stringify({ 
-                endpoint,
                 pageNumber, 
                 itemCountPerPage, 
                 orderByColumnName, 
@@ -215,7 +214,7 @@ export class ModelServiceTools {
             
             const options = {
                 hostname: 'localhost',
-                port: 3002,
+                port: 3001,  // Data bridge port
                 path: '/api/model-services/' + endpoint,
                 method: 'POST',
                 headers: {
@@ -235,11 +234,8 @@ export class ModelServiceTools {
                 res.on('end', () => {
                     try {
                         const response = JSON.parse(data);
-                        if (response.success) {
-                            resolve(response.data);
-                        } else {
-                            reject(new Error(response.error || 'API call failed'));
-                        }
+                        // The response should already have the data we need directly
+                        resolve(response);
                     } catch (error) {
                         reject(new Error('Invalid response from extension'));
                     }
@@ -290,13 +286,16 @@ export class ModelServiceTools {
         }
 
         try {
-            const data = await this.fetchFromModelServices(
+            const response = await this.fetchFromModelServices(
                 'prep-requests',
                 pageNumber,
                 itemCountPerPage,
                 orderByColumnName,
                 orderByDescending
             );
+
+            // Unwrap the data property from the response
+            const data = response.data || response;
 
             return {
                 success: true,
@@ -350,19 +349,11 @@ export class ModelServiceTools {
         return new Promise((resolve) => {
             const http = require('http');
             
-            const postData = JSON.stringify({ 
-                requestCode: requestCode
-            });
-            
             const options = {
                 hostname: 'localhost',
-                port: 3002,
-                path: '/api/model-services/prep-request-details',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(postData)
-                },
+                port: 3001,  // Data bridge port
+                path: `/api/model-services/prep-request-details?requestCode=${encodeURIComponent(requestCode)}`,
+                method: 'GET',
                 timeout: 30000 // 30 second timeout for API calls
             };
 
@@ -421,7 +412,6 @@ export class ModelServiceTools {
                 });
             });
 
-            req.write(postData);
             req.end();
         });
     }
@@ -454,19 +444,11 @@ export class ModelServiceTools {
         return new Promise((resolve) => {
             const http = require('http');
             
-            const postData = JSON.stringify({ 
-                requestCode: requestCode
-            });
-            
             const options = {
                 hostname: 'localhost',
-                port: 3002,
-                path: '/api/model-services/validation-request-details',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(postData)
-                },
+                port: 3001,  // Data bridge port
+                path: `/api/model-services/validation-request-details?requestCode=${encodeURIComponent(requestCode)}`,
+                method: 'GET',
                 timeout: 30000 // 30 second timeout for API calls
             };
 
@@ -525,7 +507,6 @@ export class ModelServiceTools {
                 });
             });
 
-            req.write(postData);
             req.end();
         });
     }
@@ -558,19 +539,11 @@ export class ModelServiceTools {
         return new Promise((resolve) => {
             const http = require('http');
             
-            const postData = JSON.stringify({ 
-                requestCode: requestCode
-            });
-            
             const options = {
                 hostname: 'localhost',
-                port: 3002,
-                path: '/api/model-services/fabrication-request-details',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(postData)
-                },
+                port: 3001,  // Data bridge port
+                path: `/api/model-services/fabrication-request-details?requestCode=${encodeURIComponent(requestCode)}`,
+                method: 'GET',
                 timeout: 30000 // 30 second timeout for API calls
             };
 
@@ -629,7 +602,6 @@ export class ModelServiceTools {
                 });
             });
 
-            req.write(postData);
             req.end();
         });
     }
@@ -1147,13 +1119,16 @@ export class ModelServiceTools {
         }
 
         try {
-            const data = await this.fetchFromModelServices(
+            const response = await this.fetchFromModelServices(
                 'validation-requests',
                 pageNumber,
                 itemCountPerPage,
                 orderByColumnName,
                 orderByDescending
             );
+
+            // Unwrap the data property from the response
+            const data = response.data || response;
 
             return {
                 success: true,
@@ -1411,13 +1386,16 @@ export class ModelServiceTools {
         }
 
         try {
-            const data = await this.fetchFromModelServices(
+            const response = await this.fetchFromModelServices(
                 'template-sets',
                 pageNumber,
                 itemCountPerPage,
                 orderByColumnName,
                 orderByDescending
             );
+
+            // Unwrap the data property from the response
+            const data = response.data || response;
 
             return {
                 success: true,
@@ -1473,13 +1451,16 @@ export class ModelServiceTools {
         }
 
         try {
-            const data = await this.fetchFromModelServices(
+            const response = await this.fetchFromModelServices(
                 'fabrication-requests',
                 pageNumber,
                 itemCountPerPage,
                 orderByColumnName,
                 orderByDescending
             );
+
+            // Unwrap the data property from the response
+            const data = response.data || response;
 
             return {
                 success: true,

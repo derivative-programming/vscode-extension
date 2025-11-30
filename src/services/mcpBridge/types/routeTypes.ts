@@ -20,6 +20,7 @@ export type RouteHandler = (
 export interface RouteContext {
     outputChannel: vscode.OutputChannel;
     extensionContext?: vscode.ExtensionContext;
+    modelService: any; // ModelService instance for accessing current file
 }
 
 /**

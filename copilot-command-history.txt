@@ -104,3 +104,4 @@ Impact: MCP tools like open_form_details_view with initialTab now work correctly
 
 Command: Open Workflow Task Details for: DFTCampaignCloneRequestPrep
 Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
