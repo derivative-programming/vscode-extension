@@ -61,7 +61,7 @@ export async function getGeneralFlowsSummary(
             return;
         }
         
-        const url = new URL(req.url || '', `http://${req.headers.host}`);
+        const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
         const generalFlowName = url.searchParams.get('general_flow_name');
         const ownerObjectName = url.searchParams.get('owner_object_name');
         
@@ -70,13 +70,13 @@ export async function getGeneralFlowsSummary(
         const generalFlows: any[] = [];
         
         for (const obj of allObjects) {
-            if (ownerObjectName && obj.name.toLowerCase() !== ownerObjectName.toLowerCase()) {
+            if (ownerObjectName && obj.name && obj.name.toLowerCase() !== ownerObjectName.toLowerCase()) {
                 continue;
             }
             
             if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
                 for (const workflow of obj.objectWorkflow) {
-                    if (!isGeneralFlow(workflow)) {
+                    if (!workflow || !workflow.name || !isGeneralFlow(workflow)) {
                         continue;
                     }
                     
@@ -129,7 +129,7 @@ export async function getGeneralFlows(
             return;
         }
         
-        const url = new URL(req.url || '', `http://${req.headers.host}`);
+        const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
         const generalFlowName = url.searchParams.get('general_flow_name');
         const ownerObjectName = url.searchParams.get('owner_object_name');
         
@@ -138,13 +138,13 @@ export async function getGeneralFlows(
         const generalFlows: any[] = [];
         
         for (const obj of allObjects) {
-            if (ownerObjectName && obj.name.toLowerCase() !== ownerObjectName.toLowerCase()) {
+            if (ownerObjectName && obj.name && obj.name.toLowerCase() !== ownerObjectName.toLowerCase()) {
                 continue;
             }
             
             if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
                 for (const workflow of obj.objectWorkflow) {
-                    if (!isGeneralFlow(workflow)) {
+                    if (!workflow || !workflow.name || !isGeneralFlow(workflow)) {
                         continue;
                     }
                     

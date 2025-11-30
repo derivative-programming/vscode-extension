@@ -1844,7 +1844,7 @@ export class ReportTools {
             // Call bridge API to update report button
             const postData = {
                 report_name,
-                button_text: button_name,
+                button_name: button_name,
                 button: updates
             };
 
@@ -2052,7 +2052,7 @@ export class ReportTools {
             }
 
             const http = await import('http');
-            const postData = { report_name, button_text: button_name, new_index: new_position };
+            const postData = { report_name, button_name: button_name, new_index: new_position };
             const postDataString = JSON.stringify(postData);
 
             const result: any = await new Promise((resolve, reject) => {

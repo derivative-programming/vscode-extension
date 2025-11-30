@@ -623,10 +623,10 @@ export async function updateReportButton(
     logRequest(req, context.outputChannel);
     
     try {
-        const { report_name, button_text, button } = await parseRequestBody(req);
+        const { report_name, button_name, button } = await parseRequestBody(req);
         
-        if (!report_name || !button_text) {
-            throw new Error("report_name and button_text are required");
+        if (!report_name || !button_name) {
+            throw new Error("report_name and button_name are required");
         }
         
         const modelService = ModelService.getInstance();
@@ -637,9 +637,9 @@ export async function updateReportButton(
             throw new Error(`Report "${report_name}" not found`);
         }
         
-        const buttonIndex = found.report.reportButton?.findIndex((b: any) => b.buttonText === button_text);
+        const buttonIndex = found.report.reportButton?.findIndex((b: any) => b.buttonName === button_name);
         if (buttonIndex === -1 || buttonIndex === undefined) {
-            throw new Error(`Button "${button_text}" not found`);
+            throw new Error(`Button "${button_name}" not found`);
         }
         
         Object.keys(button).forEach(key => {
@@ -667,10 +667,10 @@ export async function moveReportButton(
     logRequest(req, context.outputChannel);
     
     try {
-        const { report_name, button_text, new_index } = await parseRequestBody(req);
+        const { report_name, button_name, new_index } = await parseRequestBody(req);
         
-        if (!report_name || !button_text || new_index === undefined) {
-            throw new Error("report_name, button_text, and new_index are required");
+        if (!report_name || !button_name || new_index === undefined) {
+            throw new Error("report_name, button_name, and new_index are required");
         }
         
         const modelService = ModelService.getInstance();
@@ -681,9 +681,9 @@ export async function moveReportButton(
             throw new Error(`Report "${report_name}" not found or has no buttons`);
         }
         
-        const currentIndex = found.report.reportButton.findIndex((b: any) => b.buttonText === button_text);
+        const currentIndex = found.report.reportButton.findIndex((b: any) => b.buttonName === button_name);
         if (currentIndex === -1) {
-            throw new Error(`Button "${button_text}" not found`);
+            throw new Error(`Button "${button_name}" not found`);
         }
         
         const [button] = found.report.reportButton.splice(currentIndex, 1);

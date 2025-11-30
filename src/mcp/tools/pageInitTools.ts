@@ -251,7 +251,10 @@ export class PageInitTools {
                 endpoint = `/api/page-init-flows?page_init_flow_name=${encodeURIComponent(page_init_flow_name)}`;
             }
             
-            pageInitFlows = await this.fetchFromBridge(endpoint);
+            const response = await this.fetchFromBridge(endpoint);
+            
+            // The response should be an array of page init flows
+            pageInitFlows = Array.isArray(response) ? response : [];
             
             // Check if we found the page init flow
             if (!pageInitFlows || pageInitFlows.length === 0) {
@@ -274,6 +277,17 @@ export class PageInitTools {
             
             // Get the first (and should be only) page init flow from results
             const pageInitFlow = pageInitFlows[0];
+            
+            // Validate that the page init flow has the required property
+            if (!pageInitFlow || !pageInitFlow._ownerObjectName) {
+                return {
+                    success: false,
+                    error: `Invalid page init flow data returned from bridge`,
+                    note: 'The page init flow data is missing the owner object information.',
+                    validationErrors: ['Invalid response from bridge API']
+                };
+            }
+            
             const ownerObjectName = pageInitFlow._ownerObjectName;
             
             // Remove the temporary _ownerObjectName property

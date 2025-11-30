@@ -55,7 +55,7 @@ export async function getPageInitFlows(
             return;
         }
         
-        const url = new URL(req.url || '', `http://${req.headers.host}`);
+        const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
         const pageInitFlowName = url.searchParams.get('page_init_flow_name');
         const ownerObjectName = url.searchParams.get('owner_object_name');
         
@@ -63,13 +63,32 @@ export async function getPageInitFlows(
         const allObjects = modelService.getAllObjects();
         const pageInitFlows: any[] = [];
         
+        context.outputChannel.appendLine(`[Data Bridge] Searching for page init flow: "${pageInitFlowName}", owner: "${ownerObjectName || 'any'}"`);
+        context.outputChannel.appendLine(`[Data Bridge] Total objects to search: ${allObjects.length}`);
+        
         for (const obj of allObjects) {
+            // Skip objects without a name
+            if (!obj.name) {
+                continue;
+            }
+            
             if (ownerObjectName && obj.name.toLowerCase() !== ownerObjectName.toLowerCase()) {
                 continue;
             }
             
             if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
                 for (const workflow of obj.objectWorkflow) {
+                    if (!workflow || !workflow.name) {
+                        continue;
+                    }
+                    
+                    // Debug: Log workflow being checked
+                    if (pageInitFlowName && workflow.name.toLowerCase() === pageInitFlowName.toLowerCase()) {
+                        context.outputChannel.appendLine(`[Data Bridge] Found workflow "${workflow.name}" - checking if page init flow...`);
+                        const isPageInit = isPageInitFlow(workflow);
+                        context.outputChannel.appendLine(`[Data Bridge] isPageInitFlow result: ${isPageInit}`);
+                    }
+                    
                     if (!isPageInitFlow(workflow)) {
                         continue;
                     }

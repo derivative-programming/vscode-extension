@@ -23,11 +23,15 @@ export function matchRoute(req: http.IncomingMessage, route: RouteDefinition): b
         return false;
     }
     
+    const url = req.url || "";
+    const urlPath = url.split('?')[0]; // Get path without query string
+    
     if (typeof route.path === "string") {
-        return req.url === route.path;
+        // For string paths, match exact path (before query string)
+        return urlPath === route.path;
     } else {
-        // RegExp pattern
-        return route.path.test(req.url || "");
+        // RegExp pattern - test against full URL including query string
+        return route.path.test(url);
     }
 }
 
